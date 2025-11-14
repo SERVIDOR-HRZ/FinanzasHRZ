@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Finanzas HRZ - Dashboard</title>
+    <link rel="stylesheet" href="Componentes/css/global.css">
+    <link rel="stylesheet" href="Componentes/css/dashboard.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-wallet"></i>
+            <h2>Finanzas HRZ</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="index.html" class="nav-item active">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="Secciones/Ingresos.html" class="nav-item">
+                <i class="fas fa-arrow-up"></i>
+                <span>Ingresos</span>
+            </a>
+            <a href="Secciones/Gastos.html" class="nav-item">
+                <i class="fas fa-arrow-down"></i>
+                <span>Gastos</span>
+            </a>
+            <a href="Secciones/Cuentas.html" class="nav-item">
+                <i class="fas fa-credit-card"></i>
+                <span>Cuentas</span>
+            </a>
+            <a href="Secciones/Categorias.html" class="nav-item">
+                <i class="fas fa-tags"></i>
+                <span>Categorías</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-bar">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1>Dashboard</h1>
+            <select class="form-control filter-select" id="monthFilter">
+                <option value="">Todos los meses</option>
+            </select>
+        </header>
+
+        <div class="dashboard-container">
+            <!-- Summary Cards -->
+            <div class="summary-cards">
+                <div class="card card-balance">
+                    <div class="card-icon">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Balance Total</h3>
+                        <p class="amount" id="totalBalance">$0.00</p>
+                    </div>
+                </div>
+                <div class="card card-income">
+                    <div class="card-icon">
+                        <i class="fas fa-arrow-up"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Ingresos</h3>
+                        <p class="amount" id="totalIncome">$0.00</p>
+                    </div>
+                </div>
+                <div class="card card-expense">
+                    <div class="card-icon">
+                        <i class="fas fa-arrow-down"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3>Gastos</h3>
+                        <p class="amount" id="totalExpense">$0.00</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Transactions -->
+            <div class="recent-section">
+                <h2>Transacciones Recientes</h2>
+                <div class="transactions-list" id="recentTransactions">
+                    <p class="no-data">No hay transacciones recientes</p>
+                </div>
+            </div>
+
+            <!-- Accounts Overview -->
+            <div class="accounts-section">
+                <h2>Cuentas</h2>
+                <div class="accounts-grid" id="accountsGrid">
+                    <p class="no-data">No hay cuentas registradas</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script type="module" src="Componentes/js/firebase-config.js"></script>
+    <script type="module" src="Componentes/js/dashboard.js"></script>
+</body>
+
+</html>
