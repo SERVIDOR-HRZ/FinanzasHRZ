@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Gastos - Finanzas HRZ</title>
+    <link rel="stylesheet" href="../Componentes/css/global.css">
+    <link rel="stylesheet" href="../Componentes/css/gastos.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-wallet"></i>
+            <h2>Finanzas HRZ</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="../index.html" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="Ingresos.html" class="nav-item">
+                <i class="fas fa-arrow-up"></i>
+                <span>Ingresos</span>
+            </a>
+            <a href="Gastos.html" class="nav-item active">
+                <i class="fas fa-arrow-down"></i>
+                <span>Gastos</span>
+            </a>
+            <a href="Cuentas.html" class="nav-item">
+                <i class="fas fa-credit-card"></i>
+                <span>Cuentas</span>
+            </a>
+            <a href="Categorias.html" class="nav-item">
+                <i class="fas fa-tags"></i>
+                <span>Categorías</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-bar">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1>Gastos</h1>
+            <button class="btn btn-expense" id="btnNewExpense">
+                <i class="fas fa-plus"></i>
+                Nuevo Gasto
+            </button>
+        </header>
+
+        <div class="content-container">
+            <div class="total-card">
+                <div class="total-icon">
+                    <i class="fas fa-arrow-down"></i>
+                </div>
+                <div>
+                    <h3>Total Gastos</h3>
+                    <p class="total-amount" id="totalExpense">$0.00</p>
+                </div>
+            </div>
+
+            <div class="list-container">
+                <div class="list-header">
+                    <h2>Lista de Gastos</h2>
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="searchInput" placeholder="Buscar...">
+                    </div>
+                </div>
+                <div class="items-grid" id="expensesList">
+                    <p class="no-data">No hay gastos registrados</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div class="modal" id="expenseModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Nuevo Gasto</h2>
+                <button class="modal-close" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+            <form id="expenseForm">
+                <div class="form-group">
+                    <label>Monto *</label>
+                    <input type="text" class="form-control" id="monto" required placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Descripción *</label>
+                    <textarea class="form-control" id="descripcion" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Cuenta *</label>
+                    <select class="form-control" id="cuenta" required>
+                        <option value="">Seleccionar cuenta</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Categoría</label>
+                    <select class="form-control" id="categoria">
+                        <option value="">Seleccionar categoría</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Fecha *</label>
+                    <input type="date" class="form-control" id="fecha" required>
+                </div>
+                <div class="form-group">
+                    <label>Imagen (opcional)</label>
+                    <input type="file" class="form-control" id="imagen" accept="image/*">
+                    <div class="image-preview" id="imagePreview"></div>
+                </div>
+            </form>
+            </div>
+            <div class="modal-footer">
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelBtn">Cancelar</button>
+                    <button type="submit" class="btn btn-expense" id="submitBtn" form="expenseForm">
+                        <span id="btnText">Guardar</span>
+                        <i class="fas fa-spinner fa-spin" id="btnLoader" style="display: none;"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Image Viewer Modal -->
+    <div class="image-modal" id="imageModal">
+        <div class="image-modal-content">
+            <button class="image-modal-close" id="closeImageModal">
+                <i class="fas fa-times"></i>
+            </button>
+            <img src="" alt="Imagen" id="modalImage">
+        </div>
+    </div>
+
+    <script type="module" src="../Componentes/js/gastos.js"></script>
+</body>
+</html>
