@@ -342,6 +342,13 @@ window.deleteIncome = async (id) => {
     
     if (confirmed) {
         try {
+            // Obtener el ingreso antes de eliminarlo para actualizar el saldo
+            const income = allIncomes.find(i => i.id === id);
+            if (income) {
+                // Restar el dinero de la cuenta
+                await updateAccountBalance(income.cuenta, income.monto, 'subtract');
+            }
+            
             await deleteDoc(doc(db, 'ingresos', id));
             await loadIncomes();
         } catch (error) {

@@ -332,6 +332,13 @@ window.deleteExpense = async (id) => {
     
     if (confirmed) {
         try {
+            // Obtener el gasto antes de eliminarlo para actualizar el saldo
+            const expense = allExpenses.find(e => e.id === id);
+            if (expense) {
+                // Devolver el dinero a la cuenta (sumar)
+                await updateAccountBalance(expense.cuenta, expense.monto, 'add');
+            }
+            
             await deleteDoc(doc(db, 'gastos', id));
             await loadExpenses();
         } catch (error) {
