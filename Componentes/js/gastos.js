@@ -169,12 +169,17 @@ expenseForm.addEventListener('submit', async (e) => {
             imageUrl = existingExpense?.imagen || '';
         }
         
+        // Crear fecha en hora local para evitar problemas de zona horaria
+        const fechaInput = document.getElementById('fecha').value;
+        const [año, mes, dia] = fechaInput.split('-').map(Number);
+        const fechaLocal = new Date(año, mes - 1, dia, 12, 0, 0); // Usar mediodía para evitar cambios de fecha
+        
         const expenseData = {
             monto: parseInt(unformatNumber(document.getElementById('monto').value)),
             descripcion: document.getElementById('descripcion').value,
             cuenta: document.getElementById('cuenta').value,
             categoria: document.getElementById('categoria').value,
-            fecha: Timestamp.fromDate(new Date(document.getElementById('fecha').value)),
+            fecha: Timestamp.fromDate(fechaLocal),
             imagen: imageUrl
         };
         
