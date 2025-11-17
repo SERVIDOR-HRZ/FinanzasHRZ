@@ -1,6 +1,7 @@
 import { db } from './firebase-config.js';
 import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { showConfirm } from './confirm-modal.js';
+import { showToast } from './toast-notification.js';
 
 const menuToggle = document.getElementById('menuToggle');
 const sidebar = document.getElementById('sidebar');
@@ -141,9 +142,10 @@ categoryForm.addEventListener('submit', async (e) => {
         
         closeModalHandler();
         await loadCategories();
+        showToast('Categoría guardada exitosamente', 'success');
     } catch (error) {
         console.error('Error saving category:', error);
-        alert('Error al guardar la categoría');
+        showToast('Error al guardar la categoría', 'error');
     }
 });
 
@@ -245,3 +247,5 @@ window.deleteCategory = async (id) => {
 };
 
 loadCategories();
+
+

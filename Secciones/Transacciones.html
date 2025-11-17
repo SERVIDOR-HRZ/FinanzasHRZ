@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Transacciones - Finanzas HRZ</title>
+    <link rel="stylesheet" href="../Componentes/css/global.css">
+    <link rel="stylesheet" href="../Componentes/css/transacciones.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-wallet"></i>
+            <h2>Finanzas HRZ</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="../index.html" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="Ingresos.html" class="nav-item">
+                <i class="fas fa-arrow-up"></i>
+                <span>Ingresos</span>
+            </a>
+            <a href="Gastos.html" class="nav-item">
+                <i class="fas fa-arrow-down"></i>
+                <span>Gastos</span>
+            </a>
+            <a href="Cuentas.html" class="nav-item">
+                <i class="fas fa-credit-card"></i>
+                <span>Cuentas</span>
+            </a>
+            <a href="Transacciones.html" class="nav-item active">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transacciones</span>
+            </a>
+            <a href="Categorias.html" class="nav-item">
+                <i class="fas fa-tags"></i>
+                <span>Categorías</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-bar">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1>Transacciones</h1>
+            <button class="btn btn-primary" id="btnNewTransaction">
+                <i class="fas fa-plus"></i>
+                Nueva Transacción
+            </button>
+        </header>
+
+        <div class="content-container">
+            <div class="total-card">
+                <div class="total-icon">
+                    <i class="fas fa-exchange-alt"></i>
+                </div>
+                <div>
+                    <h3>Total Transacciones</h3>
+                    <p class="total-amount" id="totalTransactions">0</p>
+                </div>
+            </div>
+
+            <div class="list-container">
+                <div class="list-header">
+                    <h2>Lista de Transacciones</h2>
+                    <div class="filters-container">
+                        <select class="form-control filter-select" id="monthFilter">
+                            <option value="">Todos los meses</option>
+                        </select>
+                        <div class="search-box">
+                            <i class="fas fa-search"></i>
+                            <input type="text" id="searchInput" placeholder="Buscar...">
+                        </div>
+                    </div>
+                </div>
+                <div class="items-grid" id="transactionsList">
+                    <p class="no-data">No hay transacciones registradas</p>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal -->
+    <div class="modal" id="transactionModal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="modalTitle">Nueva Transacción</h2>
+                <button class="modal-close" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body">
+            <form id="transactionForm">
+                <div class="form-group">
+                    <label>Monto *</label>
+                    <input type="text" class="form-control" id="monto" required placeholder="0">
+                </div>
+                <div class="form-group">
+                    <label>Cuenta Origen *</label>
+                    <select class="form-control" id="cuentaOrigen" required>
+                        <option value="">Seleccionar cuenta origen</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Cuenta Destino *</label>
+                    <select class="form-control" id="cuentaDestino" required>
+                        <option value="">Seleccionar cuenta destino</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Descripción</label>
+                    <textarea class="form-control" id="descripcion" placeholder="Ej: Transferencia para ahorro"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Fecha *</label>
+                    <input type="date" class="form-control" id="fecha" required>
+                </div>
+            </form>
+            </div>
+            <div class="modal-footer">
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" id="cancelBtn">Cancelar</button>
+                    <button type="submit" class="btn btn-primary" id="submitBtn" form="transactionForm">
+                        <span id="btnText">Guardar</span>
+                        <i class="fas fa-spinner fa-spin" id="btnLoader" style="display: none;"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="../Componentes/js/transacciones.js"></script>
+</body>
+</html>
