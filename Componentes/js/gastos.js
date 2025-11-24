@@ -1,7 +1,6 @@
 import { db, IMGBB_API_KEY } from './firebase-config.js';
 import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, Timestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { showConfirm } from './confirm-modal.js';
-import { showToast } from './toast-notification.js';
 
 const menuToggle = document.getElementById('menuToggle');
 const sidebar = document.getElementById('sidebar');
@@ -194,10 +193,9 @@ expenseForm.addEventListener('submit', async (e) => {
         
         closeModalHandler();
         await loadExpenses();
-        showToast('Gasto guardado exitosamente', 'success');
     } catch (error) {
         console.error('Error saving expense:', error);
-        showToast('Error al guardar el gasto', 'error');
+        alert('Error al guardar el gasto');
     } finally {
         btnText.style.display = 'inline';
         btnLoader.style.display = 'none';

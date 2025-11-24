@@ -1,7 +1,6 @@
 import { db } from './firebase-config.js';
 import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { showConfirm } from './confirm-modal.js';
-import { showToast } from './toast-notification.js';
 
 // Variables globales
 let transactions = [];
@@ -53,7 +52,6 @@ async function loadAccounts() {
         populateAccountSelects();
     } catch (error) {
         console.error('Error al cargar cuentas:', error);
-        showToast('Error al cargar las cuentas', 'error');
     }
 }
 
@@ -104,7 +102,6 @@ async function loadTransactions() {
         updateTotal();
     } catch (error) {
         console.error('Error al cargar transacciones:', error);
-        showToast('Error al cargar las transacciones', 'error');
     }
 }
 
@@ -151,7 +148,7 @@ function renderTransactions() {
                 </div>
             </div>
             <div class="transaction-details">
-                <div class="transaction-amount">$${parseFloat(transaction.monto).toFixed(2)}</div>
+                <div class="transaction-amount">$${formatCurrency(transaction.monto)}</div>
                 <div class="transaction-actions">
                     <button class="btn-icon btn-edit" onclick="editTransaction('${transaction.id}')">
                         <i class="fas fa-edit"></i>
@@ -206,17 +203,22 @@ function formatDate(dateString) {
     });
 }
 
-// Formatear número para input
-function formatNumberInput(input) {
-    let value = input.value.replace(/[^\d.]/g, '');
-    const parts = value.split('.');
-    if (parts.length > 2) {
-        value = parts[0] + '.' + parts.slice(1).join('');
-    }
-    if (parts[1] && parts[1].length > 2) {
-        value = parts[0] + '.' + parts[1].substring(0, 2);
-    }
-    input.value = value;
+// Formatear moneda con separadores de miles
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('es-CO', {
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(amount);
+}
+
+// Format number with thousands separator
+function formatNumber(value) {
+    const number = value.replace(/\D/g, '');
+    return number.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+}
+
+function unformatNumber(value) {
+    return value.replace(/\./g, '');
 }
 
 // Event listeners
@@ -245,8 +247,18 @@ transactionModal.addEventListener('click', (e) => {
 monthFilter.addEventListener('change', renderTransactions);
 searchInput.addEventListener('input', renderTransactions);
 
-document.getElementById('monto').addEventListener('input', function() {
-    formatNumberInput(this);
+// Format monto input in real-time
+const montoInput = document.getElementById('monto');
+montoInput.addEventListener('input', (e) => {
+    const cursorPosition = e.target.selectionStart;
+    const oldLength = e.target.value.length;
+    const unformatted = unformatNumber(e.target.value);
+    const formatted = formatNumber(unformatted);
+    e.target.value = formatted;
+    
+    const newLength = formatted.length;
+    const diff = newLength - oldLength;
+    e.target.setSelectionRange(cursorPosition + diff, cursorPosition + diff);
 });
 
 // Validar que las cuentas sean diferentes
@@ -258,7 +270,7 @@ function validateAccounts() {
     const cuentaDestino = document.getElementById('cuentaDestino').value;
     
     if (cuentaOrigen && cuentaDestino && cuentaOrigen === cuentaDestino) {
-        showToast('Las cuentas origen y destino deben ser diferentes', 'warning');
+        alert('Las cuentas origen y destino deben ser diferentes');
         document.getElementById('cuentaDestino').value = '';
     }
 }
@@ -267,26 +279,26 @@ function validateAccounts() {
 transactionForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     
-    const monto = parseFloat(document.getElementById('monto').value);
+    const monto = parseFloat(unformatNumber(document.getElementById('monto').value));
     const cuentaOrigenId = document.getElementById('cuentaOrigen').value;
     const cuentaDestinoId = document.getElementById('cuentaDestino').value;
     const descripcion = document.getElementById('descripcion').value;
     const fecha = document.getElementById('fecha').value;
     
     if (cuentaOrigenId === cuentaDestinoId) {
-        showToast('Las cuentas origen y destino deben ser diferentes', 'warning');
+        alert('Las cuentas origen y destino deben ser diferentes');
         return;
     }
     
     // Verificar que la cuenta origen tenga saldo suficiente
     const cuentaOrigen = accounts.find(acc => acc.id === cuentaOrigenId);
     if (!cuentaOrigen) {
-        showToast('Cuenta origen no encontrada', 'error');
+        alert('Cuenta origen no encontrada');
         return;
     }
     
     if (parseFloat(cuentaOrigen.saldo) < monto) {
-        showToast('Saldo insuficiente en la cuenta origen', 'warning');
+        alert('Saldo insuficiente en la cuenta origen');
         return;
     }
     
@@ -343,7 +355,6 @@ transactionForm.addEventListener('submit', async (e) => {
                 saldo: parseFloat(newCuentaDestinoData.data().saldo) + monto
             });
             
-            showToast('Transacción actualizada exitosamente', 'success');
         } else {
             // Nueva transacción
             await addDoc(collection(db, 'transacciones'), transactionData);
@@ -362,8 +373,6 @@ transactionForm.addEventListener('submit', async (e) => {
             await updateDoc(cuentaDestinoRef, {
                 saldo: parseFloat(cuentaDestinoData.data().saldo) + monto
             });
-            
-            showToast('Transacción creada exitosamente', 'success');
         }
         
         transactionModal.classList.remove('active');
@@ -372,7 +381,7 @@ transactionForm.addEventListener('submit', async (e) => {
         await loadTransactions();
     } catch (error) {
         console.error('Error al guardar transacción:', error);
-        showToast('Error al guardar la transacción', 'error');
+        alert('Error al guardar la transacción');
     } finally {
         submitBtn.disabled = false;
         btnText.style.display = 'inline';
@@ -388,7 +397,7 @@ window.editTransaction = async (id) => {
     if (!transaction) return;
     
     modalTitle.textContent = 'Editar Transacción';
-    document.getElementById('monto').value = transaction.monto;
+    document.getElementById('monto').value = formatNumber(String(Math.round(transaction.monto)));
     document.getElementById('cuentaOrigen').value = transaction.cuentaOrigen;
     document.getElementById('cuentaDestino').value = transaction.cuentaDestino;
     document.getElementById('descripcion').value = transaction.descripcion || '';
@@ -430,12 +439,11 @@ window.deleteTransaction = async (id) => {
         }
         
         await deleteDoc(doc(db, 'transacciones', id));
-        showToast('Transacción eliminada exitosamente', 'success');
         await loadAccounts();
         await loadTransactions();
     } catch (error) {
         console.error('Error al eliminar transacción:', error);
-        showToast('Error al eliminar la transacción', 'error');
+        alert('Error al eliminar la transacción');
     }
 };
 

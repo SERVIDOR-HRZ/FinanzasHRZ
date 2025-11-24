@@ -1,7 +1,6 @@
 import { db } from './firebase-config.js';
 import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { showConfirm } from './confirm-modal.js';
-import { showToast } from './toast-notification.js';
 
 const menuToggle = document.getElementById('menuToggle');
 const sidebar = document.getElementById('sidebar');
@@ -163,10 +162,9 @@ accountForm.addEventListener('submit', async (e) => {
         
         closeModalHandler();
         await loadAccounts();
-        showToast('Cuenta guardada exitosamente', 'success');
     } catch (error) {
         console.error('Error saving account:', error);
-        showToast('Error al guardar la cuenta', 'error');
+        alert('Error al guardar la cuenta');
     }
 });
 

@@ -1,7 +1,6 @@
 import { db, IMGBB_API_KEY } from './firebase-config.js';
 import { collection, addDoc, getDocs, deleteDoc, doc, updateDoc, Timestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { showConfirm } from './confirm-modal.js';
-import { showToast } from './toast-notification.js';
 
 // Elements
 const menuToggle = document.getElementById('menuToggle');
@@ -199,10 +198,9 @@ incomeForm.addEventListener('submit', async (e) => {
         
         closeModalHandler();
         await loadIncomes();
-        showToast('Ingreso guardado exitosamente', 'success');
     } catch (error) {
         console.error('Error saving income:', error);
-        showToast('Error al guardar el ingreso', 'error');
+        alert('Error al guardar el ingreso');
     } finally {
         btnText.style.display = 'inline';
         btnLoader.style.display = 'none';
