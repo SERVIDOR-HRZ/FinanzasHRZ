@@ -27,24 +27,29 @@
                 <i class="fas fa-arrow-down"></i>
                 <span>Gastos</span>
             </a>
-            <a href="Cuentas.html" class="nav-item active">
-                <i class="fas fa-credit-card"></i>
-                <span>Cuentas</span>
-            </a>
             <a href="Transacciones.html" class="nav-item">
                 <i class="fas fa-exchange-alt"></i>
                 <span>Transacciones</span>
+            </a>
+            <a href="Inversiones.html" class="nav-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Inversiones</span>
+            </a>
+            <a href="Cuentas.html" class="nav-item active">
+                <i class="fas fa-credit-card"></i>
+                <span>Cuentas</span>
             </a>
             <a href="Categorias.html" class="nav-item">
                 <i class="fas fa-tags"></i>
                 <span>Categorías</span>
             </a>
-            <a href="Rutina.html" class="nav-item">
-                <i class="fas fa-calendar-check"></i>
-                <span>Rutina</span>
-            </a>
         </nav>
     </aside>
+
+    <!-- Sidebar Close Button (outside sidebar) -->
+    <button class="sidebar-close" id="sidebarClose">
+        <i class="fas fa-arrow-left"></i>
+    </button>
 
     <main class="main-content">
         <header class="top-bar">
@@ -138,41 +143,118 @@
                 <div class="form-group">
                     <label>Color *</label>
                     <div class="color-selector" id="colorSelector">
-                        <div class="color-option" data-color="#000000" style="background: #000000;"></div>
+                        <!-- Grises y Oscuros -->
                         <div class="color-option" data-color="#1a1a1a" style="background: #1a1a1a;"></div>
                         <div class="color-option" data-color="#333333" style="background: #333333;"></div>
                         <div class="color-option" data-color="#4a5568" style="background: #4a5568;"></div>
                         <div class="color-option" data-color="#64748b" style="background: #64748b;"></div>
                         <div class="color-option" data-color="#94a3b8" style="background: #94a3b8;"></div>
+                        <div class="color-option" data-color="#cbd5e1" style="background: #cbd5e1;"></div>
+                        <div class="color-option" data-color="#e2e8f0" style="background: #e2e8f0;"></div>
+                        <!-- Azules -->
+                        <div class="color-option" data-color="#1e3a8a" style="background: #1e3a8a;"></div>
                         <div class="color-option" data-color="#1e40af" style="background: #1e40af;"></div>
                         <div class="color-option" data-color="#2563eb" style="background: #2563eb;"></div>
                         <div class="color-option" data-color="#3b82f6" style="background: #3b82f6;"></div>
                         <div class="color-option" data-color="#60a5fa" style="background: #60a5fa;"></div>
+                        <div class="color-option" data-color="#93c5fd" style="background: #93c5fd;"></div>
+                        <div class="color-option" data-color="#dbeafe" style="background: #dbeafe;"></div>
+                        <!-- Índigos y Violetas -->
+                        <div class="color-option" data-color="#4c1d95" style="background: #4c1d95;"></div>
+                        <div class="color-option" data-color="#5b21b6" style="background: #5b21b6;"></div>
                         <div class="color-option" data-color="#6366f1" style="background: #6366f1;"></div>
                         <div class="color-option" data-color="#7c3aed" style="background: #7c3aed;"></div>
+                        <div class="color-option" data-color="#8b5cf6" style="background: #8b5cf6;"></div>
+                        <div class="color-option" data-color="#a78bfa" style="background: #a78bfa;"></div>
+                        <div class="color-option" data-color="#c4b5fd" style="background: #c4b5fd;"></div>
+                        <!-- Púrpuras y Magentas -->
+                        <div class="color-option" data-color="#701a75" style="background: #701a75;"></div>
+                        <div class="color-option" data-color="#86198f" style="background: #86198f;"></div>
                         <div class="color-option" data-color="#a855f7" style="background: #a855f7;"></div>
                         <div class="color-option" data-color="#c026d3" style="background: #c026d3;"></div>
+                        <div class="color-option" data-color="#d946ef" style="background: #d946ef;"></div>
+                        <div class="color-option" data-color="#e879f9" style="background: #e879f9;"></div>
+                        <div class="color-option" data-color="#f0abfc" style="background: #f0abfc;"></div>
+                        <!-- Rosas y Rojos -->
+                        <div class="color-option" data-color="#881337" style="background: #881337;"></div>
+                        <div class="color-option" data-color="#9f1239" style="background: #9f1239;"></div>
+                        <div class="color-option" data-color="#be123c" style="background: #be123c;"></div>
                         <div class="color-option" data-color="#db2777" style="background: #db2777;"></div>
                         <div class="color-option" data-color="#e11d48" style="background: #e11d48;"></div>
+                        <div class="color-option" data-color="#f43f5e" style="background: #f43f5e;"></div>
+                        <div class="color-option" data-color="#fb7185" style="background: #fb7185;"></div>
+                        <!-- Rojos -->
+                        <div class="color-option" data-color="#7f1d1d" style="background: #7f1d1d;"></div>
+                        <div class="color-option" data-color="#991b1b" style="background: #991b1b;"></div>
+                        <div class="color-option" data-color="#b91c1c" style="background: #b91c1c;"></div>
                         <div class="color-option" data-color="#dc2626" style="background: #dc2626;"></div>
                         <div class="color-option" data-color="#ef4444" style="background: #ef4444;"></div>
-                        <div class="color-option" data-color="#f97316" style="background: #f97316;"></div>
+                        <div class="color-option" data-color="#f87171" style="background: #f87171;"></div>
+                        <div class="color-option" data-color="#fca5a5" style="background: #fca5a5;"></div>
+                        <!-- Naranjas -->
+                        <div class="color-option" data-color="#7c2d12" style="background: #7c2d12;"></div>
+                        <div class="color-option" data-color="#9a3412" style="background: #9a3412;"></div>
+                        <div class="color-option" data-color="#c2410c" style="background: #c2410c;"></div>
                         <div class="color-option" data-color="#ea580c" style="background: #ea580c;"></div>
-                        <div class="color-option" data-color="#f59e0b" style="background: #f59e0b;"></div>
+                        <div class="color-option" data-color="#f97316" style="background: #f97316;"></div>
+                        <div class="color-option" data-color="#fb923c" style="background: #fb923c;"></div>
+                        <div class="color-option" data-color="#fdba74" style="background: #fdba74;"></div>
+                        <!-- Amarillos y Ámbar -->
+                        <div class="color-option" data-color="#78350f" style="background: #78350f;"></div>
+                        <div class="color-option" data-color="#92400e" style="background: #92400e;"></div>
+                        <div class="color-option" data-color="#b45309" style="background: #b45309;"></div>
                         <div class="color-option" data-color="#d97706" style="background: #d97706;"></div>
+                        <div class="color-option" data-color="#f59e0b" style="background: #f59e0b;"></div>
+                        <div class="color-option" data-color="#fbbf24" style="background: #fbbf24;"></div>
+                        <div class="color-option" data-color="#fcd34d" style="background: #fcd34d;"></div>
+                        <!-- Amarillo Limón -->
+                        <div class="color-option" data-color="#713f12" style="background: #713f12;"></div>
+                        <div class="color-option" data-color="#854d0e" style="background: #854d0e;"></div>
+                        <div class="color-option" data-color="#a16207" style="background: #a16207;"></div>
+                        <div class="color-option" data-color="#ca8a04" style="background: #ca8a04;"></div>
                         <div class="color-option" data-color="#eab308" style="background: #eab308;"></div>
-                        <div class="color-option" data-color="#84cc16" style="background: #84cc16;"></div>
+                        <div class="color-option" data-color="#facc15" style="background: #facc15;"></div>
+                        <div class="color-option" data-color="#fde047" style="background: #fde047;"></div>
+                        <!-- Verde Lima -->
+                        <div class="color-option" data-color="#3f6212" style="background: #3f6212;"></div>
+                        <div class="color-option" data-color="#4d7c0f" style="background: #4d7c0f;"></div>
                         <div class="color-option" data-color="#65a30d" style="background: #65a30d;"></div>
-                        <div class="color-option" data-color="#22c55e" style="background: #22c55e;"></div>
+                        <div class="color-option" data-color="#84cc16" style="background: #84cc16;"></div>
+                        <div class="color-option" data-color="#a3e635" style="background: #a3e635;"></div>
+                        <div class="color-option" data-color="#bef264" style="background: #bef264;"></div>
+                        <div class="color-option" data-color="#d9f99d" style="background: #d9f99d;"></div>
+                        <!-- Verdes -->
+                        <div class="color-option" data-color="#14532d" style="background: #14532d;"></div>
+                        <div class="color-option" data-color="#166534" style="background: #166534;"></div>
+                        <div class="color-option" data-color="#15803d" style="background: #15803d;"></div>
                         <div class="color-option" data-color="#16a34a" style="background: #16a34a;"></div>
+                        <div class="color-option" data-color="#22c55e" style="background: #22c55e;"></div>
+                        <div class="color-option" data-color="#4ade80" style="background: #4ade80;"></div>
+                        <div class="color-option" data-color="#86efac" style="background: #86efac;"></div>
+                        <!-- Verde Esmeralda -->
+                        <div class="color-option" data-color="#064e3b" style="background: #064e3b;"></div>
+                        <div class="color-option" data-color="#065f46" style="background: #065f46;"></div>
+                        <div class="color-option" data-color="#047857" style="background: #047857;"></div>
                         <div class="color-option" data-color="#059669" style="background: #059669;"></div>
+                        <div class="color-option" data-color="#10b981" style="background: #10b981;"></div>
+                        <div class="color-option" data-color="#34d399" style="background: #34d399;"></div>
+                        <div class="color-option" data-color="#6ee7b7" style="background: #6ee7b7;"></div>
+                        <!-- Turquesas y Cianos -->
+                        <div class="color-option" data-color="#134e4a" style="background: #134e4a;"></div>
+                        <div class="color-option" data-color="#115e59" style="background: #115e59;"></div>
+                        <div class="color-option" data-color="#0f766e" style="background: #0f766e;"></div>
                         <div class="color-option" data-color="#14b8a6" style="background: #14b8a6;"></div>
-                        <div class="color-option" data-color="#06b6d4" style="background: #06b6d4;"></div>
-                        <div class="color-option" data-color="#0891b2" style="background: #0891b2;"></div>
-                        <div class="color-option" data-color="#0e7490" style="background: #0e7490;"></div>
+                        <div class="color-option" data-color="#2dd4bf" style="background: #2dd4bf;"></div>
+                        <div class="color-option" data-color="#5eead4" style="background: #5eead4;"></div>
+                        <div class="color-option" data-color="#99f6e4" style="background: #99f6e4;"></div>
+                        <!-- Cielo y Azul Claro -->
+                        <div class="color-option" data-color="#0c4a6e" style="background: #0c4a6e;"></div>
+                        <div class="color-option" data-color="#075985" style="background: #075985;"></div>
                         <div class="color-option" data-color="#0369a1" style="background: #0369a1;"></div>
-                        <div class="color-option" data-color="#7e22ce" style="background: #7e22ce;"></div>
-                        <div class="color-option" data-color="#be185d" style="background: #be185d;"></div>
+                        <div class="color-option" data-color="#0284c7" style="background: #0284c7;"></div>
+                        <div class="color-option" data-color="#0ea5e9" style="background: #0ea5e9;"></div>
+                        <div class="color-option" data-color="#38bdf8" style="background: #38bdf8;"></div>
+                        <div class="color-option" data-color="#7dd3fc" style="background: #7dd3fc;"></div>
                     </div>
                     <input type="hidden" id="color" required>
                 </div>

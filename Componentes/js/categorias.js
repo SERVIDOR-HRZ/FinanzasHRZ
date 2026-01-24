@@ -4,6 +4,7 @@ import { showConfirm } from './confirm-modal.js';
 
 const menuToggle = document.getElementById('menuToggle');
 const sidebar = document.getElementById('sidebar');
+const sidebarClose = document.getElementById('sidebarClose');
 const btnNewCategory = document.getElementById('btnNewCategory');
 const categoryModal = document.getElementById('categoryModal');
 const closeModal = document.getElementById('closeModal');
@@ -14,6 +15,28 @@ const iconInput = document.getElementById('icono');
 const montoPredefinidoInput = document.getElementById('montoPredefinido');
 
 let editingId = null;
+
+// Sidebar toggle
+if (menuToggle && sidebar) {
+    menuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+    });
+}
+
+if (sidebarClose && sidebar) {
+    sidebarClose.addEventListener('click', () => {
+        sidebar.classList.remove('active');
+    });
+}
+
+// Close sidebar when clicking outside on mobile
+document.addEventListener('click', (e) => {
+    if (window.innerWidth <= 768 && sidebar) {
+        if (!sidebar.contains(e.target) && !menuToggle?.contains(e.target)) {
+            sidebar.classList.remove('active');
+        }
+    }
+});
 
 // Format number with thousands separator
 function formatNumber(value) {
@@ -45,18 +68,6 @@ iconSelector.addEventListener('click', (e) => {
         document.querySelectorAll('.icon-option').forEach(opt => opt.classList.remove('selected'));
         option.classList.add('selected');
         iconInput.value = option.dataset.icon;
-    }
-});
-
-menuToggle?.addEventListener('click', () => {
-    sidebar.classList.toggle('active');
-});
-
-document.addEventListener('click', (e) => {
-    if (window.innerWidth <= 768) {
-        if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
-            sidebar.classList.remove('active');
-        }
     }
 });
 
@@ -178,27 +189,33 @@ function renderCategories(categories, container, type) {
         return;
     }
     
-    container.innerHTML = categories.map(category => `
-        <div class="category-card ${type}">
-            <div class="category-header">
-                <div class="category-icon">
-                    <i class="fas fa-${category.icono || 'tag'}"></i>
+    container.innerHTML = categories.map(category => {
+        // Determine icon class (brands or solid)
+        const brandIcons = ['spotify', 'youtube', 'amazon', 'google', 'apple', 'microsoft', 'windows', 'playstation', 'xbox', 'steam', 'twitch', 'discord', 'dropbox', 'uber', 'airbnb', 'google-drive', 'facebook', 'instagram', 'twitter', 'tiktok', 'whatsapp', 'telegram', 'linkedin', 'reddit', 'pinterest', 'snapchat', 'slack', 'trello', 'skype', 'soundcloud', 'medium', 'patreon', 'figma', 'strava', 'lyft', 'ebay', 'etsy', 'yelp'];
+        const iconClass = brandIcons.includes(category.icono) ? 'fab' : 'fas';
+        
+        return `
+            <div class="category-card ${type}">
+                <div class="category-header">
+                    <div class="category-icon">
+                        <i class="${iconClass} fa-${category.icono || 'tag'}"></i>
+                    </div>
+                    <div class="category-actions">
+                        <button class="btn-icon-small" onclick="editCategory('${category.id}')">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn-icon-small delete" onclick="deleteCategory('${category.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
                 </div>
-                <div class="category-actions">
-                    <button class="btn-icon-small" onclick="editCategory('${category.id}')">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn-icon-small delete" onclick="deleteCategory('${category.id}')">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
+                <div class="category-name">${category.nombre}</div>
+                ${category.montoPredefinido ? `<div class="category-amount">${formatCurrency(category.montoPredefinido)}</div>` : ''}
+                ${category.descripcion ? `<div class="category-description">${category.descripcion}</div>` : ''}
+                <div class="category-type ${type}">${type === 'income' ? 'Ingreso' : 'Gasto'}</div>
             </div>
-            <div class="category-name">${category.nombre}</div>
-            ${category.montoPredefinido ? `<div class="category-amount">${formatCurrency(category.montoPredefinido)}</div>` : ''}
-            ${category.descripcion ? `<div class="category-description">${category.descripcion}</div>` : ''}
-            <div class="category-type ${type}">${type === 'income' ? 'Ingreso' : 'Gasto'}</div>
-        </div>
-    `).join('');
+        `;
+    }).join('');
 }
 
 function formatCurrency(amount) {

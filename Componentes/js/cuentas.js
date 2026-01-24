@@ -4,6 +4,7 @@ import { showConfirm } from './confirm-modal.js';
 
 const menuToggle = document.getElementById('menuToggle');
 const sidebar = document.getElementById('sidebar');
+const sidebarClose = document.getElementById('sidebarClose');
 const btnNewAccount = document.getElementById('btnNewAccount');
 const accountModal = document.getElementById('accountModal');
 const closeModal = document.getElementById('closeModal');
@@ -16,6 +17,28 @@ const iconInput = document.getElementById('icono');
 const colorInput = document.getElementById('color');
 
 let editingId = null;
+
+// Sidebar toggle
+if (menuToggle && sidebar) {
+    menuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+    });
+}
+
+if (sidebarClose && sidebar) {
+    sidebarClose.addEventListener('click', () => {
+        sidebar.classList.remove('active');
+    });
+}
+
+// Close sidebar when clicking outside on mobile
+document.addEventListener('click', (e) => {
+    if (window.innerWidth <= 768 && sidebar) {
+        if (!sidebar.contains(e.target) && !menuToggle?.contains(e.target)) {
+            sidebar.classList.remove('active');
+        }
+    }
+});
 
 // Format number with thousands separator
 function formatNumber(value) {
@@ -57,18 +80,6 @@ colorSelector.addEventListener('click', (e) => {
         document.querySelectorAll('.color-option').forEach(opt => opt.classList.remove('selected'));
         option.classList.add('selected');
         colorInput.value = option.dataset.color;
-    }
-});
-
-menuToggle?.addEventListener('click', () => {
-    sidebar.classList.toggle('active');
-});
-
-document.addEventListener('click', (e) => {
-    if (window.innerWidth <= 768) {
-        if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
-            sidebar.classList.remove('active');
-        }
     }
 });
 
@@ -190,7 +201,22 @@ async function loadAccounts() {
         accounts.forEach(account => {
             const card = document.createElement('div');
             card.className = 'account-card';
-            card.style.background = `linear-gradient(135deg, ${account.color || '#000000'} 0%, ${adjustColor(account.color || '#000000', -20)} 100%)`;
+            
+            // Convert hex color to rgba for glassmorphism effect
+            const hexToRgba = (hex, alpha) => {
+                const r = parseInt(hex.slice(1, 3), 16);
+                const g = parseInt(hex.slice(3, 5), 16);
+                const b = parseInt(hex.slice(5, 7), 16);
+                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            };
+            
+            const color = account.color || '#000000';
+            const rgba1 = hexToRgba(color, 0.25);
+            const rgba2 = hexToRgba(color, 0.15);
+            
+            card.style.background = `linear-gradient(135deg, ${rgba1} 0%, ${rgba2} 100%)`;
+            card.style.borderColor = hexToRgba(color, 0.4);
+            card.style.boxShadow = `0 8px 32px ${hexToRgba(color, 0.2)}, inset 0 1px 0 rgba(255, 255, 255, 0.1)`;
             
             // Determine icon class (brands or solid)
             const brandIcons = ['paypal', 'bitcoin', 'ethereum', 'cc-visa', 'cc-mastercard', 'cc-amex', 'google-pay', 'apple-pay', 'stripe', 'amazon-pay', 'google-wallet', 'cc-discover', 'cc-diners-club', 'cc-jcb'];

@@ -28,24 +28,29 @@
                 <i class="fas fa-arrow-down"></i>
                 <span>Gastos</span>
             </a>
-            <a href="Cuentas.html" class="nav-item">
-                <i class="fas fa-credit-card"></i>
-                <span>Cuentas</span>
-            </a>
             <a href="Transacciones.html" class="nav-item">
                 <i class="fas fa-exchange-alt"></i>
                 <span>Transacciones</span>
+            </a>
+            <a href="Inversiones.html" class="nav-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Inversiones</span>
+            </a>
+            <a href="Cuentas.html" class="nav-item">
+                <i class="fas fa-credit-card"></i>
+                <span>Cuentas</span>
             </a>
             <a href="Categorias.html" class="nav-item">
                 <i class="fas fa-tags"></i>
                 <span>Categorías</span>
             </a>
-            <a href="Rutina.html" class="nav-item">
-                <i class="fas fa-calendar-check"></i>
-                <span>Rutina</span>
-            </a>
         </nav>
     </aside>
+
+    <!-- Sidebar Close Button (outside sidebar) -->
+    <button class="sidebar-close" id="sidebarClose">
+        <i class="fas fa-arrow-left"></i>
+    </button>
 
     <!-- Main Content -->
     <main class="main-content">
@@ -75,6 +80,9 @@
                 <div class="list-header">
                     <h2>Lista de Gastos</h2>
                     <div class="filters-container">
+                        <select class="form-control filter-select" id="yearFilter">
+                            <option value="">Año</option>
+                        </select>
                         <select class="form-control filter-select" id="monthFilter">
                             <option value="">Todos los meses</option>
                         </select>
@@ -147,10 +155,15 @@
 
     <!-- Image Viewer Modal -->
     <div class="image-modal" id="imageModal">
-        <div class="image-modal-content">
-            <button class="image-modal-close" id="closeImageModal">
+        <div class="image-modal-actions">
+            <button class="image-modal-btn" id="downloadImageBtn" title="Descargar imagen">
+                <i class="fas fa-download"></i>
+            </button>
+            <button class="image-modal-btn image-modal-close" id="closeImageModal" title="Cerrar">
                 <i class="fas fa-times"></i>
             </button>
+        </div>
+        <div class="image-modal-content">
             <img src="" alt="Imagen" id="modalImage">
         </div>
     </div>

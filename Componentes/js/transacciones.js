@@ -16,27 +16,107 @@ const closeModal = document.getElementById('closeModal');
 const cancelBtn = document.getElementById('cancelBtn');
 const modalTitle = document.getElementById('modalTitle');
 const monthFilter = document.getElementById('monthFilter');
+const yearFilter = document.getElementById('yearFilter');
 const searchInput = document.getElementById('searchInput');
 const totalTransactions = document.getElementById('totalTransactions');
 const submitBtn = document.getElementById('submitBtn');
 const btnText = document.getElementById('btnText');
 const btnLoader = document.getElementById('btnLoader');
 
+let selectedYear = new Date().getFullYear();
+
 // Sidebar toggle
 const menuToggle = document.getElementById('menuToggle');
 const sidebar = document.getElementById('sidebar');
+const sidebarClose = document.getElementById('sidebarClose');
 
-menuToggle.addEventListener('click', () => {
-    sidebar.classList.toggle('active');
+if (menuToggle && sidebar) {
+    menuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+    });
+}
+
+if (sidebarClose && sidebar) {
+    sidebarClose.addEventListener('click', () => {
+        sidebar.classList.remove('active');
+    });
+}
+
+// Close sidebar when clicking outside on mobile
+document.addEventListener('click', (e) => {
+    if (window.innerWidth <= 768 && sidebar) {
+        if (!sidebar.contains(e.target) && !menuToggle?.contains(e.target)) {
+            sidebar.classList.remove('active');
+        }
+    }
 });
 
 // Inicializar
-document.addEventListener('DOMContentLoaded', () => {
-    loadAccounts();
-    loadTransactions();
+document.addEventListener('DOMContentLoaded', async () => {
+    await loadAccounts();
+    populateYearFilter();
     populateMonthFilter();
     setTodayDate();
+    await loadTransactions();
 });
+
+// Poblar filtro de años
+function populateYearFilter() {
+    const currentYear = new Date().getFullYear();
+    const startYear = 2020; // Año inicial
+    
+    for (let year = currentYear; year >= startYear; year--) {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        yearFilter.appendChild(option);
+    }
+    
+    // Establecer año actual por defecto
+    yearFilter.value = currentYear;
+    selectedYear = currentYear;
+}
+
+// Poblar filtro de meses según el año seleccionado
+function populateMonthFilter() {
+    const currentDate = new Date();
+    const currentYear = currentDate.getFullYear();
+    const currentMonth = currentDate.getMonth();
+    
+    const months = [
+        'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+        'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
+    ];
+    
+    // Limpiar opciones existentes excepto "Todos los meses"
+    monthFilter.innerHTML = '<option value="">Todos los meses</option>';
+    
+    const year = parseInt(selectedYear);
+    const maxMonth = (year === currentYear) ? currentMonth : 11;
+    
+    // Agregar meses disponibles
+    for (let i = 0; i <= maxMonth; i++) {
+        const value = `${year}-${String(i + 1).padStart(2, '0')}`;
+        const option = document.createElement('option');
+        option.value = value;
+        option.textContent = `${months[i]} ${year}`;
+        monthFilter.appendChild(option);
+    }
+    
+    // Seleccionar el mes actual por defecto
+    const currentMonthValue = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
+    monthFilter.value = currentMonthValue;
+}
+
+// Event listener para cambio de año
+yearFilter.addEventListener('change', (e) => {
+    selectedYear = e.target.value || new Date().getFullYear();
+    populateMonthFilter();
+    renderTransactions();
+});
+
+monthFilter.addEventListener('change', renderTransactions);
+searchInput.addEventListener('input', renderTransactions);
 
 // Cargar cuentas
 async function loadAccounts() {
@@ -99,7 +179,6 @@ async function loadTransactions() {
         }
         
         renderTransactions();
-        updateTotal();
     } catch (error) {
         console.error('Error al cargar transacciones:', error);
     }
@@ -119,6 +198,9 @@ function renderTransactions() {
         return matchesMonth && matchesSearch;
     });
     
+    // Actualizar el total con las transacciones filtradas
+    totalTransactions.textContent = filtered.length;
+    
     if (filtered.length === 0) {
         transactionsList.innerHTML = '<p class="no-data">No hay transacciones registradas</p>';
         return;
@@ -126,65 +208,35 @@ function renderTransactions() {
     
     transactionsList.innerHTML = filtered.map(transaction => `
         <div class="transaction-item">
-            <div class="transaction-icon">
-                <i class="fas fa-exchange-alt"></i>
-            </div>
-            <div class="transaction-info">
-                <div class="transaction-accounts">
-                    <span class="account-badge account-origin">
-                        <i class="fas fa-arrow-up"></i>
-                        ${transaction.cuentaOrigenNombre}
-                    </span>
-                    <i class="fas fa-arrow-right" style="color: #a0aec0;"></i>
-                    <span class="account-badge account-destination">
-                        <i class="fas fa-arrow-down"></i>
-                        ${transaction.cuentaDestinoNombre}
-                    </span>
-                </div>
-                ${transaction.descripcion ? `<div class="transaction-description">${transaction.descripcion}</div>` : ''}
-                <div class="transaction-date">
-                    <i class="fas fa-calendar"></i>
-                    ${formatDate(transaction.fecha)}
-                </div>
-            </div>
-            <div class="transaction-details">
+            <div class="item-header">
                 <div class="transaction-amount">$${formatCurrency(transaction.monto)}</div>
-                <div class="transaction-actions">
-                    <button class="btn-icon btn-edit" onclick="editTransaction('${transaction.id}')">
+                <div class="item-actions">
+                    <button class="btn-icon" onclick="editTransaction('${transaction.id}')">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn-icon btn-delete" onclick="deleteTransaction('${transaction.id}')">
+                    <button class="btn-icon delete" onclick="deleteTransaction('${transaction.id}')">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
             </div>
+            <div class="transaction-accounts">
+                <span class="account-badge account-origin">
+                    <i class="fas fa-minus-circle"></i>
+                    ${transaction.cuentaOrigenNombre}
+                </span>
+                <i class="fas fa-arrow-right arrow-icon"></i>
+                <span class="account-badge account-destination">
+                    <i class="fas fa-plus-circle"></i>
+                    ${transaction.cuentaDestinoNombre}
+                </span>
+            </div>
+            ${transaction.descripcion ? `<div class="transaction-description">${transaction.descripcion}</div>` : ''}
+            <div class="transaction-date">
+                <i class="fas fa-calendar"></i>
+                ${formatDate(transaction.fecha)}
+            </div>
         </div>
     `).join('');
-}
-
-// Actualizar total
-function updateTotal() {
-    totalTransactions.textContent = transactions.length;
-}
-
-// Poblar filtro de meses
-function populateMonthFilter() {
-    const months = [];
-    const currentDate = new Date();
-    
-    for (let i = 0; i < 12; i++) {
-        const date = new Date(currentDate.getFullYear(), currentDate.getMonth() - i, 1);
-        const monthValue = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-        const monthText = date.toLocaleDateString('es-ES', { year: 'numeric', month: 'long' });
-        months.push({ value: monthValue, text: monthText.charAt(0).toUpperCase() + monthText.slice(1) });
-    }
-    
-    months.forEach(month => {
-        const option = document.createElement('option');
-        option.value = month.value;
-        option.textContent = month.text;
-        monthFilter.appendChild(option);
-    });
 }
 
 // Establecer fecha de hoy
@@ -243,9 +295,6 @@ transactionModal.addEventListener('click', (e) => {
         transactionModal.classList.remove('active');
     }
 });
-
-monthFilter.addEventListener('change', renderTransactions);
-searchInput.addEventListener('input', renderTransactions);
 
 // Format monto input in real-time
 const montoInput = document.getElementById('monto');

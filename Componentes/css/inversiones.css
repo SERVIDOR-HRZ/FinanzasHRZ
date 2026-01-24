@@ -5,7 +5,7 @@
 }
 
 .total-card {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.25) 0%, rgba(29, 78, 216, 0.3) 100%);
+    background: linear-gradient(135deg, rgba(255, 140, 0, 0.25) 0%, rgba(255, 100, 0, 0.3) 100%);
     backdrop-filter: blur(30px);
     -webkit-backdrop-filter: blur(30px);
     color: var(--color-white);
@@ -15,8 +15,8 @@
     align-items: center;
     gap: 24px;
     margin-bottom: 30px;
-    border: 1px solid rgba(59, 130, 246, 0.4);
-    box-shadow: 0 8px 32px rgba(59, 130, 246, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 140, 0, 0.4);
+    box-shadow: 0 8px 32px rgba(255, 140, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.1);
 }
 
 .total-icon {
@@ -131,38 +131,38 @@
     gap: 20px;
 }
 
-.transaction-item {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.12) 0%, rgba(59, 130, 246, 0.06) 100%);
+.investment-item {
+    background: linear-gradient(135deg, rgba(255, 140, 0, 0.15) 0%, rgba(255, 140, 0, 0.08) 100%);
     backdrop-filter: blur(10px);
-    border: 2px solid rgba(59, 130, 246, 0.3);
+    border: 2px solid rgba(255, 140, 0, 0.4);
     border-radius: 16px;
     padding: 24px;
     transition: var(--transition);
     position: relative;
-    box-shadow: 0 4px 16px rgba(59, 130, 246, 0.1);
+    box-shadow: 0 4px 16px rgba(255, 140, 0, 0.1);
     overflow: hidden;
 }
 
-.transaction-item::before {
+.investment-item::before {
     content: '';
     position: absolute;
     top: -50%;
     right: -50%;
     width: 100%;
     height: 100%;
-    background: radial-gradient(circle, rgba(59, 130, 246, 0.1) 0%, transparent 70%);
+    background: radial-gradient(circle, rgba(255, 140, 0, 0.1) 0%, transparent 70%);
     opacity: 0;
     transition: var(--transition);
 }
 
-.transaction-item:hover::before {
+.investment-item:hover::before {
     opacity: 1;
 }
 
-.transaction-item:hover {
-    background: linear-gradient(135deg, rgba(59, 130, 246, 0.18) 0%, rgba(59, 130, 246, 0.1) 100%);
-    box-shadow: 0 8px 24px rgba(59, 130, 246, 0.2);
-    border-color: rgba(59, 130, 246, 0.5);
+.investment-item:hover {
+    background: linear-gradient(135deg, rgba(255, 140, 0, 0.2) 0%, rgba(255, 140, 0, 0.12) 100%);
+    box-shadow: 0 8px 24px rgba(255, 140, 0, 0.2);
+    border-color: rgba(255, 140, 0, 0.7);
     transform: translateY(-4px);
 }
 
@@ -173,12 +173,11 @@
     margin-bottom: 16px;
 }
 
-.transaction-amount {
+.item-amount {
     font-size: 28px;
     font-weight: 700;
-    color: #60a5fa;
-    text-shadow: 0 2px 8px rgba(59, 130, 246, 0.3);
-    margin-bottom: 12px;
+    color: #ff8c00;
+    text-shadow: 0 2px 8px rgba(255, 140, 0, 0.3);
 }
 
 .item-actions {
@@ -213,62 +212,67 @@
     color: var(--color-expense);
 }
 
-.transaction-accounts {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    margin-bottom: 12px;
-    flex-wrap: wrap;
-}
-
-.account-badge {
-    padding: 6px 12px;
-    border-radius: 8px;
-    font-size: 12px;
-    font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    backdrop-filter: blur(10px);
-    -webkit-backdrop-filter: blur(10px);
-}
-
-.account-origin {
-    background: linear-gradient(135deg, rgba(239, 68, 68, 0.2) 0%, rgba(239, 68, 68, 0.15) 100%);
-    border: 1px solid rgba(239, 68, 68, 0.3);
-    color: #f87171;
-}
-
-.account-destination {
-    background: linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.15) 100%);
-    border: 1px solid rgba(16, 185, 129, 0.3);
-    color: #34d399;
-}
-
-.arrow-icon {
-    color: #60a5fa;
-    font-size: 14px;
-}
-
-.transaction-description {
+.item-description {
     font-size: 14px;
     color: #cccccc;
     margin-bottom: 12px;
     line-height: 1.5;
 }
 
-.transaction-date {
+.item-details {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
     font-size: 13px;
     color: #999999;
+}
+
+.item-detail {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
+}
+
+.item-detail i {
+    width: 16px;
+}
+
+.item-image {
+    margin-top: 12px;
+    border-radius: 12px;
+    overflow: hidden;
+    border: 2px solid rgba(255, 140, 0, 0.3);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+}
+
+.item-image img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    cursor: pointer;
+    transition: var(--transition);
+    display: block;
+}
+
+.item-image:hover img {
+    transform: scale(1.05);
+}
+
+.image-preview {
+    margin-top: 12px;
+}
+
+.image-preview img {
+    max-width: 100%;
+    border-radius: 12px;
+    max-height: 200px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
 }
 
 .form-actions {
     display: flex;
     gap: 12px;
-    justify-content: flex-end;
+    justify-content: flex-start;
     margin-top: 24px;
 }
 
@@ -324,9 +328,5 @@
 
     .total-amount {
         font-size: 28px;
-    }
-
-    .transaction-amount {
-        font-size: 24px;
     }
 }

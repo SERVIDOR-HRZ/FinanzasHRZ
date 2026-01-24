@@ -4,15 +4,24 @@ import { collection, getDocs, query, orderBy, limit } from 'https://www.gstatic.
 // Menu Toggle
 const menuToggle = document.getElementById('menuToggle');
 const sidebar = document.getElementById('sidebar');
+const sidebarClose = document.getElementById('sidebarClose');
 
-menuToggle?.addEventListener('click', () => {
-    sidebar.classList.toggle('active');
-});
+if (menuToggle && sidebar) {
+    menuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+    });
+}
+
+if (sidebarClose && sidebar) {
+    sidebarClose.addEventListener('click', () => {
+        sidebar.classList.remove('active');
+    });
+}
 
 // Close sidebar on mobile when clicking outside
 document.addEventListener('click', (e) => {
-    if (window.innerWidth <= 768) {
-        if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
+    if (window.innerWidth <= 768 && sidebar) {
+        if (!sidebar.contains(e.target) && !menuToggle?.contains(e.target)) {
             sidebar.classList.remove('active');
         }
     }
@@ -67,15 +76,17 @@ async function loadDashboard() {
 
 async function loadSummary() {
     try {
-        const [incomesSnap, expensesSnap, accountsSnap] = await Promise.all([
+        const [incomesSnap, expensesSnap, accountsSnap, investmentsSnap] = await Promise.all([
             getDocs(collection(db, 'ingresos')),
             getDocs(collection(db, 'gastos')),
-            getDocs(collection(db, 'cuentas'))
+            getDocs(collection(db, 'cuentas')),
+            getDocs(collection(db, 'inversiones'))
         ]);
 
         let totalIncome = 0;
         let totalExpense = 0;
         let totalBalance = 0;
+        let totalInvestments = 0;
 
         incomesSnap.forEach(doc => {
             const data = doc.data();
@@ -110,9 +121,30 @@ async function loadSummary() {
             totalBalance += saldo;
         });
 
+        // Calculate total investments
+        investmentsSnap.forEach(doc => {
+            const data = doc.data();
+            // Filter by month if selected
+            if (selectedMonth) {
+                const investmentDate = data.fecha?.toDate?.() || new Date(data.fecha);
+                const investmentMonth = `${investmentDate.getFullYear()}-${String(investmentDate.getMonth() + 1).padStart(2, '0')}`;
+                if (investmentMonth === selectedMonth) {
+                    totalInvestments += parseInt(data.monto || 0);
+                }
+            } else {
+                totalInvestments += parseInt(data.monto || 0);
+            }
+        });
+
         document.getElementById('totalBalance').textContent = formatCurrency(totalBalance);
         document.getElementById('totalIncome').textContent = formatCurrency(totalIncome);
         document.getElementById('totalExpense').textContent = formatCurrency(totalExpense);
+        
+        // Update investments if element exists
+        const investmentsElement = document.getElementById('totalInvestments');
+        if (investmentsElement) {
+            investmentsElement.textContent = formatCurrency(totalInvestments);
+        }
     } catch (error) {
         console.error('Error loading summary:', error);
     }
@@ -123,9 +155,10 @@ async function loadRecentTransactions() {
         const container = document.getElementById('recentTransactions');
         const transactions = [];
 
-        const [incomesSnap, expensesSnap] = await Promise.all([
+        const [incomesSnap, expensesSnap, investmentsSnap] = await Promise.all([
             getDocs(collection(db, 'ingresos')),
-            getDocs(collection(db, 'gastos'))
+            getDocs(collection(db, 'gastos')),
+            getDocs(collection(db, 'inversiones'))
         ]);
 
         incomesSnap.forEach(doc => {
@@ -141,6 +174,16 @@ async function loadRecentTransactions() {
                 ...doc.data(),
                 id: doc.id,
                 type: 'expense'
+            });
+        });
+
+        // Add investments to transactions
+        investmentsSnap.forEach(doc => {
+            const data = doc.data();
+            transactions.push({
+                ...data,
+                id: doc.id,
+                type: 'investment'
             });
         });
 
@@ -160,7 +203,7 @@ async function loadRecentTransactions() {
         container.innerHTML = recent.map(t => `
             <div class="transaction-item">
                 <div class="transaction-icon ${t.type}">
-                    <i class="fas fa-arrow-${t.type === 'income' ? 'up' : 'down'}"></i>
+                    <i class="fas fa-${t.type === 'income' ? 'arrow-up' : t.type === 'expense' ? 'arrow-down' : 'chart-line'}"></i>
                 </div>
                 <div class="transaction-details">
                     <h4>${t.descripcion || 'Sin descripción'}</h4>
@@ -198,7 +241,22 @@ async function loadAccounts() {
         accounts.forEach(account => {
             const card = document.createElement('div');
             card.className = 'account-card';
-            card.style.background = `linear-gradient(135deg, ${account.color || '#000000'} 0%, ${adjustColor(account.color || '#000000', -20)} 100%)`;
+            
+            // Convert hex color to rgba for glassmorphism effect
+            const hexToRgba = (hex, alpha) => {
+                const r = parseInt(hex.slice(1, 3), 16);
+                const g = parseInt(hex.slice(3, 5), 16);
+                const b = parseInt(hex.slice(5, 7), 16);
+                return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+            };
+            
+            const color = account.color || '#000000';
+            const rgba1 = hexToRgba(color, 0.25);
+            const rgba2 = hexToRgba(color, 0.15);
+            
+            card.style.background = `linear-gradient(135deg, ${rgba1} 0%, ${rgba2} 100%)`;
+            card.style.borderColor = hexToRgba(color, 0.4);
+            card.style.boxShadow = `0 8px 32px ${hexToRgba(color, 0.2)}, inset 0 1px 0 rgba(255, 255, 255, 0.1)`;
             
             // Determine icon class (brands or solid)
             const brandIcons = ['paypal', 'bitcoin', 'ethereum', 'cc-visa', 'cc-mastercard', 'cc-amex', 'google-pay', 'apple-pay', 'stripe', 'amazon-pay', 'google-wallet', 'cc-discover', 'cc-diners-club', 'cc-jcb'];

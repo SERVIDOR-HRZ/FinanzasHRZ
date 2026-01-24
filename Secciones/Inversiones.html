@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Transacciones - Finanzas HRZ</title>
+    <title>Inversiones - Finanzas HRZ</title>
     <link rel="stylesheet" href="../Componentes/css/global.css">
-    <link rel="stylesheet" href="../Componentes/css/transacciones.css">
+    <link rel="stylesheet" href="../Componentes/css/inversiones.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
@@ -28,11 +28,11 @@
                 <i class="fas fa-arrow-down"></i>
                 <span>Gastos</span>
             </a>
-            <a href="Transacciones.html" class="nav-item active">
+            <a href="Transacciones.html" class="nav-item">
                 <i class="fas fa-exchange-alt"></i>
                 <span>Transacciones</span>
             </a>
-            <a href="Inversiones.html" class="nav-item">
+            <a href="Inversiones.html" class="nav-item active">
                 <i class="fas fa-chart-line"></i>
                 <span>Inversiones</span>
             </a>
@@ -47,7 +47,7 @@
         </nav>
     </aside>
 
-    <!-- Sidebar Close Button (outside sidebar) -->
+    <!-- Sidebar Close Button -->
     <button class="sidebar-close" id="sidebarClose">
         <i class="fas fa-arrow-left"></i>
     </button>
@@ -58,27 +58,29 @@
             <button class="menu-toggle" id="menuToggle">
                 <i class="fas fa-bars"></i>
             </button>
-            <h1>Transacciones</h1>
-            <button class="btn btn-transaction" id="btnNewTransaction">
+            <h1>Inversiones</h1>
+            <button class="btn btn-investment" id="btnNewInvestment">
                 <i class="fas fa-plus"></i>
-                Nueva Transacción
+                Nueva Inversión
             </button>
         </header>
 
         <div class="content-container">
+            <!-- Total Card -->
             <div class="total-card">
                 <div class="total-icon">
-                    <i class="fas fa-exchange-alt"></i>
+                    <i class="fas fa-chart-line"></i>
                 </div>
                 <div>
-                    <h3>Total Transacciones</h3>
-                    <p class="total-amount" id="totalTransactions">0</p>
+                    <h3>Total Inversiones</h3>
+                    <p class="total-amount" id="totalInvestments">$0</p>
                 </div>
             </div>
 
+            <!-- Investments List -->
             <div class="list-container">
                 <div class="list-header">
-                    <h2>Lista de Transacciones</h2>
+                    <h2>Lista de Inversiones</h2>
                     <div class="filters-container">
                         <select class="form-control filter-select" id="yearFilter">
                             <option value="">Año</option>
@@ -92,54 +94,59 @@
                         </div>
                     </div>
                 </div>
-                <div class="items-grid" id="transactionsList">
-                    <p class="no-data">No hay transacciones registradas</p>
+                <div class="items-grid" id="investmentsList">
+                    <p class="no-data">No hay inversiones registradas</p>
                 </div>
             </div>
         </div>
     </main>
 
     <!-- Modal -->
-    <div class="modal" id="transactionModal">
+    <div class="modal" id="investmentModal">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="modalTitle">Nueva Transacción</h2>
+                <h2 id="modalTitle">Nueva Inversión</h2>
                 <button class="modal-close" id="closeModal">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
             <div class="modal-body">
-            <form id="transactionForm">
+            <form id="investmentForm">
                 <div class="form-group">
                     <label>Monto *</label>
                     <input type="text" class="form-control" id="monto" required placeholder="0">
                 </div>
                 <div class="form-group">
-                    <label>Cuenta Origen *</label>
-                    <select class="form-control" id="cuentaOrigen" required>
-                        <option value="">Seleccionar cuenta origen</option>
+                    <label>Descripción *</label>
+                    <textarea class="form-control" id="descripcion" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Cuenta *</label>
+                    <select class="form-control" id="cuenta" required>
+                        <option value="">Seleccionar cuenta</option>
                     </select>
                 </div>
                 <div class="form-group">
-                    <label>Cuenta Destino *</label>
-                    <select class="form-control" id="cuentaDestino" required>
-                        <option value="">Seleccionar cuenta destino</option>
+                    <label>Categoría</label>
+                    <select class="form-control" id="categoria">
+                        <option value="">Seleccionar categoría</option>
                     </select>
-                </div>
-                <div class="form-group">
-                    <label>Descripción</label>
-                    <textarea class="form-control" id="descripcion" placeholder="Ej: Transferencia para ahorro"></textarea>
                 </div>
                 <div class="form-group">
                     <label>Fecha *</label>
                     <input type="date" class="form-control" id="fecha" required>
+                </div>
+                <div class="form-group">
+                    <label>Imagen (opcional)</label>
+                    <input type="file" class="form-control" id="imagen" accept="image/*">
+                    <div class="image-preview" id="imagePreview"></div>
                 </div>
             </form>
             </div>
             <div class="modal-footer">
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" id="cancelBtn">Cancelar</button>
-                    <button type="submit" class="btn btn-primary" id="submitBtn" form="transactionForm">
+                    <button type="submit" class="btn btn-investment" id="submitBtn" form="investmentForm">
                         <span id="btnText">Guardar</span>
                         <i class="fas fa-spinner fa-spin" id="btnLoader" style="display: none;"></i>
                     </button>
@@ -148,6 +155,21 @@
         </div>
     </div>
 
-    <script type="module" src="../Componentes/js/transacciones.js"></script>
+    <!-- Image Viewer Modal -->
+    <div class="image-modal" id="imageModal">
+        <div class="image-modal-actions">
+            <button class="image-modal-btn" id="downloadImageBtn" title="Descargar imagen">
+                <i class="fas fa-download"></i>
+            </button>
+            <button class="image-modal-btn image-modal-close" id="closeImageModal" title="Cerrar">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+        <div class="image-modal-content">
+            <img src="" alt="Imagen" id="modalImage">
+        </div>
+    </div>
+
+    <script type="module" src="../Componentes/js/inversiones.js"></script>
 </body>
 </html>

@@ -4,6 +4,7 @@ import { showConfirm } from './confirm-modal.js';
 
 const menuToggle = document.getElementById('menuToggle');
 const sidebar = document.getElementById('sidebar');
+const sidebarClose = document.getElementById('sidebarClose');
 const btnNewExpense = document.getElementById('btnNewExpense');
 const expenseModal = document.getElementById('expenseModal');
 const closeModal = document.getElementById('closeModal');
@@ -13,14 +14,54 @@ const searchInput = document.getElementById('searchInput');
 const imageInput = document.getElementById('imagen');
 const imagePreview = document.getElementById('imagePreview');
 const montoInput = document.getElementById('monto');
+const monthFilter = document.getElementById('monthFilter');
+const yearFilter = document.getElementById('yearFilter');
 
 let allExpenses = [];
 let editingId = null;
 let selectedMonth = '';
+let selectedYear = new Date().getFullYear();
 
-// Generate month options
+// Sidebar toggle
+if (menuToggle && sidebar) {
+    menuToggle.addEventListener('click', () => {
+        sidebar.classList.toggle('active');
+    });
+}
+
+if (sidebarClose && sidebar) {
+    sidebarClose.addEventListener('click', () => {
+        sidebar.classList.remove('active');
+    });
+}
+
+// Close sidebar when clicking outside on mobile
+document.addEventListener('click', (e) => {
+    if (window.innerWidth <= 768 && sidebar) {
+        if (!sidebar.contains(e.target) && !menuToggle?.contains(e.target)) {
+            sidebar.classList.remove('active');
+        }
+    }
+});
+
+// Poblar filtro de años
+function populateYearFilter() {
+    const currentYear = new Date().getFullYear();
+    const startYear = 2020;
+    
+    for (let year = currentYear; year >= startYear; year--) {
+        const option = document.createElement('option');
+        option.value = year;
+        option.textContent = year;
+        yearFilter.appendChild(option);
+    }
+    
+    yearFilter.value = currentYear;
+    selectedYear = currentYear;
+}
+
+// Poblar filtro de meses según el año seleccionado
 function populateMonthFilter() {
-    const monthFilter = document.getElementById('monthFilter');
     const currentDate = new Date();
     const currentYear = currentDate.getFullYear();
     const currentMonth = currentDate.getMonth();
@@ -30,22 +71,34 @@ function populateMonthFilter() {
         'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'
     ];
     
-    // Add all months of current year up to current month
-    for (let i = 0; i <= currentMonth; i++) {
-        const value = `${currentYear}-${String(i + 1).padStart(2, '0')}`;
+    monthFilter.innerHTML = '<option value="">Todos los meses</option>';
+    
+    const year = parseInt(selectedYear);
+    const maxMonth = (year === currentYear) ? currentMonth : 11;
+    
+    for (let i = 0; i <= maxMonth; i++) {
+        const value = `${year}-${String(i + 1).padStart(2, '0')}`;
         const option = document.createElement('option');
         option.value = value;
-        option.textContent = `${months[i]} ${currentYear}`;
+        option.textContent = `${months[i]} ${year}`;
         monthFilter.appendChild(option);
     }
     
-    // Set current month as default
-    selectedMonth = `${currentYear}-${String(currentMonth + 1).padStart(2, '0')}`;
-    monthFilter.value = selectedMonth;
+    if (year === currentYear) {
+        selectedMonth = `${year}-${String(currentMonth + 1).padStart(2, '0')}`;
+        monthFilter.value = selectedMonth;
+    }
 }
 
+// Event listener para cambio de año
+yearFilter.addEventListener('change', (e) => {
+    selectedYear = e.target.value || new Date().getFullYear();
+    populateMonthFilter();
+    filterAndRenderExpenses();
+});
+
 // Month filter change
-document.getElementById('monthFilter').addEventListener('change', (e) => {
+monthFilter.addEventListener('change', (e) => {
     selectedMonth = e.target.value;
     filterAndRenderExpenses();
 });
@@ -71,18 +124,6 @@ montoInput.addEventListener('input', (e) => {
     const newLength = formatted.length;
     const diff = newLength - oldLength;
     e.target.setSelectionRange(cursorPosition + diff, cursorPosition + diff);
-});
-
-menuToggle?.addEventListener('click', () => {
-    sidebar.classList.toggle('active');
-});
-
-document.addEventListener('click', (e) => {
-    if (window.innerWidth <= 768) {
-        if (!sidebar.contains(e.target) && !menuToggle.contains(e.target)) {
-            sidebar.classList.remove('active');
-        }
-    }
 });
 
 btnNewExpense.addEventListener('click', () => {
@@ -436,6 +477,7 @@ async function updateAccountBalance(accountName, amount, operation) {
 const imageModal = document.getElementById('imageModal');
 const modalImage = document.getElementById('modalImage');
 const closeImageModal = document.getElementById('closeImageModal');
+const downloadImageBtn = document.getElementById('downloadImageBtn');
 
 window.openImageModal = (imageUrl) => {
     modalImage.src = imageUrl;
@@ -444,6 +486,37 @@ window.openImageModal = (imageUrl) => {
 
 closeImageModal.addEventListener('click', () => {
     imageModal.classList.remove('active');
+});
+
+downloadImageBtn.addEventListener('click', async () => {
+    const imageUrl = modalImage.src;
+    if (!imageUrl) return;
+    
+    try {
+        // Fetch the image
+        const response = await fetch(imageUrl);
+        const blob = await response.blob();
+        
+        // Create a download link
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        
+        // Generate filename with timestamp
+        const timestamp = new Date().toISOString().replace(/[:.]/g, '-').slice(0, -5);
+        link.download = `gasto_${timestamp}.jpg`;
+        
+        // Trigger download
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        
+        // Clean up
+        window.URL.revokeObjectURL(url);
+    } catch (error) {
+        console.error('Error downloading image:', error);
+        alert('Error al descargar la imagen');
+    }
 });
 
 imageModal.addEventListener('click', (e) => {
@@ -459,6 +532,7 @@ document.addEventListener('keydown', (e) => {
     }
 });
 
+populateYearFilter();
 populateMonthFilter();
 loadExpenses();
 loadSelects();
