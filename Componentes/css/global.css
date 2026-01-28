@@ -178,6 +178,34 @@ body {
     margin-right: auto;
 }
 
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-left: auto;
+}
+
+.btn-icon {
+    background: rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+    color: var(--color-white);
+    font-size: 18px;
+}
+
+.btn-icon:hover {
+    background: rgba(255, 255, 255, 0.15);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+}
+
 .top-bar .filter-select {
     min-width: 140px;
     max-width: 180px;
@@ -187,7 +215,6 @@ body {
     border: 1px solid rgba(255, 255, 255, 0.2);
     color: var(--color-white);
     border-radius: 8px;
-    margin-left: auto;
 }
 
 .top-bar .filter-select option {
@@ -745,5 +772,22 @@ textarea.form-control {
 
     .top-bar h1 {
         font-size: 20px;
+    }
+
+    .header-actions {
+        gap: 8px;
+    }
+
+    .btn-icon {
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+    }
+
+    .top-bar .filter-select {
+        min-width: 100px;
+        max-width: 120px;
+        font-size: 12px;
+        padding: 8px 10px;
     }
 }

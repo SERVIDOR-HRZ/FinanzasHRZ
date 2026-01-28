@@ -17,6 +17,26 @@ const iconInput = document.getElementById('icono');
 const colorInput = document.getElementById('color');
 
 let editingId = null;
+let valuesVisible = localStorage.getItem('valuesVisible') !== 'false'; // Default true
+
+// Toggle visibility button
+const toggleVisibilityBtn = document.getElementById('toggleVisibility');
+if (toggleVisibilityBtn) {
+    updateVisibilityIcon();
+    toggleVisibilityBtn.addEventListener('click', () => {
+        valuesVisible = !valuesVisible;
+        localStorage.setItem('valuesVisible', valuesVisible);
+        updateVisibilityIcon();
+        loadAccounts();
+    });
+}
+
+function updateVisibilityIcon() {
+    const icon = toggleVisibilityBtn?.querySelector('i');
+    if (icon) {
+        icon.className = valuesVisible ? 'fas fa-eye' : 'fas fa-eye-slash';
+    }
+}
 
 // Sidebar toggle
 if (menuToggle && sidebar) {
@@ -222,12 +242,20 @@ async function loadAccounts() {
             const brandIcons = ['paypal', 'bitcoin', 'ethereum', 'cc-visa', 'cc-mastercard', 'cc-amex', 'google-pay', 'apple-pay', 'stripe', 'amazon-pay', 'google-wallet', 'cc-discover', 'cc-diners-club', 'cc-jcb'];
             const iconClass = brandIcons.includes(account.icono) ? 'fab' : 'fas';
             
+            // Check if this account is hidden individually
+            const isHidden = localStorage.getItem(`account_hidden_${account.id}`) === 'true';
+            const displayValue = isHidden ? '••••••' : formatCurrency(account.saldo);
+            const eyeIcon = isHidden ? 'fa-eye-slash' : 'fa-eye';
+            
             card.innerHTML = `
                 <div class="account-header">
                     <div class="account-icon">
                         <i class="${iconClass} fa-${account.icono || 'wallet'}"></i>
                     </div>
                     <div class="account-actions">
+                        <button class="btn-icon-white" onclick="toggleAccountVisibility('${account.id}')" title="Ocultar/Mostrar saldo">
+                            <i class="fas ${eyeIcon}" id="eye-${account.id}"></i>
+                        </button>
                         <button class="btn-icon-white" onclick="editAccount('${account.id}')">
                             <i class="fas fa-edit"></i>
                         </button>
@@ -239,7 +267,7 @@ async function loadAccounts() {
                 <div class="account-info">
                     <div class="account-type">${account.tipo}</div>
                     <div class="account-name">${account.nombre}</div>
-                    <div class="account-balance">${formatCurrency(account.saldo)}</div>
+                    <div class="account-balance" id="balance-${account.id}">${displayValue}</div>
                     ${account.descripcion ? `<div class="account-description">${account.descripcion}</div>` : ''}
                 </div>
             `;
@@ -294,6 +322,9 @@ window.deleteAccount = async (id) => {
 };
 
 function formatCurrency(amount) {
+    if (!valuesVisible) {
+        return '••••••';
+    }
     return new Intl.NumberFormat('es-CO', {
         style: 'currency',
         currency: 'COP',
@@ -301,6 +332,39 @@ function formatCurrency(amount) {
         maximumFractionDigits: 0
     }).format(amount);
 }
+
+// Toggle individual account visibility
+window.toggleAccountVisibility = async (accountId) => {
+    const isHidden = localStorage.getItem(`account_hidden_${accountId}`) === 'true';
+    localStorage.setItem(`account_hidden_${accountId}`, !isHidden);
+    
+    // Update the UI
+    const balanceElement = document.getElementById(`balance-${accountId}`);
+    const eyeIcon = document.getElementById(`eye-${accountId}`);
+    
+    if (balanceElement && eyeIcon) {
+        // Get the account data
+        const accountsSnap = await getDocs(collection(db, 'cuentas'));
+        let accountData = null;
+        accountsSnap.forEach(doc => {
+            if (doc.id === accountId) {
+                accountData = doc.data();
+            }
+        });
+        
+        if (accountData) {
+            if (!isHidden) {
+                // Hide it
+                balanceElement.textContent = '••••••';
+                eyeIcon.className = 'fas fa-eye-slash';
+            } else {
+                // Show it
+                balanceElement.textContent = formatCurrency(accountData.saldo);
+                eyeIcon.className = 'fas fa-eye';
+            }
+        }
+    }
+};
 
 loadAccounts();
 

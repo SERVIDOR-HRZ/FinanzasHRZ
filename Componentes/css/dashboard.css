@@ -207,6 +207,40 @@
     transform: translate(30%, -30%);
 }
 
+.account-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 16px;
+}
+
+.btn-icon-account {
+    background: rgba(255, 255, 255, 0.15);
+    border: none;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+    color: var(--color-white);
+    font-size: 14px;
+    opacity: 0;
+    pointer-events: none;
+}
+
+.account-card:hover .btn-icon-account {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.btn-icon-account:hover {
+    background: rgba(255, 255, 255, 0.25);
+    transform: scale(1.05);
+}
+
 .account-card h4 {
     font-size: 16px;
     font-weight: 600;
@@ -241,7 +275,6 @@
     align-items: center;
     justify-content: center;
     font-size: 26px;
-    margin-bottom: 20px;
     box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     transition: var(--transition);
 }
@@ -249,10 +282,6 @@
 .account-card:hover .account-icon-dash {
     transform: scale(1.05);
     box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
-}
-    justify-content: center;
-    font-size: 24px;
-    margin-bottom: 16px;
 }
 
 @media (max-width: 768px) {

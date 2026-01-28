@@ -28,6 +28,26 @@ document.addEventListener('click', (e) => {
 });
 
 let selectedMonth = '';
+let valuesVisible = localStorage.getItem('valuesVisible') !== 'false'; // Default true
+
+// Toggle visibility button
+const toggleVisibilityBtn = document.getElementById('toggleVisibility');
+if (toggleVisibilityBtn) {
+    updateVisibilityIcon();
+    toggleVisibilityBtn.addEventListener('click', () => {
+        valuesVisible = !valuesVisible;
+        localStorage.setItem('valuesVisible', valuesVisible);
+        updateVisibilityIcon();
+        loadDashboard();
+    });
+}
+
+function updateVisibilityIcon() {
+    const icon = toggleVisibilityBtn?.querySelector('i');
+    if (icon) {
+        icon.className = valuesVisible ? 'fas fa-eye' : 'fas fa-eye-slash';
+    }
+}
 
 // Generate month options
 function populateMonthFilter() {
@@ -262,12 +282,22 @@ async function loadAccounts() {
             const brandIcons = ['paypal', 'bitcoin', 'ethereum', 'cc-visa', 'cc-mastercard', 'cc-amex', 'google-pay', 'apple-pay', 'stripe', 'amazon-pay', 'google-wallet', 'cc-discover', 'cc-diners-club', 'cc-jcb'];
             const iconClass = brandIcons.includes(account.icono) ? 'fab' : 'fas';
             
+            // Check if this account is hidden individually
+            const isHidden = localStorage.getItem(`account_hidden_${account.id}`) === 'true';
+            const displayValue = isHidden ? '••••••' : formatCurrency(account.saldo);
+            const eyeIcon = isHidden ? 'fa-eye-slash' : 'fa-eye';
+            
             card.innerHTML = `
-                <div class="account-icon-dash">
-                    <i class="${iconClass} fa-${account.icono || 'wallet'}"></i>
+                <div class="account-card-header">
+                    <div class="account-icon-dash">
+                        <i class="${iconClass} fa-${account.icono || 'wallet'}"></i>
+                    </div>
+                    <button class="btn-icon-account" onclick="toggleAccountVisibilityDash('${account.id}')" title="Ocultar/Mostrar saldo">
+                        <i class="fas ${eyeIcon}" id="eye-dash-${account.id}"></i>
+                    </button>
                 </div>
                 <h4>${account.nombre}</h4>
-                <div class="account-balance">${formatCurrency(account.saldo || 0)}</div>
+                <div class="account-balance" id="balance-dash-${account.id}">${displayValue}</div>
                 <div class="account-type">${account.tipo || 'Cuenta'}</div>
             `;
             container.appendChild(card);
@@ -287,6 +317,9 @@ function adjustColor(color, amount) {
 }
 
 function formatCurrency(amount) {
+    if (!valuesVisible) {
+        return '••••••';
+    }
     return new Intl.NumberFormat('es-CO', {
         style: 'currency',
         currency: 'COP',
@@ -304,6 +337,39 @@ function formatDate(date) {
         day: 'numeric' 
     });
 }
+
+// Toggle individual account visibility in dashboard
+window.toggleAccountVisibilityDash = async (accountId) => {
+    const isHidden = localStorage.getItem(`account_hidden_${accountId}`) === 'true';
+    localStorage.setItem(`account_hidden_${accountId}`, !isHidden);
+    
+    // Update the UI
+    const balanceElement = document.getElementById(`balance-dash-${accountId}`);
+    const eyeIcon = document.getElementById(`eye-dash-${accountId}`);
+    
+    if (balanceElement && eyeIcon) {
+        // Get the account data
+        const accountsSnap = await getDocs(collection(db, 'cuentas'));
+        let accountData = null;
+        accountsSnap.forEach(doc => {
+            if (doc.id === accountId) {
+                accountData = doc.data();
+            }
+        });
+        
+        if (accountData) {
+            if (!isHidden) {
+                // Hide it
+                balanceElement.textContent = '••••••';
+                eyeIcon.className = 'fas fa-eye-slash';
+            } else {
+                // Show it
+                balanceElement.textContent = formatCurrency(accountData.saldo);
+                eyeIcon.className = 'fas fa-eye';
+            }
+        }
+    }
+};
 
 // Initialize
 populateMonthFilter();
