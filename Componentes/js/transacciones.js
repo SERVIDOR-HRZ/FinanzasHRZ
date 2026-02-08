@@ -1,5 +1,5 @@
 import { db } from './firebase-config.js';
-import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, getDoc } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { collection, addDoc, getDocs, doc, updateDoc, deleteDoc, query, orderBy, getDoc, Timestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 import { showConfirm } from './confirm-modal.js';
 
 // Variables globales
@@ -190,7 +190,18 @@ function renderTransactions() {
     const searchTerm = searchInput.value.toLowerCase();
     
     let filtered = transactions.filter(transaction => {
-        const matchesMonth = !filterMonth || transaction.fecha.startsWith(filterMonth);
+        // Manejar tanto fechas Timestamp como strings para compatibilidad
+        let transactionDate;
+        if (transaction.fecha?.toDate) {
+            transactionDate = transaction.fecha.toDate();
+        } else if (typeof transaction.fecha === 'string') {
+            transactionDate = new Date(transaction.fecha + 'T12:00:00');
+        } else {
+            transactionDate = new Date(transaction.fecha);
+        }
+        
+        const transactionMonth = `${transactionDate.getFullYear()}-${String(transactionDate.getMonth() + 1).padStart(2, '0')}`;
+        const matchesMonth = !filterMonth || transactionMonth === filterMonth;
         const matchesSearch = !searchTerm || 
             transaction.descripcion?.toLowerCase().includes(searchTerm) ||
             transaction.cuentaOrigenNombre.toLowerCase().includes(searchTerm) ||
@@ -246,9 +257,10 @@ function setTodayDate() {
 }
 
 // Formatear fecha
-function formatDate(dateString) {
-    const date = new Date(dateString + 'T00:00:00');
-    return date.toLocaleDateString('es-ES', { 
+function formatDate(date) {
+    if (!date) return '';
+    const d = date?.toDate?.() || new Date(date);
+    return d.toLocaleDateString('es-ES', { 
         year: 'numeric', 
         month: 'long', 
         day: 'numeric' 
@@ -356,12 +368,16 @@ transactionForm.addEventListener('submit', async (e) => {
     btnLoader.style.display = 'inline-block';
     
     try {
+        // Crear fecha en hora local para evitar problemas de zona horaria
+        const [año, mes, dia] = fecha.split('-').map(Number);
+        const fechaLocal = new Date(año, mes - 1, dia, 12, 0, 0); // Usar mediodía para evitar cambios de fecha
+        
         const transactionData = {
             monto: monto,
             cuentaOrigen: cuentaOrigenId,
             cuentaDestino: cuentaDestinoId,
             descripcion: descripcion,
-            fecha: fecha,
+            fecha: Timestamp.fromDate(fechaLocal),
             fechaCreacion: new Date().toISOString()
         };
         
@@ -450,7 +466,17 @@ window.editTransaction = async (id) => {
     document.getElementById('cuentaOrigen').value = transaction.cuentaOrigen;
     document.getElementById('cuentaDestino').value = transaction.cuentaDestino;
     document.getElementById('descripcion').value = transaction.descripcion || '';
-    document.getElementById('fecha').value = transaction.fecha;
+    
+    // Manejar tanto fechas Timestamp como strings
+    let fechaValue;
+    if (transaction.fecha?.toDate) {
+        fechaValue = transaction.fecha.toDate().toISOString().split('T')[0];
+    } else if (typeof transaction.fecha === 'string') {
+        fechaValue = transaction.fecha;
+    } else {
+        fechaValue = new Date(transaction.fecha).toISOString().split('T')[0];
+    }
+    document.getElementById('fecha').value = fechaValue;
     
     transactionModal.classList.add('active');
 };
