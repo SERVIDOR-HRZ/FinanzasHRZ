@@ -471,8 +471,7 @@ document.querySelector('.btn-time-ok-task').addEventListener('click', () => {
 // Hour input validation
 hourInput.addEventListener('input', (e) => {
     let value = parseInt(e.target.value);
-    if (value > 12) e.target.value = '12';
-    if (value < 1 && e.target.value !== '') e.target.value = '01';
+    if (!isNaN(value) && value > 12) e.target.value = '12';
 });
 
 hourInput.addEventListener('blur', (e) => {
