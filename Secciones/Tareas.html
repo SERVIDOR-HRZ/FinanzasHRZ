@@ -1,0 +1,509 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Finanzas HRZ - Tareas</title>
+    <link rel="stylesheet" href="../Componentes/css/global.css">
+    <link rel="stylesheet" href="../Componentes/css/tareas.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+
+<body>
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+        <div class="sidebar-header">
+            <i class="fas fa-wallet"></i>
+            <h2>Finanzas HRZ</h2>
+        </div>
+        <nav class="sidebar-nav">
+            <a href="../index.html" class="nav-item">
+                <i class="fas fa-home"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="Ingresos.html" class="nav-item">
+                <i class="fas fa-arrow-up"></i>
+                <span>Ingresos</span>
+            </a>
+            <a href="Gastos.html" class="nav-item">
+                <i class="fas fa-arrow-down"></i>
+                <span>Gastos</span>
+            </a>
+            <a href="Transacciones.html" class="nav-item">
+                <i class="fas fa-exchange-alt"></i>
+                <span>Transacciones</span>
+            </a>
+            <a href="Inversiones.html" class="nav-item">
+                <i class="fas fa-chart-line"></i>
+                <span>Inversiones</span>
+            </a>
+            <a href="Cuentas.html" class="nav-item">
+                <i class="fas fa-credit-card"></i>
+                <span>Cuentas</span>
+            </a>
+            <a href="Categorias.html" class="nav-item">
+                <i class="fas fa-tags"></i>
+                <span>Categorías</span>
+            </a>
+            <a href="Tareas.html" class="nav-item active">
+                <i class="fas fa-tasks"></i>
+                <span>Tareas</span>
+            </a>
+        </nav>
+    </aside>
+
+    <!-- Sidebar Close Button -->
+    <button class="sidebar-close" id="sidebarClose">
+        <i class="fas fa-arrow-left"></i>
+    </button>
+
+    <!-- Main Content -->
+    <main class="main-content">
+        <header class="top-bar">
+            <button class="menu-toggle" id="menuToggle">
+                <i class="fas fa-bars"></i>
+            </button>
+            <h1>Tareas</h1>
+            <div class="header-actions">
+                <button class="btn-primary-task" id="btnAddTask">
+                    <i class="fas fa-plus"></i>
+                    Nueva Tarea
+                </button>
+            </div>
+        </header>
+
+        <div class="tasks-container-main">
+            <!-- View Toggle -->
+            <div class="view-toggle-task">
+                <button class="toggle-btn-task active" data-view="day">
+                    <i class="fas fa-calendar-day"></i>
+                    Vista por Día
+                </button>
+                <button class="toggle-btn-task" data-view="calendar">
+                    <i class="fas fa-calendar-alt"></i>
+                    Vista Calendario
+                </button>
+            </div>
+
+            <!-- Day View -->
+            <div class="day-view-task active" id="dayView">
+                <div class="current-day-display-task" id="currentDayDisplay">
+                    <h2 id="currentDayName">Hoy</h2>
+                    <p id="currentDayDate">Fecha</p>
+                </div>
+
+                <div class="date-navigation-compact-task">
+                    <button class="date-nav-compact-btn-task" id="prevDay">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <div class="date-display-compact-task" id="dateDisplayCompact">
+                        <span class="date-day-number-task">8</span>
+                        <span class="date-month-year-task">Feb 2026</span>
+                    </div>
+                    <button class="date-nav-compact-btn-task" id="nextDay">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                    <button class="btn-today-compact-task" id="btnToday">
+                        <i class="fas fa-calendar-day"></i>
+                        Hoy
+                    </button>
+                </div>
+
+                <div class="tasks-timeline-task" id="tasksTimeline">
+                    <!-- Tasks will be loaded here -->
+                </div>
+            </div>
+
+            <!-- Calendar View -->
+            <div class="calendar-view-task" id="calendarView">
+                <div class="calendar-header-task">
+                    <button class="calendar-nav-btn-task" id="prevMonth">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <h2 id="currentMonth"></h2>
+                    <button class="calendar-nav-btn-task" id="nextMonth">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+                <div class="calendar-grid-task" id="calendarGrid">
+                    <!-- Calendar will be generated here -->
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add/Edit Task Modal -->
+    <div class="modal-overlay-task" id="taskModal">
+        <div class="modal-content-task">
+            <div class="modal-header-task">
+                <h2 id="modalTitle">Nueva Tarea</h2>
+                <button class="modal-close-task" id="closeModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="modal-body-task">
+                <form id="taskForm">
+                    <div class="form-group-task">
+                        <label>Título de la Tarea</label>
+                        <input type="text" id="taskTitle" class="form-control-task" required>
+                    </div>
+
+                    <div class="form-group-task">
+                        <label>Descripción</label>
+                        <textarea id="taskDescription" class="form-control-task" rows="3"></textarea>
+                    </div>
+
+                    <div class="form-row-task">
+                        <div class="form-group-task">
+                            <label>Fecha</label>
+                            <div class="date-picker-wrapper-task">
+                                <input type="text" id="taskDate" class="form-control-task date-picker-input-task" placeholder="Seleccionar fecha" readonly required>
+                                <i class="fas fa-calendar-alt date-picker-icon-task"></i>
+                                <div class="custom-date-picker-task" id="taskDatePicker" style="display: none;">
+                                    <div class="date-picker-header-task">
+                                        <button type="button" class="date-picker-nav-task" id="prevMonthTaskDate">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </button>
+                                        <span class="date-picker-month-task" id="taskDatePickerMonth"></span>
+                                        <button type="button" class="date-picker-nav-task" id="nextMonthTaskDate">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </button>
+                                    </div>
+                                    <div class="date-picker-days-header-task">
+                                        <span>D</span>
+                                        <span>L</span>
+                                        <span>M</span>
+                                        <span>X</span>
+                                        <span>J</span>
+                                        <span>V</span>
+                                        <span>S</span>
+                                    </div>
+                                    <div class="date-picker-days-grid-task" id="taskDatePickerDays">
+                                        <!-- Days will be generated by JS -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-row-task">
+                        <div class="form-group-task">
+                            <label>Hora de Inicio</label>
+                            <div class="time-picker-wrapper-task">
+                                <input type="text" id="taskStartTime" class="form-control-task time-picker-input-task" placeholder="09:00 AM" readonly required>
+                                <i class="fas fa-clock time-picker-icon-task"></i>
+                            </div>
+                        </div>
+                        <div class="form-group-task">
+                            <label>Hora de Fin</label>
+                            <div class="time-picker-wrapper-task">
+                                <input type="text" id="taskEndTime" class="form-control-task time-picker-input-task" placeholder="09:30 AM" readonly required>
+                                <i class="fas fa-clock time-picker-icon-task"></i>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group-task">
+                        <label>Icono</label>
+                        <div class="icon-selector-task" id="iconSelectorTask">
+                            <div class="icon-option-task" data-icon="tasks"><i class="fas fa-tasks"></i></div>
+                            <div class="icon-option-task" data-icon="clipboard-check"><i class="fas fa-clipboard-check"></i></div>
+                            <div class="icon-option-task" data-icon="check-circle"><i class="fas fa-check-circle"></i></div>
+                            <div class="icon-option-task" data-icon="calendar-check"><i class="fas fa-calendar-check"></i></div>
+                            <div class="icon-option-task" data-icon="list-check"><i class="fas fa-list-check"></i></div>
+                            <div class="icon-option-task" data-icon="clipboard-list"><i class="fas fa-clipboard-list"></i></div>
+                            <div class="icon-option-task" data-icon="briefcase"><i class="fas fa-briefcase"></i></div>
+                            <div class="icon-option-task" data-icon="laptop-code"><i class="fas fa-laptop-code"></i></div>
+                            <div class="icon-option-task" data-icon="code"><i class="fas fa-code"></i></div>
+                            <div class="icon-option-task" data-icon="terminal"><i class="fas fa-terminal"></i></div>
+                            <div class="icon-option-task" data-icon="book"><i class="fas fa-book"></i></div>
+                            <div class="icon-option-task" data-icon="book-open"><i class="fas fa-book-open"></i></div>
+                            <div class="icon-option-task" data-icon="graduation-cap"><i class="fas fa-graduation-cap"></i></div>
+                            <div class="icon-option-task" data-icon="user-graduate"><i class="fas fa-user-graduate"></i></div>
+                            <div class="icon-option-task" data-icon="dumbbell"><i class="fas fa-dumbbell"></i></div>
+                            <div class="icon-option-task" data-icon="running"><i class="fas fa-running"></i></div>
+                            <div class="icon-option-task" data-icon="walking"><i class="fas fa-walking"></i></div>
+                            <div class="icon-option-task" data-icon="biking"><i class="fas fa-biking"></i></div>
+                            <div class="icon-option-task" data-icon="swimming-pool"><i class="fas fa-swimming-pool"></i></div>
+                            <div class="icon-option-task" data-icon="heartbeat"><i class="fas fa-heartbeat"></i></div>
+                            <div class="icon-option-task" data-icon="heart"><i class="fas fa-heart"></i></div>
+                            <div class="icon-option-task" data-icon="medkit"><i class="fas fa-medkit"></i></div>
+                            <div class="icon-option-task" data-icon="utensils"><i class="fas fa-utensils"></i></div>
+                            <div class="icon-option-task" data-icon="coffee"><i class="fas fa-coffee"></i></div>
+                            <div class="icon-option-task" data-icon="mug-hot"><i class="fas fa-mug-hot"></i></div>
+                            <div class="icon-option-task" data-icon="pizza-slice"><i class="fas fa-pizza-slice"></i></div>
+                            <div class="icon-option-task" data-icon="hamburger"><i class="fas fa-hamburger"></i></div>
+                            <div class="icon-option-task" data-icon="apple-alt"><i class="fas fa-apple-alt"></i></div>
+                            <div class="icon-option-task" data-icon="shopping-cart"><i class="fas fa-shopping-cart"></i></div>
+                            <div class="icon-option-task" data-icon="shopping-bag"><i class="fas fa-shopping-bag"></i></div>
+                            <div class="icon-option-task" data-icon="home"><i class="fas fa-home"></i></div>
+                            <div class="icon-option-task" data-icon="building"><i class="fas fa-building"></i></div>
+                            <div class="icon-option-task" data-icon="car"><i class="fas fa-car"></i></div>
+                            <div class="icon-option-task" data-icon="bus"><i class="fas fa-bus"></i></div>
+                            <div class="icon-option-task" data-icon="plane"><i class="fas fa-plane"></i></div>
+                            <div class="icon-option-task" data-icon="train"><i class="fas fa-train"></i></div>
+                            <div class="icon-option-task" data-icon="bicycle"><i class="fas fa-bicycle"></i></div>
+                            <div class="icon-option-task" data-icon="phone"><i class="fas fa-phone"></i></div>
+                            <div class="icon-option-task" data-icon="mobile-alt"><i class="fas fa-mobile-alt"></i></div>
+                            <div class="icon-option-task" data-icon="envelope"><i class="fas fa-envelope"></i></div>
+                            <div class="icon-option-task" data-icon="paper-plane"><i class="fas fa-paper-plane"></i></div>
+                            <div class="icon-option-task" data-icon="users"><i class="fas fa-users"></i></div>
+                            <div class="icon-option-task" data-icon="user-friends"><i class="fas fa-user-friends"></i></div>
+                            <div class="icon-option-task" data-icon="comments"><i class="fas fa-comments"></i></div>
+                            <div class="icon-option-task" data-icon="comment-dots"><i class="fas fa-comment-dots"></i></div>
+                            <div class="icon-option-task" data-icon="video"><i class="fas fa-video"></i></div>
+                            <div class="icon-option-task" data-icon="camera"><i class="fas fa-camera"></i></div>
+                            <div class="icon-option-task" data-icon="image"><i class="fas fa-image"></i></div>
+                            <div class="icon-option-task" data-icon="music"><i class="fas fa-music"></i></div>
+                            <div class="icon-option-task" data-icon="headphones"><i class="fas fa-headphones"></i></div>
+                            <div class="icon-option-task" data-icon="film"><i class="fas fa-film"></i></div>
+                            <div class="icon-option-task" data-icon="tv"><i class="fas fa-tv"></i></div>
+                            <div class="icon-option-task" data-icon="gamepad"><i class="fas fa-gamepad"></i></div>
+                            <div class="icon-option-task" data-icon="dice"><i class="fas fa-dice"></i></div>
+                            <div class="icon-option-task" data-icon="paint-brush"><i class="fas fa-paint-brush"></i></div>
+                            <div class="icon-option-task" data-icon="palette"><i class="fas fa-palette"></i></div>
+                            <div class="icon-option-task" data-icon="pen"><i class="fas fa-pen"></i></div>
+                            <div class="icon-option-task" data-icon="pencil-alt"><i class="fas fa-pencil-alt"></i></div>
+                            <div class="icon-option-task" data-icon="lightbulb"><i class="fas fa-lightbulb"></i></div>
+                            <div class="icon-option-task" data-icon="rocket"><i class="fas fa-rocket"></i></div>
+                            <div class="icon-option-task" data-icon="star"><i class="fas fa-star"></i></div>
+                            <div class="icon-option-task" data-icon="crown"><i class="fas fa-crown"></i></div>
+                            <div class="icon-option-task" data-icon="trophy"><i class="fas fa-trophy"></i></div>
+                            <div class="icon-option-task" data-icon="medal"><i class="fas fa-medal"></i></div>
+                            <div class="icon-option-task" data-icon="flag"><i class="fas fa-flag"></i></div>
+                            <div class="icon-option-task" data-icon="flag-checkered"><i class="fas fa-flag-checkered"></i></div>
+                            <div class="icon-option-task" data-icon="bell"><i class="fas fa-bell"></i></div>
+                            <div class="icon-option-task" data-icon="clock"><i class="fas fa-clock"></i></div>
+                            <div class="icon-option-task" data-icon="stopwatch"><i class="fas fa-stopwatch"></i></div>
+                            <div class="icon-option-task" data-icon="hourglass-half"><i class="fas fa-hourglass-half"></i></div>
+                            <div class="icon-option-task" data-icon="calendar-alt"><i class="fas fa-calendar-alt"></i></div>
+                            <div class="icon-option-task" data-icon="sun"><i class="fas fa-sun"></i></div>
+                            <div class="icon-option-task" data-icon="moon"><i class="fas fa-moon"></i></div>
+                            <div class="icon-option-task" data-icon="cloud"><i class="fas fa-cloud"></i></div>
+                            <div class="icon-option-task" data-icon="umbrella"><i class="fas fa-umbrella"></i></div>
+                            <div class="icon-option-task" data-icon="gift"><i class="fas fa-gift"></i></div>
+                            <div class="icon-option-task" data-icon="birthday-cake"><i class="fas fa-birthday-cake"></i></div>
+                            <div class="icon-option-task" data-icon="paw"><i class="fas fa-paw"></i></div>
+                            <div class="icon-option-task" data-icon="dog"><i class="fas fa-dog"></i></div>
+                            <div class="icon-option-task" data-icon="cat"><i class="fas fa-cat"></i></div>
+                            <div class="icon-option-task" data-icon="tree"><i class="fas fa-tree"></i></div>
+                            <div class="icon-option-task" data-icon="leaf"><i class="fas fa-leaf"></i></div>
+                            <div class="icon-option-task" data-icon="seedling"><i class="fas fa-seedling"></i></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group-task">
+                        <label>Color</label>
+                        <div class="color-selector-task" id="colorSelectorTask">
+                            <div class="color-option-task" data-color="#6b7280" style="background: #6b7280;"></div>
+                            <div class="color-option-task" data-color="#ef4444" style="background: #ef4444;"></div>
+                            <div class="color-option-task" data-color="#dc2626" style="background: #dc2626;"></div>
+                            <div class="color-option-task" data-color="#f59e0b" style="background: #f59e0b;"></div>
+                            <div class="color-option-task" data-color="#d97706" style="background: #d97706;"></div>
+                            <div class="color-option-task" data-color="#eab308" style="background: #eab308;"></div>
+                            <div class="color-option-task" data-color="#84cc16" style="background: #84cc16;"></div>
+                            <div class="color-option-task" data-color="#10b981" style="background: #10b981;"></div>
+                            <div class="color-option-task" data-color="#059669" style="background: #059669;"></div>
+                            <div class="color-option-task" data-color="#14b8a6" style="background: #14b8a6;"></div>
+                            <div class="color-option-task" data-color="#06b6d4" style="background: #06b6d4;"></div>
+                            <div class="color-option-task" data-color="#0ea5e9" style="background: #0ea5e9;"></div>
+                            <div class="color-option-task" data-color="#3b82f6" style="background: #3b82f6;"></div>
+                            <div class="color-option-task" data-color="#2563eb" style="background: #2563eb;"></div>
+                            <div class="color-option-task" data-color="#6366f1" style="background: #6366f1;"></div>
+                            <div class="color-option-task" data-color="#4f46e5" style="background: #4f46e5;"></div>
+                            <div class="color-option-task" data-color="#8b5cf6" style="background: #8b5cf6;"></div>
+                            <div class="color-option-task" data-color="#7c3aed" style="background: #7c3aed;"></div>
+                            <div class="color-option-task" data-color="#a855f7" style="background: #a855f7;"></div>
+                            <div class="color-option-task" data-color="#9333ea" style="background: #9333ea;"></div>
+                            <div class="color-option-task" data-color="#ec4899" style="background: #ec4899;"></div>
+                            <div class="color-option-task" data-color="#db2777" style="background: #db2777;"></div>
+                            <div class="color-option-task" data-color="#f43f5e" style="background: #f43f5e;"></div>
+                            <div class="color-option-task" data-color="#e11d48" style="background: #e11d48;"></div>
+                            <div class="color-option-task" data-color="#f97316" style="background: #f97316;"></div>
+                            <div class="color-option-task" data-color="#ea580c" style="background: #ea580c;"></div>
+                            <div class="color-option-task" data-color="#78716c" style="background: #78716c;"></div>
+                            <div class="color-option-task" data-color="#57534e" style="background: #57534e;"></div>
+                        </div>
+                    </div>
+
+                    <div class="form-group-task">
+                        <label class="toggle-switch-label-task">
+                            <span>Tarea Recurrente</span>
+                            <div class="toggle-switch-task">
+                                <input type="checkbox" id="taskRecurring">
+                                <span class="toggle-slider-task"></span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <div class="recurring-options-task" id="recurringOptions" style="display: none;">
+                        <div class="form-group-task">
+                            <label>Repetir cada</label>
+                            <div class="custom-select-task">
+                                <select id="recurringFrequency" class="form-control-task custom-select-input-task">
+                                    <option value="daily">Diariamente</option>
+                                    <option value="weekly">Semanalmente</option>
+                                    <option value="biweekly">Quincenalmente</option>
+                                    <option value="monthly">Mensualmente</option>
+                                </select>
+                                <i class="fas fa-chevron-down custom-select-arrow-task"></i>
+                            </div>
+                        </div>
+
+                        <div class="form-group-task" id="weekDaysSelector" style="display: none;">
+                            <label>Días de la semana</label>
+                            <div class="week-days-selector-task">
+                                <div class="week-day-option-task" data-day="0">
+                                    <span>D</span>
+                                </div>
+                                <div class="week-day-option-task" data-day="1">
+                                    <span>L</span>
+                                </div>
+                                <div class="week-day-option-task" data-day="2">
+                                    <span>M</span>
+                                </div>
+                                <div class="week-day-option-task" data-day="3">
+                                    <span>X</span>
+                                </div>
+                                <div class="week-day-option-task" data-day="4">
+                                    <span>J</span>
+                                </div>
+                                <div class="week-day-option-task" data-day="5">
+                                    <span>V</span>
+                                </div>
+                                <div class="week-day-option-task" data-day="6">
+                                    <span>S</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="form-group-task" id="monthDaysSelector" style="display: none;">
+                            <label>Días del mes</label>
+                            <div class="month-days-selector-task" id="monthDaysGrid">
+                                <!-- Days 1-31 will be generated by JS -->
+                            </div>
+                        </div>
+
+                        <div class="form-group-task">
+                            <label>Hasta</label>
+                            <div class="date-picker-wrapper-task">
+                                <input type="text" id="recurringEndDate" class="form-control-task date-picker-input-task" placeholder="Seleccionar fecha" readonly>
+                                <i class="fas fa-calendar-alt date-picker-icon-task"></i>
+                                <div class="custom-date-picker-task" id="customDatePicker" style="display: none;">
+                                    <div class="date-picker-header-task">
+                                        <button type="button" class="date-picker-nav-task" id="prevMonthPicker">
+                                            <i class="fas fa-chevron-left"></i>
+                                        </button>
+                                        <span class="date-picker-month-task" id="datePickerMonth"></span>
+                                        <button type="button" class="date-picker-nav-task" id="nextMonthPicker">
+                                            <i class="fas fa-chevron-right"></i>
+                                        </button>
+                                    </div>
+                                    <div class="date-picker-days-header-task">
+                                        <span>D</span>
+                                        <span>L</span>
+                                        <span>M</span>
+                                        <span>X</span>
+                                        <span>J</span>
+                                        <span>V</span>
+                                        <span>S</span>
+                                    </div>
+                                    <div class="date-picker-days-grid-task" id="datePickerDays">
+                                        <!-- Days will be generated by JS -->
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer-task">
+                <div class="modal-actions-task">
+                    <button type="button" class="btn-secondary-task" id="cancelBtn">Cancelar</button>
+                    <button type="submit" class="btn-primary-task" form="taskForm">Guardar Tarea</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Timer Overlay -->
+    <div class="timer-overlay-task" id="timerOverlay">
+        <div class="timer-content-task">
+            <button class="timer-close-task" id="closeTimer">
+                <i class="fas fa-times"></i>
+            </button>
+            <h2 id="timerTaskTitle">Tarea en Progreso</h2>
+            <div class="timer-display-task" id="timerDisplay">00:00:00</div>
+            <div class="timer-progress-task">
+                <div class="timer-progress-bar-task" id="timerProgressBar"></div>
+            </div>
+            <div class="timer-actions-task">
+                <button class="btn-timer-task btn-pause-task" id="pauseTimer">
+                    <i class="fas fa-pause"></i>
+                    Pausar
+                </button>
+                <button class="btn-timer-task btn-complete-task" id="completeTimer">
+                    <i class="fas fa-check"></i>
+                    Completar
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Time Picker Modal -->
+    <div class="time-picker-modal-task" id="timePickerModal">
+        <div class="time-picker-modal-content-task">
+            <div class="time-picker-modal-header-task">
+                <h3>Seleccionar Hora</h3>
+                <button class="time-picker-close-task" id="closeTimePicker">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="time-picker-body-task">
+                <div class="time-input-container-task">
+                    <div class="time-input-group-task">
+                        <input type="number" id="hourInput" class="time-input-field-task" min="1" max="12" value="07">
+                        <label class="time-input-label-task">Hora</label>
+                    </div>
+                    <span class="time-separator-large-task">:</span>
+                    <div class="time-input-group-task">
+                        <input type="number" id="minuteInput" class="time-input-field-task" min="0" max="59" value="00">
+                        <label class="time-input-label-task">Minuto</label>
+                    </div>
+                    <div class="time-period-selector-task">
+                        <button class="time-period-btn-simple-task active" data-period="AM">AM</button>
+                        <button class="time-period-btn-simple-task" data-period="PM">PM</button>
+                    </div>
+                </div>
+            </div>
+            <div class="time-picker-actions-task">
+                <button class="btn-time-cancel-task">Cancelar</button>
+                <button class="btn-time-ok-task">Aceptar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Day Tasks Modal -->
+    <div class="day-tasks-modal-task" id="dayTasksModal">
+        <div class="day-tasks-modal-content-task">
+            <div class="day-tasks-modal-header-task">
+                <div>
+                    <h3 id="dayTasksModalTitle">Tareas del Día</h3>
+                    <p id="dayTasksModalDate" class="day-tasks-modal-date-task"></p>
+                </div>
+                <button class="day-tasks-close-task" id="closeDayTasksModal">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="day-tasks-modal-body-task" id="dayTasksModalBody">
+                <!-- Tasks will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="../Componentes/js/firebase-config.js"></script>
+    <script type="module" src="../Componentes/js/tareas.js"></script>
+</body>
+
+</html>
