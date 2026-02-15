@@ -22,6 +22,14 @@
                 <i class="fas fa-home"></i>
                 <span>Dashboard</span>
             </a>
+            <a href="Tareas.html" class="nav-item active">
+                <i class="fas fa-tasks"></i>
+                <span>Tareas</span>
+            </a>
+            <a href="Cuentas.html" class="nav-item">
+                <i class="fas fa-credit-card"></i>
+                <span>Cuentas</span>
+            </a>
             <a href="Ingresos.html" class="nav-item">
                 <i class="fas fa-arrow-up"></i>
                 <span>Ingresos</span>
@@ -38,17 +46,9 @@
                 <i class="fas fa-chart-line"></i>
                 <span>Inversiones</span>
             </a>
-            <a href="Cuentas.html" class="nav-item">
-                <i class="fas fa-credit-card"></i>
-                <span>Cuentas</span>
-            </a>
             <a href="Categorias.html" class="nav-item">
                 <i class="fas fa-tags"></i>
                 <span>Categorías</span>
-            </a>
-            <a href="Tareas.html" class="nav-item active">
-                <i class="fas fa-tasks"></i>
-                <span>Tareas</span>
             </a>
         </nav>
     </aside>
@@ -83,6 +83,10 @@
                 <button class="toggle-btn-task" data-view="calendar">
                     <i class="fas fa-calendar-alt"></i>
                     Vista Calendario
+                </button>
+                <button class="toggle-btn-task" data-view="progress">
+                    <i class="fas fa-chart-bar"></i>
+                    Progreso
                 </button>
             </div>
 
@@ -128,6 +132,43 @@
                 </div>
                 <div class="calendar-grid-task" id="calendarGrid">
                     <!-- Calendar will be generated here -->
+                </div>
+            </div>
+
+            <!-- Progress View -->
+            <div class="progress-view-task" id="progressView">
+                <div class="progress-month-navigation">
+                    <button class="progress-nav-btn" id="prevProgressMonth">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <h2 id="progressMonthTitle">Enero 2026</h2>
+                    <button class="progress-nav-btn" id="nextProgressMonth">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </div>
+
+                <div class="progress-summary-card">
+                    <div class="progress-summary-stats">
+                        <div class="progress-summary-item">
+                            <div class="progress-summary-number" id="progressTotalTasks">0</div>
+                            <div class="progress-summary-label">Total Tareas</div>
+                        </div>
+                        <div class="progress-summary-item completed">
+                            <div class="progress-summary-number" id="progressCompletedTasks">0</div>
+                            <div class="progress-summary-label">Completadas</div>
+                        </div>
+                        <div class="progress-summary-item">
+                            <div class="progress-summary-number" id="progressCompletionRate">0%</div>
+                            <div class="progress-summary-label">Tasa de Completado</div>
+                        </div>
+                    </div>
+                    <div class="progress-summary-bar-container">
+                        <div class="progress-summary-bar-fill" id="progressSummaryBar"></div>
+                    </div>
+                </div>
+
+                <div class="progress-tasks-list" id="progressTasksList">
+                    <!-- Tasks will be generated here -->
                 </div>
             </div>
         </div>

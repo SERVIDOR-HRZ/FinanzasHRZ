@@ -367,6 +367,14 @@ body {
     transform: translateY(-2px);
 }
 
+.btn-text-short {
+    display: none;
+}
+
+.btn-text-full {
+    display: inline;
+}
+
 /* Forms */
 .form-group {
     margin-bottom: 20px;
@@ -789,5 +797,18 @@ textarea.form-control {
         max-width: 120px;
         font-size: 12px;
         padding: 8px 10px;
+    }
+
+    .btn-text-full {
+        display: none;
+    }
+
+    .btn-text-short {
+        display: inline;
+    }
+
+    .btn {
+        padding: 10px 16px;
+        font-size: 14px;
     }
 }

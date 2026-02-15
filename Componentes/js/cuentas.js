@@ -133,6 +133,7 @@ function openModal(account = null) {
         document.getElementById('nombre').value = account.nombre;
         document.getElementById('tipo').value = account.tipo;
         document.getElementById('saldo').value = formatNumber(String(Math.round(account.saldo)));
+        document.getElementById('llave').value = account.llave || '';
         document.getElementById('descripcion').value = account.descripcion || '';
         
         // Select icon
@@ -180,6 +181,7 @@ accountForm.addEventListener('submit', async (e) => {
             nombre: document.getElementById('nombre').value,
             tipo: document.getElementById('tipo').value,
             saldo: parseInt(unformatNumber(document.getElementById('saldo').value)),
+            llave: document.getElementById('llave').value,
             descripcion: document.getElementById('descripcion').value,
             icono: document.getElementById('icono').value || 'wallet',
             color: document.getElementById('color').value || '#000000'
@@ -267,8 +269,14 @@ async function loadAccounts() {
                 <div class="account-info">
                     <div class="account-type">${account.tipo}</div>
                     <div class="account-name">${account.nombre}</div>
-                    <div class="account-balance" id="balance-${account.id}">${displayValue}</div>
                     ${account.descripcion ? `<div class="account-description">${account.descripcion}</div>` : ''}
+                    <div class="account-balance" id="balance-${account.id}">${displayValue}</div>
+                    ${account.llave ? `<div class="account-key-wrapper">
+                        <span class="account-key-text">${account.llave}</span>
+                        <button class="btn-copy-key" onclick="copyKey('${account.llave}', '${account.id}')" title="Copiar llave" id="copy-btn-${account.id}">
+                            <i class="fas fa-copy"></i>
+                        </button>
+                    </div>` : ''}
                 </div>
             `;
             container.appendChild(card);
@@ -363,6 +371,31 @@ window.toggleAccountVisibility = async (accountId) => {
                 eyeIcon.className = 'fas fa-eye';
             }
         }
+    }
+};
+
+// Copy key to clipboard
+window.copyKey = async (key, accountId) => {
+    try {
+        await navigator.clipboard.writeText(key);
+        
+        // Show visual feedback on button
+        const copyBtn = document.getElementById(`copy-btn-${accountId}`);
+        if (copyBtn) {
+            const originalHTML = copyBtn.innerHTML;
+            copyBtn.innerHTML = '<i class="fas fa-check"></i>';
+            copyBtn.style.background = 'rgba(34, 197, 94, 0.3)';
+            copyBtn.style.borderColor = 'rgba(34, 197, 94, 0.5)';
+            
+            setTimeout(() => {
+                copyBtn.innerHTML = originalHTML;
+                copyBtn.style.background = '';
+                copyBtn.style.borderColor = '';
+            }, 1500);
+        }
+    } catch (error) {
+        console.error('Error copying key:', error);
+        alert('No se pudo copiar la llave');
     }
 };
 

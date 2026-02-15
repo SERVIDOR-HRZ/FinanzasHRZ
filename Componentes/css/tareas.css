@@ -2060,6 +2060,245 @@ textarea.form-control-task {
     font-weight: 600;
 }
 
+/* Progress View */
+.progress-view-task {
+    display: none;
+    padding: 24px;
+}
+
+.progress-view-task.active {
+    display: block;
+}
+
+.progress-month-navigation {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 24px;
+    margin-bottom: 32px;
+}
+
+.progress-nav-btn {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 100%);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: var(--transition);
+    color: var(--color-white);
+    font-size: 18px;
+}
+
+.progress-nav-btn:hover {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.2) 0%, rgba(255, 255, 255, 0.1) 100%);
+    border-color: rgba(255, 255, 255, 0.3);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.progress-month-navigation h2 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--color-white);
+    min-width: 200px;
+    text-align: center;
+}
+
+.progress-summary-card {
+    background: linear-gradient(135deg, rgba(30, 30, 30, 0.8) 0%, rgba(20, 20, 20, 0.9) 100%);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 16px;
+    padding: 32px;
+    margin-bottom: 32px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.progress-summary-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+    margin-bottom: 24px;
+}
+
+.progress-summary-item {
+    text-align: center;
+}
+
+.progress-summary-number {
+    font-size: 48px;
+    font-weight: 800;
+    color: var(--color-white);
+    margin-bottom: 8px;
+    line-height: 1;
+}
+
+.progress-summary-item.completed .progress-summary-number {
+    background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.progress-summary-label {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 600;
+}
+
+.progress-summary-bar-container {
+    width: 100%;
+    height: 16px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.progress-summary-bar-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+    border-radius: 8px;
+    transition: width 0.6s ease;
+}
+
+.progress-tasks-list {
+    display: grid;
+    gap: 16px;
+}
+
+.progress-task-item {
+    background: linear-gradient(135deg, rgba(30, 30, 30, 0.8) 0%, rgba(20, 20, 20, 0.9) 100%);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+    padding: 20px;
+    transition: var(--transition);
+}
+
+.progress-task-item:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+    border-color: rgba(255, 255, 255, 0.2);
+}
+
+.progress-task-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 16px;
+}
+
+.progress-task-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 22px;
+    border: 2px solid;
+    flex-shrink: 0;
+}
+
+.progress-task-info {
+    flex: 1;
+    min-width: 0;
+}
+
+.progress-task-title {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--color-white);
+    margin-bottom: 4px;
+}
+
+.progress-task-date {
+    font-size: 13px;
+    color: rgba(255, 255, 255, 0.6);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.progress-task-status {
+    padding: 6px 12px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.progress-task-status.completed {
+    background: rgba(16, 185, 129, 0.2);
+    color: #10b981;
+    border: 1px solid rgba(16, 185, 129, 0.3);
+}
+
+.progress-task-status.incomplete {
+    background: rgba(239, 68, 68, 0.2);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.3);
+}
+
+.progress-task-status.pending {
+    background: rgba(245, 158, 11, 0.2);
+    color: #f59e0b;
+    border: 1px solid rgba(245, 158, 11, 0.3);
+}
+
+.progress-task-status.in-progress {
+    background: rgba(99, 102, 241, 0.2);
+    color: #6366f1;
+    border: 1px solid rgba(99, 102, 241, 0.3);
+}
+
+.progress-task-bar-container {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 4px;
+    overflow: hidden;
+    margin-bottom: 8px;
+}
+
+.progress-task-bar-fill {
+    height: 100%;
+    border-radius: 4px;
+    transition: width 0.6s ease;
+}
+
+.progress-task-percentage {
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--color-white);
+    text-align: right;
+}
+
+.no-progress-tasks {
+    text-align: center;
+    padding: 80px 20px;
+    color: rgba(255, 255, 255, 0.5);
+}
+
+.no-progress-tasks i {
+    font-size: 72px;
+    margin-bottom: 24px;
+    opacity: 0.25;
+}
+
+.no-progress-tasks p {
+    font-size: 18px;
+    font-weight: 600;
+}
+
 /* Responsive */
 @media (max-width: 768px) {
     .tasks-container-main {
@@ -2660,4 +2899,55 @@ textarea.form-control-task {
 
 .fa-spin {
     animation: spin 1s linear infinite;
+}
+
+/* Progress View Responsive */
+@media (max-width: 768px) {
+    .progress-month-navigation h2 {
+        font-size: 22px;
+        min-width: 150px;
+    }
+    
+    .progress-nav-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+    }
+    
+    .progress-summary-card {
+        padding: 24px;
+    }
+    
+    .progress-summary-stats {
+        grid-template-columns: 1fr;
+        gap: 20px;
+    }
+    
+    .progress-summary-number {
+        font-size: 40px;
+    }
+    
+    .progress-task-item {
+        padding: 16px;
+    }
+    
+    .progress-task-header {
+        flex-wrap: wrap;
+    }
+    
+    .progress-task-icon {
+        width: 44px;
+        height: 44px;
+        font-size: 20px;
+    }
+    
+    .progress-task-title {
+        font-size: 16px;
+    }
+    
+    .progress-task-status {
+        width: 100%;
+        text-align: center;
+        margin-top: 12px;
+    }
 }

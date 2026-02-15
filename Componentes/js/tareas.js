@@ -1,5 +1,5 @@
 import { db } from './firebase-config.js';
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where, orderBy, Timestamp } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
+import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where, orderBy, Timestamp, writeBatch } from 'https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js';
 
 // Menu Toggle
 const menuToggle = document.getElementById('menuToggle');
@@ -86,11 +86,18 @@ document.querySelectorAll('.toggle-btn-task').forEach(btn => {
         if (currentView === 'day') {
             dayView.classList.add('active');
             calendarView.classList.remove('active');
+            document.getElementById('progressView').classList.remove('active');
             loadDayTasks();
-        } else {
+        } else if (currentView === 'calendar') {
             dayView.classList.remove('active');
             calendarView.classList.add('active');
+            document.getElementById('progressView').classList.remove('active');
             loadCalendar();
+        } else if (currentView === 'progress') {
+            dayView.classList.remove('active');
+            calendarView.classList.remove('active');
+            document.getElementById('progressView').classList.add('active');
+            loadProgressView();
         }
     });
 });
@@ -717,7 +724,15 @@ async function createRecurringTasks(taskData) {
     const endDate = taskData.recurringEndDate ? new Date(taskData.recurringEndDate + 'T00:00:00') : null;
     const frequency = taskData.recurringFrequency;
     const tasksToCreate = [];
-    const maxTareas = endDate ? 365 : 30; // Límite de tareas a crear
+    
+    // Si no hay fecha de fin, crear tareas para los próximos 6 meses
+    let maxTareas = 365;
+    if (!endDate) {
+        const sixMonthsLater = new Date(startDate);
+        sixMonthsLater.setMonth(sixMonthsLater.getMonth() + 6);
+        // Usar 6 meses como límite temporal
+        maxTareas = Math.ceil((sixMonthsLater - startDate) / (1000 * 60 * 60 * 24)) + 10;
+    }
     
     if (frequency === 'daily') {
         // Diario: avanzar día por día
@@ -748,8 +763,9 @@ async function createRecurringTasks(taskData) {
             
             let fechaActual = new Date(startDate);
             let contadorSeguridad = 0;
+            const maxIteraciones = endDate ? 730 : 365; // 2 años con fecha fin, 1 año sin fecha fin
             
-            while (tasksToCreate.length < maxTareas && contadorSeguridad < 365 * 2) {
+            while (tasksToCreate.length < maxTareas && contadorSeguridad < maxIteraciones) {
                 if (endDate && fechaActual > endDate) break;
                 
                 // Calcular número de semana desde el inicio
@@ -796,8 +812,9 @@ async function createRecurringTasks(taskData) {
             let anio = startDate.getFullYear();
             let mes = startDate.getMonth();
             let iteraciones = 0;
+            const maxIteraciones = endDate ? 730 : 365; // Más iteraciones para cubrir todo el rango
             
-            while (tasksToCreate.length < maxTareas && iteraciones < 365) {
+            while (tasksToCreate.length < maxTareas && iteraciones < maxIteraciones) {
                 const ultimoDiaMes = new Date(anio, mes + 1, 0).getDate();
                 
                 for (const dia of diasSeleccionados) {
@@ -845,9 +862,20 @@ async function createRecurringTasks(taskData) {
         }
     }
     
-    // Crear todas las tareas en Firebase
-    for (const task of tasksToCreate) {
-        await addDoc(collection(db, 'tareas'), task);
+    // Crear todas las tareas en Firebase usando batch writes (mucho más rápido)
+    // Firebase permite máximo 500 operaciones por batch
+    const batchSize = 500;
+    
+    for (let i = 0; i < tasksToCreate.length; i += batchSize) {
+        const batch = writeBatch(db);
+        const batchTasks = tasksToCreate.slice(i, i + batchSize);
+        
+        batchTasks.forEach(task => {
+            const newDocRef = doc(collection(db, 'tareas'));
+            batch.set(newDocRef, task);
+        });
+        
+        await batch.commit();
     }
 }
 
@@ -1038,6 +1066,11 @@ function createTaskCard(task) {
                         <button class="btn-task-action start" onclick="continueTask('${task.id}', '${task.title}', ${duration})">
                             <i class="fas fa-play-circle"></i> Continuar
                         </button>
+                        <button class="btn-task-action complete" onclick="completeTask('${task.id}')">
+                            <i class="fas fa-check"></i> Completar
+                        </button>
+                    ` : ''}
+                    ${task.status === 'incomplete' ? `
                         <button class="btn-task-action complete" onclick="completeTask('${task.id}')">
                             <i class="fas fa-check"></i> Completar
                         </button>
@@ -1988,3 +2021,154 @@ function showConfirmModal(title, message, onConfirm) {
 
 // Initialize
 loadDayTasks();
+
+// Progress View Variables
+let progressMonth = new Date();
+
+// Load Progress View
+async function loadProgressView() {
+    try {
+        const year = progressMonth.getFullYear();
+        const month = progressMonth.getMonth();
+        
+        const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+                           'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        
+        document.getElementById('progressMonthTitle').textContent = `${monthNames[month]} ${year}`;
+        
+        // Get all tasks for the month
+        const tasksSnap = await getDocs(collection(db, 'tareas'));
+        const tasksByName = {};
+        
+        tasksSnap.forEach(doc => {
+            const data = doc.data();
+            const taskDate = new Date(data.date + 'T00:00:00');
+            
+            if (taskDate.getFullYear() === year && taskDate.getMonth() === month) {
+                const taskKey = data.title; // Group by task title
+                
+                if (!tasksByName[taskKey]) {
+                    tasksByName[taskKey] = {
+                        title: data.title,
+                        icon: data.icon || 'tasks',
+                        color: data.color || '#6b7280',
+                        instances: [],
+                        total: 0,
+                        completed: 0,
+                        incomplete: 0,
+                        pending: 0,
+                        inProgress: 0
+                    };
+                }
+                
+                tasksByName[taskKey].instances.push({ id: doc.id, ...data });
+                tasksByName[taskKey].total++;
+                
+                if (data.status === 'completed') {
+                    tasksByName[taskKey].completed++;
+                } else if (data.status === 'incomplete') {
+                    tasksByName[taskKey].incomplete++;
+                } else if (data.status === 'in-progress') {
+                    tasksByName[taskKey].inProgress++;
+                } else {
+                    tasksByName[taskKey].pending++;
+                }
+            }
+        });
+        
+        // Calculate overall statistics
+        const allTasks = Object.values(tasksByName);
+        const totalTasks = allTasks.reduce((sum, task) => sum + task.total, 0);
+        const completedTasks = allTasks.reduce((sum, task) => sum + task.completed, 0);
+        const completionRate = totalTasks > 0 ? Math.round((completedTasks / totalTasks) * 100) : 0;
+        
+        // Update summary
+        document.getElementById('progressTotalTasks').textContent = totalTasks;
+        document.getElementById('progressCompletedTasks').textContent = completedTasks;
+        document.getElementById('progressCompletionRate').textContent = `${completionRate}%`;
+        document.getElementById('progressSummaryBar').style.width = `${completionRate}%`;
+        
+        // Render tasks list
+        const tasksList = document.getElementById('progressTasksList');
+        
+        if (Object.keys(tasksByName).length === 0) {
+            tasksList.innerHTML = `
+                <div class="no-progress-tasks">
+                    <i class="fas fa-calendar-times"></i>
+                    <p>No hay tareas para este mes</p>
+                </div>
+            `;
+            return;
+        }
+        
+        // Sort tasks by completion rate (highest first), then by title
+        const sortedTasks = Object.values(tasksByName).sort((a, b) => {
+            const rateA = a.total > 0 ? (a.completed / a.total) : 0;
+            const rateB = b.total > 0 ? (b.completed / b.total) : 0;
+            if (rateB !== rateA) return rateB - rateA;
+            return a.title.localeCompare(b.title);
+        });
+        
+        let html = '';
+        
+        sortedTasks.forEach(taskGroup => {
+            const taskCompletionRate = taskGroup.total > 0 ? Math.round((taskGroup.completed / taskGroup.total) * 100) : 0;
+            
+            // Determine status color based on completion
+            let statusClass = 'pending';
+            let statusText = 'Pendiente';
+            let progressColor = taskGroup.color;
+            
+            if (taskCompletionRate === 100) {
+                statusClass = 'completed';
+                statusText = 'Completado';
+                progressColor = '#10b981';
+            } else if (taskCompletionRate > 0) {
+                statusClass = 'in-progress';
+                statusText = 'En Progreso';
+                progressColor = '#6366f1';
+            } else if (taskGroup.incomplete > 0) {
+                statusClass = 'incomplete';
+                statusText = 'Incompleto';
+                progressColor = '#ef4444';
+            }
+            
+            html += `
+                <div class="progress-task-item">
+                    <div class="progress-task-header">
+                        <div class="progress-task-icon" style="color: ${taskGroup.color}; border-color: ${taskGroup.color};">
+                            <i class="fas fa-${taskGroup.icon}"></i>
+                        </div>
+                        <div class="progress-task-info">
+                            <div class="progress-task-title">${taskGroup.title}</div>
+                            <div class="progress-task-date">
+                                <i class="fas fa-redo"></i>
+                                <span>${taskGroup.total} vez${taskGroup.total !== 1 ? 'ces' : ''} • ${taskGroup.completed} completada${taskGroup.completed !== 1 ? 's' : ''}</span>
+                            </div>
+                        </div>
+                        <div class="progress-task-status ${statusClass}">${statusText}</div>
+                    </div>
+                    <div class="progress-task-bar-container">
+                        <div class="progress-task-bar-fill" style="width: ${taskCompletionRate}%; background: ${progressColor};"></div>
+                    </div>
+                    <div class="progress-task-percentage">${taskCompletionRate}% completado (${taskGroup.completed}/${taskGroup.total})</div>
+                </div>
+            `;
+        });
+        
+        tasksList.innerHTML = html;
+    } catch (error) {
+        console.error('Error loading progress view:', error);
+    }
+}
+
+// Progress Month Navigation
+document.getElementById('prevProgressMonth').addEventListener('click', () => {
+    progressMonth.setMonth(progressMonth.getMonth() - 1);
+    loadProgressView();
+});
+
+document.getElementById('nextProgressMonth').addEventListener('click', () => {
+    progressMonth.setMonth(progressMonth.getMonth() + 1);
+    loadProgressView();
+});

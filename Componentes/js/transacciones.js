@@ -118,6 +118,16 @@ yearFilter.addEventListener('change', (e) => {
 monthFilter.addEventListener('change', renderTransactions);
 searchInput.addEventListener('input', renderTransactions);
 
+// Formatear moneda con separadores de miles
+function formatCurrency(amount) {
+    return new Intl.NumberFormat('es-CO', {
+        style: 'currency',
+        currency: 'COP',
+        minimumFractionDigits: 0,
+        maximumFractionDigits: 0
+    }).format(amount);
+}
+
 // Cargar cuentas
 async function loadAccounts() {
     try {
@@ -146,12 +156,12 @@ function populateAccountSelects() {
     accounts.forEach(account => {
         const optionOrigen = document.createElement('option');
         optionOrigen.value = account.id;
-        optionOrigen.textContent = `${account.nombre} - $${parseFloat(account.saldo || 0).toFixed(2)}`;
+        optionOrigen.textContent = `${account.nombre} - ${formatCurrency(account.saldo || 0)}`;
         cuentaOrigen.appendChild(optionOrigen);
         
         const optionDestino = document.createElement('option');
         optionDestino.value = account.id;
-        optionDestino.textContent = `${account.nombre} - $${parseFloat(account.saldo || 0).toFixed(2)}`;
+        optionDestino.textContent = `${account.nombre} - ${formatCurrency(account.saldo || 0)}`;
         cuentaDestino.appendChild(optionDestino);
     });
 }
@@ -159,24 +169,31 @@ function populateAccountSelects() {
 // Cargar transacciones
 async function loadTransactions() {
     try {
-        const q = query(collection(db, 'transacciones'), orderBy('fecha', 'desc'));
-        const querySnapshot = await getDocs(q);
+        const querySnapshot = await getDocs(collection(db, 'transacciones'));
         transactions = [];
         
-        for (const docSnap of querySnapshot.docs) {
+        // Crear un mapa de cuentas para acceso rápido
+        const accountsMap = {};
+        accounts.forEach(acc => {
+            accountsMap[acc.id] = acc.nombre;
+        });
+        
+        querySnapshot.forEach(docSnap => {
             const data = docSnap.data();
-            
-            // Obtener información de las cuentas
-            const cuentaOrigenDoc = await getDoc(doc(db, 'cuentas', data.cuentaOrigen));
-            const cuentaDestinoDoc = await getDoc(doc(db, 'cuentas', data.cuentaDestino));
-            
             transactions.push({
                 id: docSnap.id,
                 ...data,
-                cuentaOrigenNombre: cuentaOrigenDoc.exists() ? cuentaOrigenDoc.data().nombre : 'Cuenta eliminada',
-                cuentaDestinoNombre: cuentaDestinoDoc.exists() ? cuentaDestinoDoc.data().nombre : 'Cuenta eliminada'
+                cuentaOrigenNombre: accountsMap[data.cuentaOrigen] || 'Cuenta eliminada',
+                cuentaDestinoNombre: accountsMap[data.cuentaDestino] || 'Cuenta eliminada'
             });
-        }
+        });
+        
+        // Ordenar por fecha descendente
+        transactions.sort((a, b) => {
+            const dateA = a.fecha?.toDate?.() || new Date(a.fecha);
+            const dateB = b.fecha?.toDate?.() || new Date(b.fecha);
+            return dateB - dateA;
+        });
         
         renderTransactions();
     } catch (error) {
@@ -190,16 +207,8 @@ function renderTransactions() {
     const searchTerm = searchInput.value.toLowerCase();
     
     let filtered = transactions.filter(transaction => {
-        // Manejar tanto fechas Timestamp como strings para compatibilidad
-        let transactionDate;
-        if (transaction.fecha?.toDate) {
-            transactionDate = transaction.fecha.toDate();
-        } else if (typeof transaction.fecha === 'string') {
-            transactionDate = new Date(transaction.fecha + 'T12:00:00');
-        } else {
-            transactionDate = new Date(transaction.fecha);
-        }
-        
+        // Manejar fecha correctamente
+        const transactionDate = transaction.fecha?.toDate?.() || new Date(transaction.fecha);
         const transactionMonth = `${transactionDate.getFullYear()}-${String(transactionDate.getMonth() + 1).padStart(2, '0')}`;
         const matchesMonth = !filterMonth || transactionMonth === filterMonth;
         const matchesSearch = !searchTerm || 
@@ -220,7 +229,7 @@ function renderTransactions() {
     transactionsList.innerHTML = filtered.map(transaction => `
         <div class="transaction-item">
             <div class="item-header">
-                <div class="transaction-amount">$${formatCurrency(transaction.monto)}</div>
+                <div class="transaction-amount">${formatCurrency(transaction.monto)}</div>
                 <div class="item-actions">
                     <button class="btn-icon" onclick="editTransaction('${transaction.id}')">
                         <i class="fas fa-edit"></i>
@@ -265,14 +274,6 @@ function formatDate(date) {
         month: 'long', 
         day: 'numeric' 
     });
-}
-
-// Formatear moneda con separadores de miles
-function formatCurrency(amount) {
-    return new Intl.NumberFormat('es-CO', {
-        minimumFractionDigits: 0,
-        maximumFractionDigits: 0
-    }).format(amount);
 }
 
 // Format number with thousands separator
@@ -370,15 +371,14 @@ transactionForm.addEventListener('submit', async (e) => {
     try {
         // Crear fecha en hora local para evitar problemas de zona horaria
         const [año, mes, dia] = fecha.split('-').map(Number);
-        const fechaLocal = new Date(año, mes - 1, dia, 12, 0, 0); // Usar mediodía para evitar cambios de fecha
+        const fechaLocal = new Date(año, mes - 1, dia, 12, 0, 0);
         
         const transactionData = {
             monto: monto,
             cuentaOrigen: cuentaOrigenId,
             cuentaDestino: cuentaDestinoId,
             descripcion: descripcion,
-            fecha: Timestamp.fromDate(fechaLocal),
-            fechaCreacion: new Date().toISOString()
+            fecha: Timestamp.fromDate(fechaLocal)
         };
         
         if (editingId) {
@@ -442,7 +442,25 @@ transactionForm.addEventListener('submit', async (e) => {
         
         transactionModal.classList.remove('active');
         transactionForm.reset();
-        await loadAccounts();
+        
+        // Actualizar saldos localmente sin recargar todo
+        const origenAccount = accounts.find(a => a.id === cuentaOrigenId);
+        const destinoAccount = accounts.find(a => a.id === cuentaDestinoId);
+        
+        if (editingId) {
+            const oldTransaction = transactions.find(t => t.id === editingId);
+            // Revertir transacción anterior
+            const oldOrigen = accounts.find(a => a.id === oldTransaction.cuentaOrigen);
+            const oldDestino = accounts.find(a => a.id === oldTransaction.cuentaDestino);
+            if (oldOrigen) oldOrigen.saldo = parseFloat(oldOrigen.saldo) + parseFloat(oldTransaction.monto);
+            if (oldDestino) oldDestino.saldo = parseFloat(oldDestino.saldo) - parseFloat(oldTransaction.monto);
+        }
+        
+        // Aplicar nueva transacción
+        if (origenAccount) origenAccount.saldo = parseFloat(origenAccount.saldo) - monto;
+        if (destinoAccount) destinoAccount.saldo = parseFloat(destinoAccount.saldo) + monto;
+        
+        populateAccountSelects();
         await loadTransactions();
     } catch (error) {
         console.error('Error al guardar transacción:', error);
@@ -467,16 +485,12 @@ window.editTransaction = async (id) => {
     document.getElementById('cuentaDestino').value = transaction.cuentaDestino;
     document.getElementById('descripcion').value = transaction.descripcion || '';
     
-    // Manejar tanto fechas Timestamp como strings
-    let fechaValue;
-    if (transaction.fecha?.toDate) {
-        fechaValue = transaction.fecha.toDate().toISOString().split('T')[0];
-    } else if (typeof transaction.fecha === 'string') {
-        fechaValue = transaction.fecha;
-    } else {
-        fechaValue = new Date(transaction.fecha).toISOString().split('T')[0];
-    }
-    document.getElementById('fecha').value = fechaValue;
+    // Manejar fecha correctamente
+    const transactionDate = transaction.fecha?.toDate?.() || new Date(transaction.fecha);
+    const year = transactionDate.getFullYear();
+    const month = String(transactionDate.getMonth() + 1).padStart(2, '0');
+    const day = String(transactionDate.getDate()).padStart(2, '0');
+    document.getElementById('fecha').value = `${year}-${month}-${day}`;
     
     transactionModal.classList.add('active');
 };
@@ -514,7 +528,14 @@ window.deleteTransaction = async (id) => {
         }
         
         await deleteDoc(doc(db, 'transacciones', id));
-        await loadAccounts();
+        
+        // Actualizar saldos localmente
+        const origenAccount = accounts.find(a => a.id === transaction.cuentaOrigen);
+        const destinoAccount = accounts.find(a => a.id === transaction.cuentaDestino);
+        if (origenAccount) origenAccount.saldo = parseFloat(origenAccount.saldo) + parseFloat(transaction.monto);
+        if (destinoAccount) destinoAccount.saldo = parseFloat(destinoAccount.saldo) - parseFloat(transaction.monto);
+        
+        populateAccountSelects();
         await loadTransactions();
     } catch (error) {
         console.error('Error al eliminar transacción:', error);
