@@ -754,6 +754,27 @@
     background: linear-gradient(135deg, rgba(60, 60, 70, 0.6) 0%, rgba(50, 50, 60, 0.7) 100%);
 }
 
+.calendar-day-cell.holiday {
+    border-color: rgba(16, 185, 129, 0.6);
+    box-shadow: 0 0 20px rgba(16, 185, 129, 0.3), 0 4px 16px rgba(0, 0, 0, 0.2);
+    background: linear-gradient(135deg, rgba(16, 185, 129, 0.08) 0%, rgba(5, 150, 105, 0.05) 100%);
+}
+
+.calendar-day-cell.holiday:hover {
+    border-color: rgba(16, 185, 129, 0.8);
+    box-shadow: 0 0 28px rgba(16, 185, 129, 0.4), 0 8px 28px rgba(0, 0, 0, 0.4);
+}
+
+.calendar-holiday-icon {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    font-size: 14px;
+    color: #10b981;
+    opacity: 0.9;
+    filter: drop-shadow(0 0 4px rgba(16, 185, 129, 0.5));
+}
+
 .calendar-day-number {
     font-size: 17px;
     font-weight: 700;

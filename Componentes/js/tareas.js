@@ -40,6 +40,112 @@ let currentTimerTaskId = null;
 let selectedIcon = 'tasks';
 let selectedColor = '#6b7280';
 
+// Colombian Holidays - Fixed dates and calculated dates
+function getColombianHolidays(year) {
+    const holidays = [];
+    
+    // Fixed holidays
+    holidays.push({ date: `${year}-01-01`, name: 'Año Nuevo' });
+    holidays.push({ date: `${year}-05-01`, name: 'Día del Trabajo' });
+    holidays.push({ date: `${year}-07-20`, name: 'Día de la Independencia' });
+    holidays.push({ date: `${year}-08-07`, name: 'Batalla de Boyacá' });
+    holidays.push({ date: `${year}-12-08`, name: 'Inmaculada Concepción' });
+    holidays.push({ date: `${year}-12-25`, name: 'Navidad' });
+    
+    // Calculate Easter (Pascua) - using Meeus/Jones/Butcher algorithm
+    const a = year % 19;
+    const b = Math.floor(year / 100);
+    const c = year % 100;
+    const d = Math.floor(b / 4);
+    const e = b % 4;
+    const f = Math.floor((b + 8) / 25);
+    const g = Math.floor((b - f + 1) / 3);
+    const h = (19 * a + b - d - g + 15) % 30;
+    const i = Math.floor(c / 4);
+    const k = c % 4;
+    const l = (32 + 2 * e + 2 * i - h - k) % 7;
+    const m = Math.floor((a + 11 * h + 22 * l) / 451);
+    const month = Math.floor((h + l - 7 * m + 114) / 31);
+    const day = ((h + l - 7 * m + 114) % 31) + 1;
+    
+    const easter = new Date(year, month - 1, day);
+    
+    // Holidays based on Easter
+    const addDays = (date, days) => {
+        const result = new Date(date);
+        result.setDate(result.getDate() + days);
+        return result;
+    };
+    
+    // Jueves Santo y Viernes Santo (Holy Thursday and Good Friday)
+    holidays.push({ date: formatDateForInput(addDays(easter, -3)), name: 'Jueves Santo' });
+    holidays.push({ date: formatDateForInput(addDays(easter, -2)), name: 'Viernes Santo' });
+    
+    // Holidays moved to Monday (Ley Emiliani)
+    const moveToMonday = (date) => {
+        const d = new Date(date);
+        const dayOfWeek = d.getDay();
+        if (dayOfWeek === 0) { // Sunday
+            d.setDate(d.getDate() + 1);
+        } else if (dayOfWeek !== 1) { // Not Monday
+            d.setDate(d.getDate() + (8 - dayOfWeek));
+        }
+        return d;
+    };
+    
+    // Epifanía (Reyes Magos) - moved to Monday
+    const epiphany = moveToMonday(new Date(year, 0, 6));
+    holidays.push({ date: formatDateForInput(epiphany), name: 'Día de los Reyes Magos' });
+    
+    // San José - moved to Monday
+    const sanJose = moveToMonday(new Date(year, 2, 19));
+    holidays.push({ date: formatDateForInput(sanJose), name: 'Día de San José' });
+    
+    // Ascensión del Señor - 43 days after Easter, moved to Monday
+    const ascension = moveToMonday(addDays(easter, 43));
+    holidays.push({ date: formatDateForInput(ascension), name: 'Ascensión del Señor' });
+    
+    // Corpus Christi - 64 days after Easter, moved to Monday
+    const corpusChristi = moveToMonday(addDays(easter, 64));
+    holidays.push({ date: formatDateForInput(corpusChristi), name: 'Corpus Christi' });
+    
+    // Sagrado Corazón - 71 days after Easter, moved to Monday
+    const sagradoCorazon = moveToMonday(addDays(easter, 71));
+    holidays.push({ date: formatDateForInput(sagradoCorazon), name: 'Sagrado Corazón' });
+    
+    // San Pedro y San Pablo - moved to Monday
+    const sanPedro = moveToMonday(new Date(year, 5, 29));
+    holidays.push({ date: formatDateForInput(sanPedro), name: 'San Pedro y San Pablo' });
+    
+    // Asunción de la Virgen - moved to Monday
+    const asuncion = moveToMonday(new Date(year, 7, 15));
+    holidays.push({ date: formatDateForInput(asuncion), name: 'Asunción de la Virgen' });
+    
+    // Día de la Raza - moved to Monday
+    const diaRaza = moveToMonday(new Date(year, 9, 12));
+    holidays.push({ date: formatDateForInput(diaRaza), name: 'Día de la Raza' });
+    
+    // Todos los Santos - moved to Monday
+    const todosSantos = moveToMonday(new Date(year, 10, 1));
+    holidays.push({ date: formatDateForInput(todosSantos), name: 'Todos los Santos' });
+    
+    // Independencia de Cartagena - moved to Monday
+    const indCartagena = moveToMonday(new Date(year, 10, 11));
+    holidays.push({ date: formatDateForInput(indCartagena), name: 'Independencia de Cartagena' });
+    
+    return holidays;
+}
+
+// Check if a date is a Colombian holiday
+function isColombianHoliday(dateStr) {
+    const date = new Date(dateStr + 'T00:00:00');
+    const year = date.getFullYear();
+    const holidays = getColombianHolidays(year);
+    
+    const holiday = holidays.find(h => h.date === dateStr);
+    return holiday ? holiday.name : null;
+}
+
 // Elements
 const dayView = document.getElementById('dayView');
 const calendarView = document.getElementById('calendarView');
@@ -1747,6 +1853,12 @@ function createCalendarDay(day, dateStr, tasks, otherMonth = false, isToday = fa
     if (otherMonth) classes.push('other-month');
     if (isToday) classes.push('today');
     
+    // Check if it's a Colombian holiday
+    const holidayName = isColombianHoliday(dateStr);
+    if (holidayName && !otherMonth) {
+        classes.push('holiday');
+    }
+    
     // Sort tasks by time before showing dots
     const sortedTasks = [...tasks].sort((a, b) => {
         const timeA = a.startTime || a.time || '00:00 AM';
@@ -1761,7 +1873,8 @@ function createCalendarDay(day, dateStr, tasks, otherMonth = false, isToday = fa
     const taskCount = tasks.length > 3 ? `<div class="calendar-task-count">+${tasks.length - 3} más</div>` : '';
     
     return `
-        <div class="${classes.join(' ')}" onclick="selectCalendarDate('${dateStr}')">
+        <div class="${classes.join(' ')}" onclick="selectCalendarDate('${dateStr}')" ${holidayName ? `title="${holidayName}"` : ''}>
+            ${holidayName ? '<i class="fas fa-umbrella-beach calendar-holiday-icon"></i>' : ''}
             <div class="calendar-day-number">${day}</div>
             ${tasks.length > 0 ? `
                 <div class="calendar-task-dots">${taskDots}</div>
