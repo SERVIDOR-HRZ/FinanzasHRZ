@@ -402,3 +402,70 @@ window.copyKey = async (key, accountId) => {
 loadAccounts();
 
 
+
+// Distribution Config
+const DISTRIBUTION_CONFIG_KEY = 'distributionConfig';
+const btnConfigDistribution = document.getElementById('btnConfigDistribution');
+const distributionConfigModal = document.getElementById('distributionConfigModal');
+const closeDistConfigModal = document.getElementById('closeDistConfigModal');
+const cancelDistConfigBtn = document.getElementById('cancelDistConfigBtn');
+const saveDistConfigBtn = document.getElementById('saveDistConfigBtn');
+
+function getDistConfig() {
+    const c = localStorage.getItem(DISTRIBUTION_CONFIG_KEY);
+    return c ? JSON.parse(c) : { supervivencia: '', empresa: '', ahorro: '', libre: '' };
+}
+
+function saveDistConfigFn(config) { localStorage.setItem(DISTRIBUTION_CONFIG_KEY, JSON.stringify(config)); }
+
+function updateDistributionDisplay() {
+    const config = getDistConfig();
+    document.getElementById('distAccountSupervivencia').textContent = config.supervivencia || 'Sin asignar';
+    document.getElementById('distAccountEmpresa').textContent = config.empresa || 'Sin asignar';
+    document.getElementById('distAccountAhorro').textContent = config.ahorro || 'Sin asignar';
+    document.getElementById('distAccountLibre').textContent = config.libre || 'Sin asignar';
+}
+
+btnConfigDistribution.addEventListener('click', async () => {
+    try {
+        const accountsSnap = await getDocs(collection(db, 'cuentas'));
+        const accounts = [];
+        accountsSnap.forEach(d => accounts.push(d.data().nombre));
+
+        const selects = ['distCuentaSupervivencia', 'distCuentaEmpresa', 'distCuentaAhorro', 'distCuentaLibre'];
+        selects.forEach(id => {
+            const sel = document.getElementById(id);
+            sel.innerHTML = '<option value="">Seleccionar cuenta</option>';
+            accounts.forEach(name => {
+                const opt = document.createElement('option');
+                opt.value = name; opt.textContent = name;
+                sel.appendChild(opt);
+            });
+        });
+
+        const config = getDistConfig();
+        document.getElementById('distCuentaSupervivencia').value = config.supervivencia || '';
+        document.getElementById('distCuentaEmpresa').value = config.empresa || '';
+        document.getElementById('distCuentaAhorro').value = config.ahorro || '';
+        document.getElementById('distCuentaLibre').value = config.libre || '';
+    } catch (error) { console.error('Error loading dist config:', error); }
+    distributionConfigModal.classList.add('active');
+});
+
+closeDistConfigModal.addEventListener('click', () => distributionConfigModal.classList.remove('active'));
+cancelDistConfigBtn.addEventListener('click', () => distributionConfigModal.classList.remove('active'));
+distributionConfigModal.addEventListener('click', (e) => { if (e.target === distributionConfigModal) distributionConfigModal.classList.remove('active'); });
+
+saveDistConfigBtn.addEventListener('click', () => {
+    const config = {
+        supervivencia: document.getElementById('distCuentaSupervivencia').value,
+        empresa: document.getElementById('distCuentaEmpresa').value,
+        ahorro: document.getElementById('distCuentaAhorro').value,
+        libre: document.getElementById('distCuentaLibre').value
+    };
+    saveDistConfigFn(config);
+    updateDistributionDisplay();
+    distributionConfigModal.classList.remove('active');
+});
+
+updateDistributionDisplay();

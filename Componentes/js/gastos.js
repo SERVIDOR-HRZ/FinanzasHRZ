@@ -176,6 +176,8 @@ function closeModalHandler() {
     expenseForm.reset();
     imagePreview.innerHTML = '';
     editingId = null;
+    capturedImageData = null;
+    stopCamera();
 }
 
 imageInput.addEventListener('change', (e) => {
@@ -183,11 +185,75 @@ imageInput.addEventListener('change', (e) => {
     if (file) {
         const reader = new FileReader();
         reader.onload = (e) => {
-            imagePreview.innerHTML = `<img src="${e.target.result}" alt="Preview">`;
+            imagePreview.innerHTML = `<div class="preview-wrapper"><img src="${e.target.result}" alt="Preview"><button type="button" class="btn-remove-image" onclick="removeImagePreview()"><i class="fas fa-times"></i></button></div>`;
         };
         reader.readAsDataURL(file);
     }
 });
+
+// Camera functionality
+const btnTakePhoto = document.getElementById('btnTakePhoto');
+const btnSelectGallery = document.getElementById('btnSelectGallery');
+const cameraContainer = document.getElementById('cameraContainer');
+const cameraVideo = document.getElementById('cameraVideo');
+const cameraCanvas = document.getElementById('cameraCanvas');
+const btnCameraCapture = document.getElementById('btnCameraCapture');
+const btnCameraCancel = document.getElementById('btnCameraCancel');
+const btnCameraSwitch = document.getElementById('btnCameraSwitch');
+
+let cameraStream = null;
+let facingMode = 'environment';
+let capturedImageData = null;
+
+btnSelectGallery.addEventListener('click', () => imageInput.click());
+
+btnTakePhoto.addEventListener('click', async () => {
+    try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode } });
+        cameraVideo.srcObject = cameraStream;
+        cameraContainer.style.display = 'block';
+    } catch (err) {
+        imageInput.setAttribute('capture', 'environment');
+        imageInput.click();
+        imageInput.removeAttribute('capture');
+    }
+});
+
+btnCameraCapture.addEventListener('click', () => {
+    cameraCanvas.width = cameraVideo.videoWidth;
+    cameraCanvas.height = cameraVideo.videoHeight;
+    const ctx = cameraCanvas.getContext('2d');
+    ctx.drawImage(cameraVideo, 0, 0);
+    capturedImageData = cameraCanvas.toDataURL('image/jpeg', 0.85);
+    imagePreview.innerHTML = `<div class="preview-wrapper"><img src="${capturedImageData}" alt="Preview"><button type="button" class="btn-remove-image" onclick="removeImagePreview()"><i class="fas fa-times"></i></button></div>`;
+    stopCamera();
+});
+
+btnCameraCancel.addEventListener('click', () => stopCamera());
+
+btnCameraSwitch.addEventListener('click', async () => {
+    facingMode = facingMode === 'environment' ? 'user' : 'environment';
+    stopCamera();
+    try {
+        cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode } });
+        cameraVideo.srcObject = cameraStream;
+        cameraContainer.style.display = 'block';
+    } catch (err) { console.error('Error switching camera:', err); }
+});
+
+function stopCamera() {
+    if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+    }
+    cameraContainer.style.display = 'none';
+}
+
+window.removeImagePreview = () => {
+    imagePreview.innerHTML = '';
+    imageInput.value = '';
+    capturedImageData = null;
+};
 
 expenseForm.addEventListener('submit', async (e) => {
     e.preventDefault();
@@ -203,7 +269,11 @@ expenseForm.addEventListener('submit', async (e) => {
     try {
         let imageUrl = '';
         
-        if (imageInput.files[0]) {
+        if (capturedImageData) {
+            const blob = await fetch(capturedImageData).then(r => r.blob());
+            const file = new File([blob], 'camera_photo.jpg', { type: 'image/jpeg' });
+            imageUrl = await uploadImage(file);
+        } else if (imageInput.files[0]) {
             imageUrl = await uploadImage(imageInput.files[0]);
         } else if (editingId) {
             const existingExpense = allExpenses.find(e => e.id === editingId);
@@ -286,37 +356,22 @@ function renderExpenses(expenses) {
     
     container.innerHTML = expenses.map(expense => `
         <div class="expense-item">
-            <div class="item-header">
+            <div class="item-top">
                 <div class="item-amount">${formatCurrency(expense.monto)}</div>
                 <div class="item-actions">
-                    <button class="btn-icon" onclick="editExpense('${expense.id}')">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn-icon delete" onclick="deleteExpense('${expense.id}')">
-                        <i class="fas fa-trash"></i>
-                    </button>
+                    <button class="btn-icon" onclick="editExpense('${expense.id}')"><i class="fas fa-edit"></i></button>
+                    <button class="btn-icon delete" onclick="deleteExpense('${expense.id}')"><i class="fas fa-trash"></i></button>
                 </div>
             </div>
+            <div class="item-date-line"><i class="fas fa-calendar"></i> ${formatDate(expense.fecha)}</div>
             <div class="item-description">${expense.descripcion}</div>
             <div class="item-details">
-                <div class="item-detail">
-                    <i class="fas fa-credit-card"></i>
-                    <span>${expense.cuenta}</span>
-                </div>
-                ${expense.categoria ? `
-                <div class="item-detail">
-                    <i class="fas fa-tag"></i>
-                    <span>${expense.categoria}</span>
-                </div>
-                ` : ''}
-                <div class="item-detail">
-                    <i class="fas fa-calendar"></i>
-                    <span>${formatDate(expense.fecha)}</span>
-                </div>
+                <div class="item-badge"><i class="fas fa-credit-card"></i> ${expense.cuenta}</div>
+                ${expense.categoria ? `<div class="item-badge"><i class="fas fa-tag"></i> ${expense.categoria}</div>` : ''}
             </div>
             ${expense.imagen ? `
-            <div class="item-image">
-                <img src="${expense.imagen}" alt="Comprobante" onclick="openImageModal('${expense.imagen}')">
+            <div class="item-footer">
+                <button class="btn-action btn-comprobante" onclick="openImageModal('${expense.imagen}')"><i class="fas fa-image"></i> Ver Comprobante</button>
             </div>
             ` : ''}
         </div>
