@@ -102,6 +102,11 @@ body {
   pointer-events: none;
 }
 
+.nav-wrapper.keyboard-open .fab {
+  opacity: 0;
+  pointer-events: none;
+}
+
 /* ── BOTTOM NAV ── */
 .bottom-nav {
   width: 100%;
