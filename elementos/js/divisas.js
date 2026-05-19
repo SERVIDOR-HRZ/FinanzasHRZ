@@ -70,9 +70,16 @@ function populateSelects() {
     fromSel.appendChild(new Option(c.code + ' - ' + c.name, c.code));
     toSel.appendChild(new Option(c.code + ' - ' + c.name, c.code));
   });
-  fromSel.value = 'COP';
-  toSel.value   = 'USD';
+
+  // Restaurar última selección guardada, o usar COP→USD por defecto
+  fromSel.value = localStorage.getItem('div_from') || 'COP';
+  toSel.value   = localStorage.getItem('div_to')   || 'USD';
   updateFromFlag();
+}
+
+function savePrefs() {
+  localStorage.setItem('div_from', document.getElementById('fromCurrency').value);
+  localStorage.setItem('div_to',   document.getElementById('toCurrency').value);
 }
 
 function updateFromFlag() {
@@ -81,8 +88,8 @@ function updateFromFlag() {
   var flagEl = document.getElementById('fromFlag');
   flagEl.innerHTML = c ? flagSpan(c.emoji) : '';
   document.getElementById('fromLabel').textContent = code;
-  // Re-parsear twemoji en el flag del input
   if (window.twemoji) twemoji.parse(flagEl, twemojiOpts());
+  savePrefs();
   autoConvert();
 }
 
@@ -227,11 +234,6 @@ document.addEventListener('DOMContentLoaded', function() {
   });
 
   document.getElementById('fromCurrency').addEventListener('change', updateFromFlag);
-  document.getElementById('toCurrency').addEventListener('change', function() { autoConvert(); });
+  document.getElementById('toCurrency').addEventListener('change', function() { savePrefs(); autoConvert(); });
   document.getElementById('swapBtn').addEventListener('click', swapCurrencies);
-  document.getElementById('convertBtn').addEventListener('click', function() {
-    var v = getRawNumber();
-    if (isNaN(v) || v <= 0) shakeInput();
-    else autoConvert();
-  });
 });

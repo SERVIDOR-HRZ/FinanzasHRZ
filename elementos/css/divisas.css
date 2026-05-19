@@ -185,26 +185,6 @@
 .swap-btn:hover { background: rgba(255,255,255,.12); color: #fff; }
 .swap-btn:active { transform: rotate(180deg) scale(.9); }
 
-/* ── CONVERT BUTTON ── */
-.convert-btn {
-  width: 100%;
-  padding: 16px;
-  border-radius: 16px;
-  border: none;
-  background: #fbbf24;
-  color: #111;
-  font-size: 1rem;
-  font-weight: 700;
-  cursor: pointer;
-  transition: opacity .2s ease, transform .15s ease, box-shadow .2s ease;
-  box-shadow: 0 0 20px rgba(251,191,36,.35);
-  -webkit-tap-highlight-color: transparent;
-  letter-spacing: -.01em;
-}
-
-.convert-btn:hover { opacity: .92; box-shadow: 0 0 32px rgba(251,191,36,.55); }
-.convert-btn:active { transform: scale(.97); }
-
 /* ── RESULT CARD ── */
 .result-card {
   border-radius: 24px;
