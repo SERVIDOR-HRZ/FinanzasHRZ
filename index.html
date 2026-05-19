@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>FinanceApp</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet" href="elementos/css/style.css" />
 </head>
 <body>
 
@@ -19,45 +19,33 @@
     </div>
   </main>
 
-  <!-- Wrapper para el nav + botón flotante -->
+  <!-- Nav inferior -->
   <div class="nav-wrapper">
-
     <nav class="bottom-nav glass">
-      <a href="#" class="nav-item active" data-page="cuentas">
+      <a href="index.html" class="nav-item active" data-page="cuentas">
         <i class="fa-solid fa-wallet nav-icon"></i>
         <span class="nav-label">Cuentas</span>
-      </a>
-      <a href="#" class="nav-item" data-page="movimientos">
-        <i class="fa-solid fa-right-left nav-icon"></i>
-        <span class="nav-label">Movimientos</span>
       </a>
       <a href="#" class="nav-item" data-page="ingresos">
         <i class="fa-solid fa-arrow-trend-up nav-icon"></i>
         <span class="nav-label">Ingresos</span>
       </a>
 
-      <!-- Espacio vacío para el botón flotante -->
       <div class="nav-spacer"></div>
 
       <a href="#" class="nav-item" data-page="gastos">
         <i class="fa-solid fa-arrow-trend-down nav-icon"></i>
         <span class="nav-label">Gastos</span>
       </a>
-      <a href="#" class="nav-item" data-page="inversiones">
-        <i class="fa-solid fa-chart-line nav-icon"></i>
-        <span class="nav-label">Inversiones</span>
-      </a>
-      <a href="#" class="nav-item" data-page="divisas">
+      <a href="secciones/divisas.html" class="nav-item" data-page="divisas">
         <i class="fa-solid fa-coins nav-icon"></i>
         <span class="nav-label">Divisas</span>
       </a>
     </nav>
 
-    <!-- Botón + flotante sobre el nav -->
     <button class="fab" id="fabBtn" aria-label="Nuevo">
       <i class="fa-solid fa-plus"></i>
     </button>
-
   </div>
 
   <!-- Modal: Ingreso o Gasto -->
@@ -67,25 +55,17 @@
       <p class="modal-eyebrow">Nueva transacción</p>
       <h2 class="modal-title" id="modalTitle">¿Qué deseas registrar?</h2>
       <p class="modal-subtitle">Selecciona el tipo de movimiento</p>
-
       <div class="modal-options">
-        <!-- Ingreso -->
         <button class="modal-option option-ingreso" id="optIngreso">
-          <span class="option-icon-wrap">
-            <i class="fa-solid fa-arrow-trend-up"></i>
-          </span>
+          <span class="option-icon-wrap"><i class="fa-solid fa-arrow-trend-up"></i></span>
           <span class="option-text">
             <span class="option-label">Ingreso</span>
             <span class="option-desc">Dinero que entra</span>
           </span>
           <i class="fa-solid fa-chevron-right option-arrow"></i>
         </button>
-
-        <!-- Gasto -->
         <button class="modal-option option-gasto" id="optGasto">
-          <span class="option-icon-wrap">
-            <i class="fa-solid fa-arrow-trend-down"></i>
-          </span>
+          <span class="option-icon-wrap"><i class="fa-solid fa-arrow-trend-down"></i></span>
           <span class="option-text">
             <span class="option-label">Gasto</span>
             <span class="option-desc">Dinero que sale</span>
@@ -93,11 +73,10 @@
           <i class="fa-solid fa-chevron-right option-arrow"></i>
         </button>
       </div>
-
       <button class="modal-cancel" id="modalCancel">Cancelar</button>
     </div>
   </div>
 
-  <script src="app.js"></script>
+  <script src="elementos/js/app.js"></script>
 </body>
 </html>

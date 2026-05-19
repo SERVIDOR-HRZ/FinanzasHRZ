@@ -8,7 +8,11 @@ const optGasto = document.getElementById('optGasto');
 // Nav activo
 navItems.forEach(item => {
   item.addEventListener('click', (e) => {
-    e.preventDefault();
+    const href = item.getAttribute('href');
+    // Solo bloquear navegación si es un link vacío (#)
+    if (!href || href === '#') {
+      e.preventDefault();
+    }
     navItems.forEach(n => n.classList.remove('active'));
     item.classList.add('active');
   });
@@ -22,7 +26,7 @@ fab.addEventListener('click', () => {
   modalOverlay.classList.remove('closing');
 });
 
-// Cerrar modal con animación
+// Cerrar modal
 function closeModal() {
   modalOverlay.classList.add('closing');
   modalOverlay.classList.remove('active');
@@ -33,27 +37,22 @@ function closeModal() {
   }, 300);
 }
 
-// Cerrar al tocar overlay (fuera del sheet)
 modalOverlay.addEventListener('click', (e) => {
   if (e.target === modalOverlay) closeModal();
 });
 
 modalCancel.addEventListener('click', closeModal);
 
-// Cerrar con Escape
 document.addEventListener('keydown', (e) => {
   if (e.key === 'Escape') closeModal();
 });
 
-// Opciones
 optIngreso.addEventListener('click', () => {
   closeModal();
-  // TODO: abrir formulario de ingreso
   console.log('Nuevo ingreso');
 });
 
 optGasto.addEventListener('click', () => {
   closeModal();
-  // TODO: abrir formulario de gasto
   console.log('Nuevo gasto');
 });

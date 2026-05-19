@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Divisas — FinanceApp</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="../elementos/css/style.css" />
+  <link rel="stylesheet" href="../elementos/css/divisas.css" />
+</head>
+<body>
+
+  <div class="bg-glow glow-1"></div>
+  <div class="bg-glow glow-2"></div>
+
+  <!-- Contenido principal -->
+  <div class="divisas-page">
+
+    <!-- Header -->
+    <div class="divisas-header glass">
+      <div class="divisas-header-icon">
+        <i class="fa-solid fa-coins"></i>
+      </div>
+      <div class="divisas-header-text">
+        <h1>Divisas</h1>
+        <p>Convierte entre monedas del mundo</p>
+      </div>
+    </div>
+
+    <!-- Conversor -->
+    <div class="converter-card glass">
+      <p class="converter-card-title">Conversor</p>
+
+      <!-- Monto -->
+      <div class="amount-input-wrap">
+        <span class="amount-flag" id="fromFlag">🇨🇴</span>
+        <input
+          type="number"
+          id="amountInput"
+          class="amount-input"
+          placeholder="0"
+          inputmode="decimal"
+          min="0"
+        />
+        <span class="amount-currency-label" id="fromLabel">COP</span>
+      </div>
+
+      <!-- De / A -->
+      <div class="converter-row">
+        <div class="currency-select-wrap">
+          <label for="fromCurrency">De</label>
+          <select id="fromCurrency" class="currency-select"></select>
+          <i class="fa-solid fa-chevron-down select-arrow"></i>
+        </div>
+
+        <button class="swap-btn" id="swapBtn" aria-label="Intercambiar monedas">
+          <i class="fa-solid fa-arrow-right-arrow-left"></i>
+        </button>
+
+        <div class="currency-select-wrap">
+          <label for="toCurrency">A</label>
+          <select id="toCurrency" class="currency-select"></select>
+          <i class="fa-solid fa-chevron-down select-arrow"></i>
+        </div>
+      </div>
+
+      <!-- Botón convertir -->
+      <button class="convert-btn" id="convertBtn">
+        <i class="fa-solid fa-bolt" style="margin-right:8px;"></i>Convertir
+      </button>
+    </div>
+
+    <!-- Resultado -->
+    <div class="result-card glass" id="resultCard">
+      <p class="result-label">Resultado</p>
+      <div class="result-flags" id="resultFlags">🇨🇴 → 🇺🇸</div>
+      <div class="result-amount" id="resultAmount">0.00</div>
+      <p class="result-detail" id="resultDetail"></p>
+      <span class="result-rate" id="resultRate"></span>
+    </div>
+
+    <!-- Tasas destacadas -->
+    <p class="rates-section-title">Tasas vs COP</p>
+    <div class="rates-grid" id="ratesGrid"></div>
+
+  </div>
+
+  <!-- Nav inferior -->
+  <div class="nav-wrapper">
+    <nav class="bottom-nav glass">
+      <a href="../index.html" class="nav-item" data-page="cuentas">
+        <i class="fa-solid fa-wallet nav-icon"></i>
+        <span class="nav-label">Cuentas</span>
+      </a>
+      <a href="#" class="nav-item" data-page="ingresos">
+        <i class="fa-solid fa-arrow-trend-up nav-icon"></i>
+        <span class="nav-label">Ingresos</span>
+      </a>
+
+      <div class="nav-spacer"></div>
+
+      <a href="#" class="nav-item" data-page="gastos">
+        <i class="fa-solid fa-arrow-trend-down nav-icon"></i>
+        <span class="nav-label">Gastos</span>
+      </a>
+      <a href="divisas.html" class="nav-item active" data-page="divisas">
+        <i class="fa-solid fa-coins nav-icon"></i>
+        <span class="nav-label">Divisas</span>
+      </a>
+    </nav>
+
+    <button class="fab" id="fabBtn" aria-label="Nuevo">
+      <i class="fa-solid fa-plus"></i>
+    </button>
+  </div>
+
+  <!-- Modal -->
+  <div class="modal-overlay" id="modalOverlay" aria-hidden="true">
+    <div class="modal-sheet glass" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-handle"></div>
+      <p class="modal-eyebrow">Nueva transacción</p>
+      <h2 class="modal-title" id="modalTitle">¿Qué deseas registrar?</h2>
+      <p class="modal-subtitle">Selecciona el tipo de movimiento</p>
+      <div class="modal-options">
+        <button class="modal-option option-ingreso" id="optIngreso">
+          <span class="option-icon-wrap"><i class="fa-solid fa-arrow-trend-up"></i></span>
+          <span class="option-text">
+            <span class="option-label">Ingreso</span>
+            <span class="option-desc">Dinero que entra</span>
+          </span>
+          <i class="fa-solid fa-chevron-right option-arrow"></i>
+        </button>
+        <button class="modal-option option-gasto" id="optGasto">
+          <span class="option-icon-wrap"><i class="fa-solid fa-arrow-trend-down"></i></span>
+          <span class="option-text">
+            <span class="option-label">Gasto</span>
+            <span class="option-desc">Dinero que sale</span>
+          </span>
+          <i class="fa-solid fa-chevron-right option-arrow"></i>
+        </button>
+      </div>
+      <button class="modal-cancel" id="modalCancel">Cancelar</button>
+    </div>
+  </div>
+
+  <script src="../elementos/js/app.js"></script>
+  <script src="../elementos/js/divisas.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@twemoji/api@latest/dist/twemoji.min.js" crossorigin="anonymous"></script>
+  <script>
+    var twemojiBase = {
+      folder: 'svg', ext: '.svg',
+      base: 'https://cdn.jsdelivr.net/gh/twitter/twemoji@14.0.2/assets/',
+      className: 'twemoji-flag'
+    };
+    // Parsear todo el body una vez que cargue divisas.js
+    window.addEventListener('load', function() {
+      if (window.twemoji) twemoji.parse(document.body, twemojiBase);
+    });
+  </script>
+</body>
+</html>

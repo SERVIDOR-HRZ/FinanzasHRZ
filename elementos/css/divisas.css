@@ -1,0 +1,415 @@
+/* ── DIVISAS PAGE ── */
+
+.divisas-page {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  padding: 2rem 1.25rem calc(var(--nav-h) + 2.5rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ── HEADER ── */
+.divisas-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 1.4rem 1.5rem;
+  border-radius: 20px;
+}
+
+.divisas-header-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  background: rgba(251,191,36,.15);
+  color: #fbbf24;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  box-shadow: 0 0 18px rgba(251,191,36,.25);
+  flex-shrink: 0;
+}
+
+.divisas-header-text h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  color: #fff;
+}
+
+.divisas-header-text p {
+  font-size: .78rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ── CONVERTER CARD ── */
+.converter-card {
+  border-radius: 24px;
+  padding: 1.5rem;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+}
+
+.converter-card-title {
+  font-size: .7rem;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.3);
+  margin-bottom: 1.25rem;
+}
+
+/* ── INPUT AMOUNT ── */
+.amount-input-wrap {
+  position: relative;
+  margin-bottom: 1rem;
+}
+
+.amount-flag {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  display: flex;
+  align-items: center;
+  line-height: 1;
+}
+
+.amount-input {
+  width: 100%;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 16px;
+  padding: 16px 70px 16px 58px;
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #fff;
+  outline: none;
+  transition: border-color .2s ease, box-shadow .2s ease;
+  letter-spacing: -.02em;
+}
+
+.amount-input::placeholder { color: rgba(255,255,255,.2); }
+
+.amount-input:focus {
+  border-color: rgba(251,191,36,.5);
+  box-shadow: 0 0 0 3px rgba(251,191,36,.1);
+}
+
+.amount-currency-label {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: .75rem;
+  font-weight: 600;
+  color: rgba(255,255,255,.35);
+  letter-spacing: .06em;
+  pointer-events: none;
+}
+
+/* ── FROM/TO SELECTORS ── */
+.converter-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 1rem;
+}
+
+.currency-select-wrap {
+  flex: 1;
+  position: relative;
+}
+
+.currency-select-wrap label {
+  display: block;
+  font-size: .65rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.3);
+  margin-bottom: 6px;
+  padding-left: 4px;
+}
+
+.currency-select {
+  width: 100%;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 14px;
+  padding: 12px 36px 12px 14px;
+  color: #fff;
+  font-size: .9rem;
+  font-weight: 500;
+  outline: none;
+  appearance: none;
+  -webkit-appearance: none;
+  cursor: pointer;
+  transition: border-color .2s ease;
+}
+
+.currency-select:focus { border-color: rgba(251,191,36,.4); }
+.currency-select option { background: #1a1a1a; color: #fff; }
+
+.select-arrow {
+  position: absolute;
+  right: 12px;
+  bottom: 13px;
+  color: rgba(255,255,255,.3);
+  font-size: .7rem;
+  pointer-events: none;
+}
+
+/* Swap */
+.swap-btn {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.06);
+  color: rgba(255,255,255,.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: background .2s ease, transform .2s ease, color .2s ease;
+  flex-shrink: 0;
+  margin-top: 18px;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.swap-btn:hover { background: rgba(255,255,255,.12); color: #fff; }
+.swap-btn:active { transform: rotate(180deg) scale(.9); }
+
+/* ── CONVERT BUTTON ── */
+.convert-btn {
+  width: 100%;
+  padding: 16px;
+  border-radius: 16px;
+  border: none;
+  background: #fbbf24;
+  color: #111;
+  font-size: 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity .2s ease, transform .15s ease, box-shadow .2s ease;
+  box-shadow: 0 0 20px rgba(251,191,36,.35);
+  -webkit-tap-highlight-color: transparent;
+  letter-spacing: -.01em;
+}
+
+.convert-btn:hover { opacity: .92; box-shadow: 0 0 32px rgba(251,191,36,.55); }
+.convert-btn:active { transform: scale(.97); }
+
+/* ── RESULT CARD ── */
+.result-card {
+  border-radius: 24px;
+  text-align: center;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.06);
+  opacity: 0;
+  transform: translateY(16px);
+  pointer-events: none;
+  max-height: 0;
+  overflow: hidden;
+  transition: max-height .4s ease, opacity .35s ease, transform .35s cubic-bezier(.32,1,.6,1), padding .35s ease;
+  padding: 0 1.5rem;
+}
+
+.result-card.visible {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: all;
+  max-height: 400px;
+  padding: 1.5rem;
+}
+
+.result-label {
+  font-size: .7rem;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.3);
+  margin-bottom: .75rem;
+}
+
+.result-flags {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: .75rem;
+  min-height: 36px;
+}
+
+.result-arrow {
+  color: rgba(255,255,255,.3);
+  font-size: 1rem;
+}
+
+.result-amount {
+  font-size: clamp(2rem, 8vw, 3rem);
+  font-weight: 800;
+  letter-spacing: -.04em;
+  color: #fbbf24;
+  text-shadow: 0 0 30px rgba(251,191,36,.4);
+  line-height: 1;
+  margin-bottom: .4rem;
+}
+
+.result-detail {
+  font-size: .82rem;
+  color: rgba(255,255,255,.35);
+}
+
+.result-rate {
+  display: inline-block;
+  margin-top: .75rem;
+  padding: 5px 14px;
+  border-radius: 99px;
+  background: rgba(251,191,36,.1);
+  border: 1px solid rgba(251,191,36,.2);
+  font-size: .75rem;
+  color: rgba(251,191,36,.8);
+  font-weight: 500;
+}
+
+/* ── RATES GRID ── */
+.rates-section-title {
+  font-size: .7rem;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.3);
+  padding: 0 4px;
+}
+
+.rates-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.rate-card {
+  border-radius: 18px;
+  padding: 1rem 1.1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  transition: transform .15s ease, box-shadow .2s ease;
+  cursor: pointer;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05);
+}
+
+.rate-card:hover {
+  transform: translateY(-2px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.05), 0 8px 24px rgba(0,0,0,.4);
+}
+
+.rate-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2px;
+}
+
+.rate-flag { display: flex; align-items: center; }
+
+/* Badge de código en la tarjeta */
+.rate-code-badge {
+  font-size: .65rem;
+  font-weight: 700;
+  letter-spacing: .06em;
+  color: rgba(255,255,255,.4);
+  background: rgba(255,255,255,.07);
+  padding: 2px 7px;
+  border-radius: 99px;
+}
+
+.rate-name {
+  font-size: .75rem;
+  color: rgba(255,255,255,.45);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.rate-value {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  letter-spacing: -.02em;
+}
+
+.rate-sub {
+  font-size: .68rem;
+  color: rgba(255,255,255,.25);
+}
+
+/* Twemoji flags */
+.twemoji-flag {
+  border-radius: 4px;
+  vertical-align: middle;
+  display: inline-block;
+  object-fit: cover;
+}
+
+/* Tamaños específicos por contexto */
+.flag-emoji {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  overflow: hidden;
+}
+
+/* Bandera en el input */
+.amount-flag .flag-emoji img.twemoji-flag,
+.amount-flag .flag-emoji .twemoji-flag {
+  width: 28px !important;
+  height: 20px !important;
+  border-radius: 3px;
+}
+
+/* Bandera en resultado */
+.result-flags .flag-emoji img.twemoji-flag,
+.result-flags .flag-emoji .twemoji-flag {
+  width: 32px !important;
+  height: 22px !important;
+  border-radius: 3px;
+}
+
+/* Bandera en tarjetas del grid */
+.rate-flag .flag-emoji img.twemoji-flag,
+.rate-flag .flag-emoji .twemoji-flag {
+  width: 30px !important;
+  height: 20px !important;
+  border-radius: 3px;
+}
+
+/* Ocultar el emoji de texto original una vez que twemoji lo reemplaza */
+.flag-emoji {
+  font-size: 0 !important;
+  line-height: 0 !important;
+}
+
+/* Shake para input invalido */
+@keyframes shake {
+  0%,100% { transform: translateX(0); }
+  20%,60%  { transform: translateX(-6px); }
+  40%,80%  { transform: translateX(6px); }
+}
+.shake { animation: shake .4s ease; border-color: rgba(248,113,113,.6) !important; }
+
+/* ── RESPONSIVE ── */
+@media (min-width: 480px) {
+  .rates-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (min-width: 768px) {
+  .divisas-page { max-width: 660px; margin: 0 auto; }
+  .rates-grid { grid-template-columns: repeat(4, 1fr); }
+}
