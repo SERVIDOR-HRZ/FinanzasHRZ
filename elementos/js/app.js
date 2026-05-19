@@ -4,6 +4,31 @@ const modalOverlay = document.getElementById('modalOverlay');
 const modalCancel = document.getElementById('modalCancel');
 const optIngreso = document.getElementById('optIngreso');
 const optGasto = document.getElementById('optGasto');
+const navWrapper = document.querySelector('.nav-wrapper');
+
+// Detectar teclado virtual (cuando el viewport se achica más del 25%)
+const initialHeight = window.innerHeight;
+window.addEventListener('resize', () => {
+  const currentHeight = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+  const diff = initialHeight - currentHeight;
+  if (diff > 150) {
+    navWrapper.classList.add('keyboard-open');
+  } else {
+    navWrapper.classList.remove('keyboard-open');
+  }
+});
+
+// También con visualViewport API (más preciso en móviles)
+if (window.visualViewport) {
+  window.visualViewport.addEventListener('resize', () => {
+    const diff = initialHeight - window.visualViewport.height;
+    if (diff > 150) {
+      navWrapper.classList.add('keyboard-open');
+    } else {
+      navWrapper.classList.remove('keyboard-open');
+    }
+  });
+}
 
 // Nav activo
 navItems.forEach(item => {

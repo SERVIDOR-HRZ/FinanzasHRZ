@@ -93,6 +93,13 @@ body {
   z-index: 100;
   display: flex;
   justify-content: center;
+  transition: transform .25s ease;
+}
+
+/* Ocultar nav cuando el teclado virtual sube */
+.nav-wrapper.keyboard-open {
+  transform: translateY(100%);
+  pointer-events: none;
 }
 
 /* ── BOTTOM NAV ── */
