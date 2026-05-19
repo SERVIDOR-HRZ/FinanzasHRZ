@@ -226,6 +226,29 @@ document.addEventListener('DOMContentLoaded', function() {
   renderRatesGrid();
   fetchRates();
 
+  // Cuando el teclado sube, hacer scroll para que el input sea visible
+  amountInput.addEventListener('focus', function() {
+    setTimeout(function() {
+      amountInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 350);
+  });
+
+  // Detectar cambio de tamaño de ventana (teclado virtual)
+  if (window.visualViewport) {
+    window.visualViewport.addEventListener('resize', function() {
+      var keyboardHeight = window.innerHeight - window.visualViewport.height;
+      var page = document.querySelector('.divisas-page');
+      if (keyboardHeight > 100) {
+        page.style.paddingBottom = (keyboardHeight + 20) + 'px';
+        setTimeout(function() {
+          amountInput.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 100);
+      } else {
+        page.style.paddingBottom = '';
+      }
+    });
+  }
+
   amountInput.addEventListener('input', function(e) {
     var digits = e.target.value.replace(/[^0-9]/g, '');
     if (digits === '') { e.target.value = ''; autoConvert(); return; }
