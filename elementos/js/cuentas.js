@@ -26,6 +26,12 @@ const ICONOS = [
   { id: 'inversion',   clase: 'fa-solid fa-chart-line'       },
   { id: 'negocio',     clase: 'fa-solid fa-briefcase'        },
   { id: 'wallet',      clase: 'fa-solid fa-wallet'           },
+  { id: 'transferencia', clase: 'fa-solid fa-right-left'          },
+  { id: 'recibo',        clase: 'fa-solid fa-receipt'             },
+  { id: 'caja',          clase: 'fa-solid fa-cash-register'       },
+  { id: 'porcentaje',    clase: 'fa-solid fa-percent'             },
+  { id: 'deuda',         clase: 'fa-solid fa-hand-holding-dollar' },
+  { id: 'banco2',        clase: 'fa-solid fa-landmark'            },
 ];
 
 const COLORES = [
