@@ -1,3 +1,8 @@
+import { db } from "./firebase.js";
+import {
+  collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
 // ── CATEGORÍAS ──────────────────────────────────────────────
 const CATEGORIAS = [
   { id: 'supervivencia', label: 'Supervivencia', porcentaje: 40, icon: 'fa-solid fa-house' },
@@ -31,34 +36,25 @@ const COLORES = [
 ];
 
 // ── ESTADO ──────────────────────────────────────────────────
-let cuentas = JSON.parse(localStorage.getItem('cuentas') || '[]');
+let cuentas = [];
+const COL = collection(db, 'cuentas');
 
-const fmt = n => new Intl.NumberFormat('es-MX', { style: 'currency', currency: 'MXN' }).format(n);
-const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2);
+const fmt = n => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
 
-function guardar() { localStorage.setItem('cuentas', JSON.stringify(cuentas)); }
 function catInfo(id) { return CATEGORIAS.find(c => c.id === id) || CATEGORIAS.at(-1); }
 function iconoInfo(id) { return ICONOS.find(i => i.id === id) || ICONOS[0]; }
 
-// Formato miles para el input
-function fmtInput(val) {
-  if (!val && val !== 0) return '';
-  const num = parseFloat(String(val).replace(/[^0-9.]/g, ''));
-  if (isNaN(num)) return '';
-  return new Intl.NumberFormat('es-CO', { maximumFractionDigits: 2 }).format(num);
+// ── FIRESTORE CRUD ───────────────────────────────────────────
+async function crearCuenta(data) {
+  await addDoc(COL, { ...data, creadoEn: Date.now() });
 }
 
-function parseMonto(str) {
-  return parseFloat(String(str).replace(/\./g, '').replace(',', '.')) || 0;
+async function actualizarCuenta(id, data) {
+  await updateDoc(doc(db, 'cuentas', id), data);
 }
 
-function attachMontoFmt(input) {
-  input.addEventListener('input', () => {
-    const raw   = input.value.replace(/[^0-9,]/g, '');
-    const parts = raw.split(',');
-    const int   = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-    input.value = parts.length > 1 ? int + ',' + parts[1].slice(0, 2) : int;
-  });
+async function eliminarCuenta(id) {
+  await deleteDoc(doc(db, 'cuentas', id));
 }
 
 // ── RENDER ───────────────────────────────────────────────────
@@ -84,7 +80,6 @@ function renderCuentas() {
     const cat   = catInfo(c.categoria);
     const ico   = iconoInfo(c.icono);
     const color = c.color || '#ffffff';
-    const tieneKey = c.llave && c.llave.trim();
 
     return `
     <div class="cuenta-card" data-id="${c.id}" style="--cuenta-color:${color}">
@@ -111,9 +106,16 @@ function maskKey(key) {
   return key.slice(0, 4) + '···' + key.slice(-4);
 }
 
+// ── LISTENER TIEMPO REAL ─────────────────────────────────────
+const q = query(COL, orderBy('creadoEn', 'asc'));
+onSnapshot(q, snap => {
+  cuentas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  renderCuentas();
+});
+
 // ── BOTTOM SHEET OPCIONES ────────────────────────────────────
 function openOptions(id) {
-  const c   = cuentas.find(x => x.id === id);
+  const c = cuentas.find(x => x.id === id);
   if (!c) return;
   const ico   = iconoInfo(c.icono);
   const color = c.color || '#ffffff';
@@ -170,7 +172,6 @@ function openOptions(id) {
         setTimeout(() => { closeOptions(); showToast('Bre-B copiada'); }, 900);
       }
 
-      // Intenta clipboard API, si falla usa execCommand
       if (navigator.clipboard && window.isSecureContext) {
         navigator.clipboard.writeText(c.llave).then(onCopied).catch(() => fallbackCopy(c.llave, onCopied));
       } else {
@@ -213,7 +214,7 @@ function confirmarEliminar(id, onConfirm) {
   document.body.appendChild(overlay);
   requestAnimationFrame(() => { overlay.setAttribute('aria-hidden','false'); overlay.classList.add('active'); });
 
-  overlay.querySelector('#btnNoEliminar').addEventListener('click', () => closeConfirm());
+  overlay.querySelector('#btnNoEliminar').addEventListener('click', closeConfirm);
   overlay.addEventListener('click', e => { if (e.target === overlay) closeConfirm(); });
   overlay.querySelector('#btnSiEliminar').addEventListener('click', () => {
     closeConfirm();
@@ -357,28 +358,24 @@ function openFormCuenta(editId = null) {
     catsGrid.appendChild(btn);
   });
 
-  requestAnimationFrame(() => { overlay.setAttribute('aria-hidden','false'); overlay.classList.add('active'); });
-
-  // Formato miles en monto
+  // Formato miles
   attachMontoFmt(overlay.querySelector('#inputMonto'));
+
+  requestAnimationFrame(() => { overlay.setAttribute('aria-hidden','false'); overlay.classList.add('active'); });
 
   overlay.querySelector('#btnCancelar').addEventListener('click', closeFormCuenta);
   overlay.addEventListener('click', e => { if (e.target === overlay) closeFormCuenta(); });
 
-  // Eliminar (solo en edición)
   if (editing) {
     overlay.querySelector('#btnEliminarCuenta').addEventListener('click', () => {
       closeFormCuenta();
       setTimeout(() => {
-        confirmarEliminar(editId, () => {
-          cuentas = cuentas.filter(c => c.id !== editId);
-          guardar(); renderCuentas();
-        });
+        confirmarEliminar(editId, () => eliminarCuenta(editId));
       }, 320);
     });
   }
 
-  overlay.querySelector('#btnGuardar').addEventListener('click', () => {
+  overlay.querySelector('#btnGuardar').addEventListener('click', async () => {
     const nombre = document.getElementById('inputNombre').value.trim();
     const monto  = parseMonto(document.getElementById('inputMonto').value);
     const llave  = document.getElementById('inputLlave').value.trim();
@@ -391,14 +388,19 @@ function openFormCuenta(editId = null) {
       overlay.querySelector('#coloresGrid').classList.add('grid-error'); return;
     }
 
+    const btnGuardar = overlay.querySelector('#btnGuardar');
+    btnGuardar.disabled = true;
+    btnGuardar.textContent = 'Guardando…';
+
+    const data = { nombre, monto, llave, icono: selIcono, color: selColor, categoria: selCat };
+
     if (editing) {
-      const idx = cuentas.findIndex(c => c.id === editId);
-      cuentas[idx] = { ...cuentas[idx], nombre, monto, llave, icono: selIcono, color: selColor, categoria: selCat };
+      await actualizarCuenta(editId, data);
     } else {
-      cuentas.push({ id: uid(), nombre, monto, llave, icono: selIcono, color: selColor, categoria: selCat });
+      await crearCuenta(data);
     }
 
-    guardar(); renderCuentas(); closeFormCuenta();
+    closeFormCuenta();
   });
 }
 
@@ -409,8 +411,24 @@ function closeFormCuenta() {
   setTimeout(() => o.remove(), 320);
 }
 
-// ── BOTÓN NUEVA CUENTA ───────────────────────────────────────
-document.getElementById('btnNuevaCuenta').addEventListener('click', () => openFormCuenta());
+// ── HELPERS FORMATO ──────────────────────────────────────────
+function fmtInput(val) {
+  if (!val && val !== 0) return '';
+  const num = parseFloat(String(val).replace(/[^0-9.]/g, ''));
+  if (isNaN(num)) return '';
+  return new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 }).format(num);
+}
+
+function parseMonto(str) {
+  return parseFloat(String(str).replace(/\./g, '').replace(',', '.')) || 0;
+}
+
+function attachMontoFmt(input) {
+  input.addEventListener('input', () => {
+    const raw = input.value.replace(/[^0-9]/g, '');
+    input.value = raw ? new Intl.NumberFormat('es-CO').format(parseInt(raw)) : '';
+  });
+}
 
 // ── TOAST ────────────────────────────────────────────────────
 function fallbackCopy(text, cb) {
@@ -422,16 +440,15 @@ function fallbackCopy(text, cb) {
   try { document.execCommand('copy'); cb(); } catch(e) { console.warn('Copy failed', e); }
   document.body.removeChild(ta);
 }
+
 function showToast(msg) {
   const existing = document.getElementById('cuentaToast');
   if (existing) existing.remove();
-
   const toast = document.createElement('div');
   toast.id = 'cuentaToast';
   toast.className = 'cuenta-toast';
   toast.innerHTML = `<i class="fa-solid fa-check"></i> ${msg}`;
   document.body.appendChild(toast);
-
   requestAnimationFrame(() => toast.classList.add('visible'));
   setTimeout(() => {
     toast.classList.remove('visible');
@@ -439,5 +456,5 @@ function showToast(msg) {
   }, 2000);
 }
 
-// ── INIT ─────────────────────────────────────────────────────
-renderCuentas();
+// ── BOTÓN NUEVA CUENTA ───────────────────────────────────────
+document.getElementById('btnNuevaCuenta').addEventListener('click', () => openFormCuenta());
