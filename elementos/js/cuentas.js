@@ -36,7 +36,7 @@ const ICONOS = [
 
 const COLORES = [
   '#FF3B30','#FF9500','#FFCC00','#34C759','#00C7BE',
-  '#007AFF','#5856D6','#AF52DE','#FF2D55','#8E8E93',
+  '#007AFF','#5856D6','#AF52DE','#FF00AA','#8E8E93',
   '#30D158','#64D2FF','#BF5AF2','#FF6961','#FFD60A',
   '#0A84FF','#FF375F','#ffffff',
 ];
