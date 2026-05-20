@@ -3,21 +3,47 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" />
-  <title>FinanceApp</title>
+  <title>Cuentas — FinanceApp</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="elementos/css/style.css" />
+  <link rel="stylesheet" href="elementos/css/cuentas.css" />
 </head>
 <body>
 
   <div class="bg-glow glow-1"></div>
   <div class="bg-glow glow-2"></div>
 
-  <main class="main-content">
-    <div class="page-header glass">
-      <h1 class="app-title">FinanceApp</h1>
-      <p class="app-subtitle">Tu control financiero</p>
+  <div class="cuentas-page">
+
+    <!-- Header -->
+    <div class="cuentas-header glass">
+      <div class="cuentas-header-icon">
+        <i class="fa-solid fa-wallet"></i>
+      </div>
+      <div class="cuentas-header-text">
+        <h1>Cuentas</h1>
+        <p>Administra tu dinero</p>
+      </div>
     </div>
-  </main>
+
+    <!-- Balance total -->
+    <div class="balance-card glass">
+      <span class="balance-label">Balance total</span>
+      <span class="balance-amount" id="balanceTotal">$0.00</span>
+      <span class="balance-sub" id="balanceSub">0 cuentas</span>
+    </div>
+
+    <!-- Lista -->
+    <p class="section-label">Mis cuentas</p>
+    <div class="cuentas-list" id="cuentasList"></div>
+
+    <!-- Nueva cuenta -->
+    <button class="btn-nueva-cuenta" id="btnNuevaCuenta">
+      <i class="fa-solid fa-plus"></i>
+      Nueva cuenta
+    </button>
+
+  </div>
 
   <!-- Nav inferior -->
   <div class="nav-wrapper">
@@ -30,9 +56,7 @@
         <i class="fa-solid fa-arrow-trend-up nav-icon"></i>
         <span class="nav-label">Ingresos</span>
       </a>
-
       <div class="nav-spacer"></div>
-
       <a href="#" class="nav-item" data-page="gastos">
         <i class="fa-solid fa-arrow-trend-down nav-icon"></i>
         <span class="nav-label">Gastos</span>
@@ -48,7 +72,7 @@
     </button>
   </div>
 
-  <!-- Modal: Ingreso o Gasto -->
+  <!-- Modal: Ingreso o Gasto (FAB) -->
   <div class="modal-overlay" id="modalOverlay" aria-hidden="true">
     <div class="modal-sheet glass" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <div class="modal-handle"></div>
@@ -78,5 +102,6 @@
   </div>
 
   <script src="elementos/js/app.js"></script>
+  <script src="elementos/js/cuentas.js"></script>
 </body>
 </html>
