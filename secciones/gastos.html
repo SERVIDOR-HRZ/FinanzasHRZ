@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" />
+  <title>Gastos — FinanceApp</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="../elementos/css/style.css" />
+  <link rel="stylesheet" href="../elementos/css/cuentas.css" />
+  <link rel="stylesheet" href="../elementos/css/movimientos.css" />
+</head>
+<body data-tipo="gasto">
+
+  <div class="bg-glow glow-1"></div>
+  <div class="bg-glow glow-2"></div>
+
+  <div class="mov-page" style="--accent:#f87171">
+
+    <!-- Header -->
+    <div class="mov-header glass">
+      <div class="mov-header-icon"><i class="fa-solid fa-arrow-trend-down"></i></div>
+      <div class="mov-header-text">
+        <h1>Gastos</h1>
+        <p>Dinero que sale de tus cuentas</p>
+      </div>
+    </div>
+
+    <!-- Resumen -->
+    <div class="mov-summary glass">
+      <span class="mov-summary-label"><i class="fa-solid fa-arrow-trend-down"></i> Total gastos</span>
+      <span class="mov-summary-amount" id="movTotal">$0</span>
+      <span class="mov-summary-sub" id="movSub">0 movimientos</span>
+    </div>
+
+    <!-- Lista -->
+    <p class="section-label">Historial</p>
+    <div class="mov-list" id="movList"></div>
+
+    <!-- Nuevo -->
+    <button class="btn-nuevo-mov" id="btnNuevoMov">
+      <i class="fa-solid fa-plus"></i>
+      Registrar gasto
+    </button>
+
+  </div>
+
+  <!-- Nav inferior -->
+  <div class="nav-wrapper">
+    <nav class="bottom-nav glass">
+      <a href="../index.html" class="nav-item" data-page="cuentas">
+        <i class="fa-solid fa-wallet nav-icon"></i>
+        <span class="nav-label">Cuentas</span>
+      </a>
+      <a href="ingresos.html" class="nav-item" data-page="ingresos">
+        <i class="fa-solid fa-arrow-trend-up nav-icon"></i>
+        <span class="nav-label">Ingresos</span>
+      </a>
+      <div class="nav-spacer"></div>
+      <a href="gastos.html" class="nav-item active" data-page="gastos">
+        <i class="fa-solid fa-arrow-trend-down nav-icon"></i>
+        <span class="nav-label">Gastos</span>
+      </a>
+      <a href="divisas.html" class="nav-item" data-page="divisas">
+        <i class="fa-solid fa-coins nav-icon"></i>
+        <span class="nav-label">Divisas</span>
+      </a>
+    </nav>
+
+    <button class="fab" id="fabBtn" aria-label="Nuevo">
+      <i class="fa-solid fa-plus"></i>
+    </button>
+  </div>
+
+  <!-- Modal: Ingreso o Gasto (FAB) -->
+  <div class="modal-overlay" id="modalOverlay" aria-hidden="true">
+    <div class="modal-sheet glass" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-handle"></div>
+      <p class="modal-eyebrow">Nueva transacción</p>
+      <h2 class="modal-title" id="modalTitle">¿Qué deseas registrar?</h2>
+      <p class="modal-subtitle">Selecciona el tipo de movimiento</p>
+      <div class="modal-options">
+        <button class="modal-option option-ingreso" id="optIngreso">
+          <span class="option-icon-wrap"><i class="fa-solid fa-arrow-trend-up"></i></span>
+          <span class="option-text">
+            <span class="option-label">Ingreso</span>
+            <span class="option-desc">Dinero que entra</span>
+          </span>
+          <i class="fa-solid fa-chevron-right option-arrow"></i>
+        </button>
+        <button class="modal-option option-gasto" id="optGasto">
+          <span class="option-icon-wrap"><i class="fa-solid fa-arrow-trend-down"></i></span>
+          <span class="option-text">
+            <span class="option-label">Gasto</span>
+            <span class="option-desc">Dinero que sale</span>
+          </span>
+          <i class="fa-solid fa-chevron-right option-arrow"></i>
+        </button>
+      </div>
+      <button class="modal-cancel" id="modalCancel">Cancelar</button>
+    </div>
+  </div>
+
+  <script type="module" src="../elementos/js/app.js"></script>
+  <script type="module" src="../elementos/js/movimientos.js"></script>
+</body>
+</html>

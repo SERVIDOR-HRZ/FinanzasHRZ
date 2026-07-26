@@ -5,10 +5,19 @@ const modalOverlay = document.getElementById('modalOverlay');
 const navWrapper2  = navWrapper;
 
 // ── Teclado virtual ──────────────────────────────────────────
+// Solo ocultamos el nav si hay un campo de texto realmente enfocado.
+// (Antes se activaba solo por diferencias de altura de la barra del
+//  navegador, lo que dejaba el nav sin poder tocarse.)
+function inputEnfocado() {
+  const el = document.activeElement;
+  return el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT');
+}
+
 const initialHeight = window.innerHeight;
 
 function checkKeyboard(h) {
-  navWrapper.classList.toggle('keyboard-open', (initialHeight - h) > 150);
+  const teclado = (initialHeight - h) > 150 && inputEnfocado();
+  navWrapper.classList.toggle('keyboard-open', teclado);
 }
 
 window.addEventListener('resize', () => {
@@ -18,6 +27,11 @@ window.addEventListener('resize', () => {
 if (window.visualViewport) {
   window.visualViewport.addEventListener('resize', () => checkKeyboard(window.visualViewport.height));
 }
+
+// Al quitar el foco de un input, restauramos el nav
+document.addEventListener('focusout', () => {
+  setTimeout(() => { if (!inputEnfocado()) navWrapper.classList.remove('keyboard-open'); }, 100);
+});
 
 // ── Nav activo ───────────────────────────────────────────────
 navItems.forEach(item => {
@@ -56,6 +70,14 @@ if (fab && modalOverlay) {
   modalCancel.addEventListener('click', closeModal);
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-  optIngreso.addEventListener('click', () => { closeModal(); console.log('Nuevo ingreso'); });
-  optGasto.addEventListener('click',   () => { closeModal(); console.log('Nuevo gasto');   });
+  // Ruta base según ubicación (raíz vs /secciones/)
+  const enSecciones = location.pathname.includes('/secciones/');
+  const base = enSecciones ? '' : 'secciones/';
+
+  optIngreso.addEventListener('click', () => {
+    location.href = base + 'ingresos.html?nuevo=1';
+  });
+  optGasto.addEventListener('click', () => {
+    location.href = base + 'gastos.html?nuevo=1';
+  });
 }

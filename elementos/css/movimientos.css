@@ -1,0 +1,299 @@
+/* ── MOVIMIENTOS (Ingresos / Gastos) ─────────────────────────
+   Reutiliza form/modal/toast de cuentas.css.
+   --accent lo define cada página (verde ingreso / rojo gasto). */
+
+.mov-page {
+  position: relative;
+  z-index: 1;
+  min-height: 100vh;
+  padding: 2rem 1.25rem calc(var(--nav-h) + 2.5rem);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ── HEADER ─────────────────────────────────────────────────── */
+.mov-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 1.4rem 1.5rem;
+  border-radius: 20px;
+}
+
+.mov-header-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--accent) 22%, transparent);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.mov-header-text h1 {
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: -.02em;
+  color: #fff;
+}
+
+.mov-header-text p {
+  font-size: .78rem;
+  color: var(--text-muted);
+  margin-top: 2px;
+}
+
+/* ── SUMMARY CARD ───────────────────────────────────────────── */
+.mov-summary {
+  border-radius: 24px;
+  padding: 1.75rem 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+  overflow: hidden;
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.08),
+    0 4px 32px color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+.mov-summary::after {
+  content: '';
+  position: absolute;
+  top: -60px;
+  right: -40px;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent) 22%, transparent), transparent 70%);
+  pointer-events: none;
+}
+
+.mov-summary-label {
+  font-size: .7rem;
+  font-weight: 600;
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--accent) 75%, #ffffff);
+  opacity: .85;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.mov-summary-amount {
+  font-size: clamp(2.2rem, 9vw, 3.2rem);
+  font-weight: 800;
+  letter-spacing: -.04em;
+  color: #fff;
+  line-height: 1.1;
+}
+
+.mov-summary-sub {
+  font-size: .78rem;
+  color: rgba(255,255,255,.35);
+  margin-top: 2px;
+}
+
+/* ── LISTA ──────────────────────────────────────────────────── */
+.mov-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mov-card {
+  border-radius: 20px;
+  padding: 1.15rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+  background: linear-gradient(160deg, rgba(255,255,255,.07) 0%, rgba(255,255,255,.025) 100%);
+  border: 1px solid rgba(255,255,255,.09);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07);
+  transition: transform .15s ease, background .2s ease, box-shadow .2s ease;
+}
+
+.mov-card:hover {
+  transform: translateY(-2px);
+  background: linear-gradient(160deg, rgba(255,255,255,.10) 0%, rgba(255,255,255,.04) 100%);
+  box-shadow:
+    inset 0 1px 0 rgba(255,255,255,.10),
+    0 10px 34px rgba(0,0,0,.4);
+}
+
+.mov-card:active { transform: scale(.98); }
+
+.mov-card-icon {
+  width: 48px;
+  height: 48px;
+  border-radius: 15px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  flex-shrink: 0;
+  background: color-mix(in srgb, var(--cat-color, var(--accent)) 18%, transparent);
+  color: var(--cat-color, var(--accent));
+  border: 1px solid color-mix(in srgb, var(--cat-color, var(--accent)) 30%, transparent);
+}
+
+.mov-card-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.mov-card-concepto {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #fff;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mov-card-meta {
+  font-size: .76rem;
+  color: rgba(255,255,255,.4);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mov-card-meta .dot { opacity: .5; margin: 0 5px; }
+
+.mov-card-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 3px;
+  flex-shrink: 0;
+}
+
+.mov-card-monto {
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  white-space: nowrap;
+  color: var(--accent);
+}
+
+.mov-card-fecha {
+  font-size: .68rem;
+  color: rgba(255,255,255,.28);
+  white-space: nowrap;
+}
+
+/* ── VACÍO ──────────────────────────────────────────────────── */
+.mov-empty {
+  border-radius: 20px;
+  padding: 3rem 1.5rem;
+  text-align: center;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.04);
+}
+
+.mov-empty i {
+  font-size: 2.2rem;
+  color: rgba(255,255,255,.12);
+  display: block;
+  margin-bottom: 12px;
+}
+
+.mov-empty p {
+  font-size: .88rem;
+  color: rgba(255,255,255,.25);
+  line-height: 1.6;
+}
+
+/* ── BOTÓN NUEVO ────────────────────────────────────────────── */
+.btn-nuevo-mov {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: 100%;
+  padding: 15px;
+  border-radius: 16px;
+  border: 1px dashed color-mix(in srgb, var(--accent) 30%, transparent);
+  background: color-mix(in srgb, var(--accent) 6%, transparent);
+  color: color-mix(in srgb, var(--accent) 85%, #ffffff);
+  font-size: .9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s, color .2s, border-color .2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-nuevo-mov i { font-size: .8rem; }
+.btn-nuevo-mov:hover {
+  background: color-mix(in srgb, var(--accent) 14%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  color: #fff;
+}
+.btn-nuevo-mov:active { transform: scale(.98); }
+
+/* ── SELECT (cuenta) ────────────────────────────────────────── */
+.form-select-wrap { position: relative; }
+
+.form-select {
+  width: 100%;
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.1);
+  border-radius: 14px;
+  padding: 14px 40px 14px 16px;
+  color: #fff;
+  font-size: .95rem;
+  outline: none;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  transition: border-color .2s, background .2s;
+}
+
+.form-select:focus { border-color: rgba(255,255,255,.28); background: rgba(255,255,255,.09); }
+.form-select option { background: #141414; color: #fff; }
+
+.form-select-arrow {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255,255,255,.35);
+  font-size: .8rem;
+  pointer-events: none;
+}
+
+.form-select.input-error { border-color: rgba(248,113,113,.6); }
+
+/* ── ACCENT en botón primario del form ──────────────────────── */
+.mov-form-sheet .btn-primary {
+  background: var(--accent);
+  color: #06130d;
+}
+
+/* ── CATEGORÍAS: selección con color de acento ──────────────── */
+.cat-btn.selected {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+@media (min-width: 480px) {
+  .cats-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+@media (min-width: 768px) {
+  .mov-page { max-width: 660px; margin: 0 auto; }
+}

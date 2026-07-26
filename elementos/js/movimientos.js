@@ -1,0 +1,381 @@
+import { db } from "./firebase.js";
+import {
+  collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc,
+  query, orderBy, getDoc, where
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+
+// ── TIPO (ingreso | gasto) ───────────────────────────────────
+const TIPO = document.body.dataset.tipo;               // 'ingreso' | 'gasto'
+const ES_INGRESO = TIPO === 'ingreso';
+const ACCENT = ES_INGRESO ? '#34d399' : '#f87171';
+
+// ── CATEGORÍAS ───────────────────────────────────────────────
+const CATS_INGRESO = [
+  { id: 'salario',    label: 'Salario',    icon: 'fa-solid fa-briefcase',          color: '#34d399' },
+  { id: 'venta',      label: 'Venta',      icon: 'fa-solid fa-tag',                color: '#22d3ee' },
+  { id: 'negocio',    label: 'Negocio',    icon: 'fa-solid fa-store',              color: '#38bdf8' },
+  { id: 'inversion',  label: 'Inversión',  icon: 'fa-solid fa-chart-line',         color: '#a78bfa' },
+  { id: 'regalo',     label: 'Regalo',     icon: 'fa-solid fa-gift',               color: '#f472b6' },
+  { id: 'prestamo',   label: 'Préstamo',   icon: 'fa-solid fa-hand-holding-dollar',color: '#facc15' },
+  { id: 'reembolso',  label: 'Reembolso',  icon: 'fa-solid fa-rotate-left',        color: '#2dd4bf' },
+  { id: 'otro',       label: 'Otro',       icon: 'fa-solid fa-ellipsis',           color: '#94a3b8' },
+];
+
+const CATS_GASTO = [
+  { id: 'comida',     label: 'Comida',       icon: 'fa-solid fa-utensils',       color: '#f87171' },
+  { id: 'transporte', label: 'Transporte',   icon: 'fa-solid fa-car',            color: '#fb923c' },
+  { id: 'hogar',      label: 'Hogar',        icon: 'fa-solid fa-house',          color: '#f59e0b' },
+  { id: 'servicios',  label: 'Servicios',    icon: 'fa-solid fa-bolt',           color: '#facc15' },
+  { id: 'compras',    label: 'Compras',      icon: 'fa-solid fa-bag-shopping',   color: '#e879f9' },
+  { id: 'salud',      label: 'Salud',        icon: 'fa-solid fa-heart-pulse',    color: '#fb7185' },
+  { id: 'ocio',       label: 'Ocio',         icon: 'fa-solid fa-gamepad',        color: '#a78bfa' },
+  { id: 'educacion',  label: 'Educación',    icon: 'fa-solid fa-graduation-cap', color: '#60a5fa' },
+  { id: 'suscripcion',label: 'Suscripción',  icon: 'fa-solid fa-repeat',         color: '#38bdf8' },
+  { id: 'otro',       label: 'Otro',         icon: 'fa-solid fa-ellipsis',       color: '#94a3b8' },
+];
+
+const CATS = ES_INGRESO ? CATS_INGRESO : CATS_GASTO;
+function catInfo(id) { return CATS.find(c => c.id === id) || CATS.at(-1); }
+
+// ── ESTADO ───────────────────────────────────────────────────
+let movimientos = [];
+let cuentas = [];
+const MOV_COL = collection(db, 'movimientos');
+const CUE_COL = collection(db, 'cuentas');
+
+const fmt = n => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
+
+function cuentaInfo(id) { return cuentas.find(c => c.id === id); }
+
+// ── ELEMENTOS ────────────────────────────────────────────────
+const lista     = document.getElementById('movList');
+const totalEl   = document.getElementById('movTotal');
+const subEl     = document.getElementById('movSub');
+
+// ── FECHAS ───────────────────────────────────────────────────
+function fechaCorta(ts) {
+  const d = new Date(ts);
+  return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short' });
+}
+
+function fechaLarga(ts) {
+  const d = new Date(ts);
+  return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'long', year: 'numeric' });
+}
+
+// ── RENDER ───────────────────────────────────────────────────
+function render() {
+  const total = movimientos.reduce((s, m) => s + (parseFloat(m.monto) || 0), 0);
+  totalEl.textContent = fmt(total);
+  const n = movimientos.length;
+  subEl.textContent = n === 1 ? '1 movimiento' : `${n} movimientos`;
+
+  if (!n) {
+    lista.innerHTML = `
+      <div class="mov-empty glass">
+        <i class="fa-solid ${ES_INGRESO ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down'}"></i>
+        <p>Sin ${ES_INGRESO ? 'ingresos' : 'gastos'} aún.<br>Toca <strong>Registrar ${TIPO}</strong> para empezar.</p>
+      </div>`;
+    return;
+  }
+
+  lista.innerHTML = movimientos.map(m => {
+    const cat = catInfo(m.categoria);
+    const cue = cuentaInfo(m.cuentaId);
+    const signo = ES_INGRESO ? '+' : '−';
+    return `
+    <div class="mov-card" data-id="${m.id}" style="--cat-color:${cat.color}">
+      <div class="mov-card-icon"><i class="${cat.icon}"></i></div>
+      <div class="mov-card-info">
+        <span class="mov-card-concepto">${m.concepto || cat.label}</span>
+        <span class="mov-card-meta">${cat.label}<span class="dot">·</span>${cue ? cue.nombre : 'Cuenta eliminada'}</span>
+      </div>
+      <div class="mov-card-right">
+        <span class="mov-card-monto">${signo}${fmt(m.monto)}</span>
+        <span class="mov-card-fecha">${fechaCorta(m.fecha)}</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  lista.querySelectorAll('.mov-card').forEach(card => {
+    card.addEventListener('click', () => openOptions(card.dataset.id));
+  });
+}
+
+// ── LISTENERS TIEMPO REAL ────────────────────────────────────
+onSnapshot(query(CUE_COL, orderBy('creadoEn', 'asc')), snap => {
+  cuentas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  render();
+});
+
+onSnapshot(query(MOV_COL, where('tipo', '==', TIPO)), snap => {
+  movimientos = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  movimientos.sort((a, b) => (b.fecha || 0) - (a.fecha || 0));
+  render();
+});
+
+// ── FIRESTORE: crear / editar / eliminar con ajuste de saldo ──
+async function ajustarSaldo(cuentaId, delta) {
+  if (!cuentaId || !delta) return;
+  const ref = doc(db, 'cuentas', cuentaId);
+  const snap = await getDoc(ref);
+  if (!snap.exists()) return;
+  const actual = parseFloat(snap.data().monto) || 0;
+  await updateDoc(ref, { monto: actual + delta });
+}
+
+async function crearMovimiento(data) {
+  const monto = parseFloat(data.monto) || 0;
+  await addDoc(MOV_COL, { ...data, tipo: TIPO, monto, fecha: Date.now(), creadoEn: Date.now() });
+  await ajustarSaldo(data.cuentaId, ES_INGRESO ? monto : -monto);
+}
+
+async function editarMovimiento(id, prev, data) {
+  const nuevoMonto = parseFloat(data.monto) || 0;
+  await updateDoc(doc(db, 'movimientos', id), { ...data, monto: nuevoMonto });
+  // revertir efecto anterior y aplicar nuevo
+  const signo = ES_INGRESO ? 1 : -1;
+  await ajustarSaldo(prev.cuentaId, -signo * (parseFloat(prev.monto) || 0));
+  await ajustarSaldo(data.cuentaId, signo * nuevoMonto);
+}
+
+async function eliminarMovimiento(m) {
+  await deleteDoc(doc(db, 'movimientos', m.id));
+  const signo = ES_INGRESO ? 1 : -1;
+  await ajustarSaldo(m.cuentaId, -signo * (parseFloat(m.monto) || 0));
+}
+
+// ── OPCIONES (editar / eliminar) ─────────────────────────────
+function openOptions(id) {
+  const m = movimientos.find(x => x.id === id);
+  if (!m) return;
+  const cat = catInfo(m.categoria);
+  const cue = cuentaInfo(m.cuentaId);
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'modalOpciones';
+  overlay.innerHTML = `
+  <div class="modal-sheet glass options-sheet" role="dialog" aria-modal="true">
+    <div class="modal-handle"></div>
+    <div class="options-cuenta-header">
+      <div class="options-cuenta-icon" style="background:${cat.color}18;color:${cat.color};border:1px solid ${cat.color}35">
+        <i class="${cat.icon}"></i>
+      </div>
+      <div>
+        <div class="options-cuenta-nombre">${m.concepto || cat.label}</div>
+        <div class="options-cuenta-saldo">${fmt(m.monto)} · ${cue ? cue.nombre : 'Cuenta eliminada'} · ${fechaLarga(m.fecha)}</div>
+      </div>
+    </div>
+    <div class="options-btns">
+      <button class="options-btn" id="optEditar"><i class="fa-solid fa-pen"></i><span>Editar</span></button>
+      <button class="options-btn danger" id="optEliminar"><i class="fa-solid fa-trash-can"></i><span>Eliminar</span></button>
+    </div>
+  </div>`;
+
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => { overlay.setAttribute('aria-hidden','false'); overlay.classList.add('active'); });
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeOverlay('modalOpciones'); });
+
+  overlay.querySelector('#optEditar').addEventListener('click', () => {
+    closeOverlay('modalOpciones');
+    setTimeout(() => openForm(id), 320);
+  });
+  overlay.querySelector('#optEliminar').addEventListener('click', () => {
+    closeOverlay('modalOpciones');
+    setTimeout(() => confirmarEliminar(m), 320);
+  });
+}
+
+function confirmarEliminar(m) {
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'modalConfirm';
+  overlay.innerHTML = `
+  <div class="modal-sheet glass confirm-sheet" role="alertdialog" aria-modal="true">
+    <div class="modal-handle"></div>
+    <div class="confirm-icon"><i class="fa-solid fa-trash-can"></i></div>
+    <h2 class="confirm-title">Eliminar ${TIPO}</h2>
+    <p class="confirm-desc">¿Seguro que quieres eliminar <strong>${m.concepto || catInfo(m.categoria).label}</strong>? Se ajustará el saldo de la cuenta.</p>
+    <div class="confirm-btns">
+      <button class="options-btn" id="btnNo">Cancelar</button>
+      <button class="options-btn danger" id="btnSi"><i class="fa-solid fa-trash-can"></i><span>Eliminar</span></button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => { overlay.setAttribute('aria-hidden','false'); overlay.classList.add('active'); });
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeOverlay('modalConfirm'); });
+  overlay.querySelector('#btnNo').addEventListener('click', () => closeOverlay('modalConfirm'));
+  overlay.querySelector('#btnSi').addEventListener('click', () => {
+    closeOverlay('modalConfirm');
+    eliminarMovimiento(m);
+    showToast(ES_INGRESO ? 'Ingreso eliminado' : 'Gasto eliminado');
+  });
+}
+
+// ── FORM CREAR / EDITAR ──────────────────────────────────────
+let selCat = CATS[0].id;
+let selCuenta = null;
+
+function openForm(editId = null) {
+  if (document.getElementById('modalMov')) return;
+  if (!cuentas.length) {
+    showToast('Primero crea una cuenta');
+    return;
+  }
+
+  const editing = editId ? movimientos.find(m => m.id === editId) : null;
+  selCat    = editing ? editing.categoria : CATS[0].id;
+  selCuenta = editing ? editing.cuentaId  : cuentas[0].id;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'modalMov';
+  overlay.innerHTML = `
+  <div class="modal-sheet glass modal-cuenta-sheet mov-form-sheet" role="dialog" aria-modal="true" style="--accent:${ACCENT}">
+    <div class="modal-handle"></div>
+    <p class="modal-eyebrow">${editing ? 'Editar' : 'Nuevo'} ${TIPO}</p>
+    <h2 class="modal-title">${editing ? 'Modificar' : 'Registrar'} ${TIPO}</h2>
+    <div class="form-scroll">
+
+      <div class="form-group">
+        <label class="form-label">Monto</label>
+        <div class="input-prefix-wrap">
+          <span class="input-prefix">$</span>
+          <input class="form-input input-with-prefix input-monto-fmt" id="inputMonto"
+            type="text" inputmode="numeric" placeholder="0" autocomplete="off"
+            value="${editing ? fmtInput(editing.monto) : ''}" />
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Concepto <span class="form-label-opt">(opcional)</span></label>
+        <input class="form-input" id="inputConcepto" type="text" maxlength="40"
+          placeholder="${ES_INGRESO ? 'Ej. Pago cliente' : 'Ej. Supermercado'}"
+          value="${editing ? (editing.concepto || '') : ''}" />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Cuenta</label>
+        <div class="form-select-wrap">
+          <select class="form-select" id="inputCuenta">
+            ${cuentas.map(c => `<option value="${c.id}" ${c.id === selCuenta ? 'selected' : ''}>${c.nombre} — ${fmt(c.monto)}</option>`).join('')}
+          </select>
+          <i class="fa-solid fa-chevron-down form-select-arrow"></i>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Categoría</label>
+        <div class="cats-grid" id="catsGrid"></div>
+      </div>
+
+    </div>
+    <div class="modal-actions">
+      <button class="modal-cancel" id="btnCancelar">Cancelar</button>
+      <button class="btn-primary" id="btnGuardar">${editing ? 'Guardar' : 'Registrar'}</button>
+    </div>
+  </div>`;
+
+  document.body.appendChild(overlay);
+
+  const catsGrid = overlay.querySelector('#catsGrid');
+  CATS.forEach(cat => {
+    const btn = document.createElement('button');
+    btn.className = 'cat-btn' + (cat.id === selCat ? ' selected' : '');
+    btn.dataset.id = cat.id;
+    btn.innerHTML = `<i class="${cat.icon}" style="color:${cat.color}"></i><span class="cat-btn-label">${cat.label}</span>`;
+    btn.addEventListener('click', () => {
+      selCat = cat.id;
+      catsGrid.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+    });
+    catsGrid.appendChild(btn);
+  });
+
+  const inputCuenta = overlay.querySelector('#inputCuenta');
+  inputCuenta.addEventListener('change', () => { selCuenta = inputCuenta.value; });
+
+  attachMontoFmt(overlay.querySelector('#inputMonto'));
+
+  requestAnimationFrame(() => { overlay.setAttribute('aria-hidden','false'); overlay.classList.add('active'); });
+
+  overlay.querySelector('#btnCancelar').addEventListener('click', () => closeOverlay('modalMov'));
+  overlay.addEventListener('click', e => { if (e.target === overlay) closeOverlay('modalMov'); });
+
+  overlay.querySelector('#btnGuardar').addEventListener('click', async () => {
+    const monto     = parseMonto(overlay.querySelector('#inputMonto').value);
+    const concepto  = overlay.querySelector('#inputConcepto').value.trim();
+    const cuentaId  = inputCuenta.value;
+
+    if (!monto || monto <= 0) {
+      const inp = overlay.querySelector('#inputMonto');
+      inp.focus(); inp.classList.add('input-error'); return;
+    }
+
+    const btn = overlay.querySelector('#btnGuardar');
+    btn.disabled = true; btn.textContent = 'Guardando…';
+
+    const data = { monto, concepto, cuentaId, categoria: selCat };
+
+    if (editing) await editarMovimiento(editId, editing, data);
+    else await crearMovimiento(data);
+
+    closeOverlay('modalMov');
+    showToast(ES_INGRESO ? 'Ingreso registrado' : 'Gasto registrado');
+  });
+}
+
+// ── HELPERS ──────────────────────────────────────────────────
+function closeOverlay(id) {
+  const o = document.getElementById(id);
+  if (!o) return;
+  o.classList.add('closing'); o.classList.remove('active');
+  setTimeout(() => o.remove(), 320);
+}
+
+function fmtInput(val) {
+  const num = parseFloat(String(val).replace(/[^0-9.]/g, ''));
+  if (isNaN(num)) return '';
+  return new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 }).format(num);
+}
+
+function parseMonto(str) {
+  return parseFloat(String(str).replace(/\./g, '').replace(',', '.')) || 0;
+}
+
+function attachMontoFmt(input) {
+  input.addEventListener('input', () => {
+    input.classList.remove('input-error');
+    const raw = input.value.replace(/[^0-9]/g, '');
+    input.value = raw ? new Intl.NumberFormat('es-CO').format(parseInt(raw)) : '';
+  });
+}
+
+function showToast(msg) {
+  const existing = document.getElementById('cuentaToast');
+  if (existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.id = 'cuentaToast';
+  toast.className = 'cuenta-toast';
+  toast.innerHTML = `<i class="fa-solid fa-check"></i> ${msg}`;
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add('visible'));
+  setTimeout(() => { toast.classList.remove('visible'); setTimeout(() => toast.remove(), 400); }, 2000);
+}
+
+// ── BOTÓN NUEVO ──────────────────────────────────────────────
+document.getElementById('btnNuevoMov').addEventListener('click', () => openForm());
+
+// ── Abrir form automáticamente si venimos del FAB (?nuevo=1) ──
+if (new URLSearchParams(location.search).get('nuevo') === '1') {
+  // esperar a que carguen las cuentas antes de abrir
+  const wait = setInterval(() => {
+    if (cuentas.length) {
+      clearInterval(wait);
+      openForm();
+      history.replaceState(null, '', location.pathname);
+    }
+  }, 120);
+  setTimeout(() => clearInterval(wait), 4000);
+}
