@@ -6,6 +6,8 @@ import {
 import { subscribeCategorias } from "./cats-store.js";
 import { initCatPicker } from "./cat-picker.js";
 import { initCuentaPicker } from "./cuenta-picker.js";
+import { openCapturaModal, confirmarQuitarFoto } from "./quick-mov.js";
+import { subirImgBB, IMGBB_KEY, analizarComprobante } from "./ai-config.js";
 
 // ── TIPO (ingreso | gasto) ───────────────────────────────────
 const TIPO = document.body.dataset.tipo;               // 'ingreso' | 'gasto'
@@ -250,28 +252,59 @@ async function eliminarMovimiento(m) {
   await ajustarSaldo(m.cuentaId, -signo * (parseFloat(m.monto) || 0));
 }
 
-// ── OPCIONES (editar / eliminar) ─────────────────────────────
+// ── DETALLE DEL MOVIMIENTO (ver / editar / eliminar) ─────────
 function openOptions(id) {
   const m = movimientos.find(x => x.id === id);
   if (!m) return;
   const cat = catInfo(m.categoria);
   const cue = cuentaInfo(m.cuentaId);
+  const signo = ES_INGRESO ? '+' : '−';
+
+  // comprobantes: array nuevo o campo único antiguo
+  const comprobantes = Array.isArray(m.comprobantes) && m.comprobantes.length
+    ? m.comprobantes
+    : (m.comprobante ? [m.comprobante] : []);
 
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
   overlay.id = 'modalOpciones';
   overlay.innerHTML = `
-  <div class="modal-sheet glass options-sheet" role="dialog" aria-modal="true">
+  <div class="modal-sheet glass mov-detail-sheet" role="dialog" aria-modal="true" style="--cat-color:${cat.color}">
     <div class="modal-handle"></div>
-    <div class="options-cuenta-header">
-      <div class="options-cuenta-icon" style="background:${cat.color}18;color:${cat.color};border:1px solid ${cat.color}35">
-        <i class="${cat.icon}"></i>
+
+    <div class="mov-detail-head">
+      <div class="mov-detail-icon"><i class="${cat.icon}"></i></div>
+      <div class="mov-detail-amount ${ES_INGRESO ? 'ingreso' : 'gasto'}">${signo}${fmt(m.monto)}</div>
+      <div class="mov-detail-concepto">${m.concepto || catLabel(cat)}</div>
+    </div>
+
+    <div class="mov-detail-rows">
+      <div class="mov-detail-row">
+        <span class="mov-detail-k"><i class="fa-solid fa-tag"></i> Categoría</span>
+        <span class="mov-detail-v">${catLabel(cat)}</span>
       </div>
-      <div>
-        <div class="options-cuenta-nombre">${m.concepto || catLabel(cat)}</div>
-        <div class="options-cuenta-saldo">${fmt(m.monto)} · ${cue ? cue.nombre : 'Cuenta eliminada'} · ${fechaLarga(m.fecha)}</div>
+      <div class="mov-detail-row">
+        <span class="mov-detail-k"><i class="fa-solid fa-wallet"></i> Cuenta</span>
+        <span class="mov-detail-v">${cue ? cue.nombre : 'Cuenta eliminada'}</span>
+      </div>
+      <div class="mov-detail-row">
+        <span class="mov-detail-k"><i class="fa-solid fa-calendar-day"></i> Fecha</span>
+        <span class="mov-detail-v">${fechaLarga(m.fecha)}</span>
       </div>
     </div>
+
+    ${comprobantes.length ? `
+    <div class="mov-detail-comprobantes">
+      <span class="mov-detail-label">Comprobante${comprobantes.length > 1 ? 's' : ''}</span>
+      <div class="mov-detail-gallery">
+        ${comprobantes.map((url, i) => `
+          <button class="mov-detail-thumb" type="button" data-i="${i}">
+            <img src="${url}" alt="comprobante ${i + 1}" loading="lazy" />
+            <span class="mov-detail-thumb-zoom"><i class="fa-solid fa-magnifying-glass-plus"></i></span>
+          </button>`).join('')}
+      </div>
+    </div>` : ''}
+
     <div class="options-btns">
       <button class="options-btn" id="optEditar"><i class="fa-solid fa-pen"></i><span>Editar</span></button>
       <button class="options-btn danger" id="optEliminar"><i class="fa-solid fa-trash-can"></i><span>Eliminar</span></button>
@@ -282,6 +315,11 @@ function openOptions(id) {
   requestAnimationFrame(() => { overlay.setAttribute('aria-hidden','false'); overlay.classList.add('active'); });
   overlay.addEventListener('click', e => { if (e.target === overlay) closeOverlay('modalOpciones'); });
 
+  // Abrir visor al tocar un comprobante
+  overlay.querySelectorAll('.mov-detail-thumb').forEach(btn => {
+    btn.addEventListener('click', () => openVisor(comprobantes, parseInt(btn.dataset.i)));
+  });
+
   overlay.querySelector('#optEditar').addEventListener('click', () => {
     closeOverlay('modalOpciones');
     setTimeout(() => openForm(id), 320);
@@ -290,6 +328,72 @@ function openOptions(id) {
     closeOverlay('modalOpciones');
     setTimeout(() => confirmarEliminar(m), 320);
   });
+}
+
+// ── VISOR DE COMPROBANTE (zoom + descarga) ───────────────────
+function openVisor(imagenes, indice = 0) {
+  let idx = indice;
+  const overlay = document.createElement('div');
+  overlay.className = 'visor-overlay';
+  overlay.id = 'modalVisor';
+  overlay.innerHTML = `
+    <div class="visor-topbar">
+      <span class="visor-count"></span>
+      <div class="visor-actions">
+        <a class="visor-btn" id="visorDescargar" download title="Descargar"><i class="fa-solid fa-download"></i></a>
+        <button class="visor-btn" id="visorCerrar" title="Cerrar"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+    </div>
+    <div class="visor-stage" id="visorStage">
+      <img class="visor-img" id="visorImg" src="" alt="comprobante" />
+    </div>
+    ${imagenes.length > 1 ? `
+      <button class="visor-nav visor-prev" id="visorPrev"><i class="fa-solid fa-chevron-left"></i></button>
+      <button class="visor-nav visor-next" id="visorNext"><i class="fa-solid fa-chevron-right"></i></button>
+    ` : ''}
+    <p class="visor-hint">Toca la imagen para acercar · doble toque para restablecer</p>`;
+
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => overlay.classList.add('active'));
+
+  const img = overlay.querySelector('#visorImg');
+  const stage = overlay.querySelector('#visorStage');
+  const countEl = overlay.querySelector('.visor-count');
+  const descargar = overlay.querySelector('#visorDescargar');
+
+  let zoom = 1;
+  function mostrar() {
+    zoom = 1;
+    img.style.transform = 'scale(1)';
+    img.src = imagenes[idx];
+    descargar.href = imagenes[idx];
+    descargar.setAttribute('download', `comprobante-${idx + 1}.jpg`);
+    if (countEl) countEl.textContent = imagenes.length > 1 ? `${idx + 1} / ${imagenes.length}` : '';
+  }
+  mostrar();
+
+  // Zoom con un toque (alterna 1x / 2.4x) y doble toque para restablecer
+  img.addEventListener('click', (e) => {
+    e.stopPropagation();
+    zoom = zoom > 1 ? 1 : 2.4;
+    img.style.transform = `scale(${zoom})`;
+  });
+  img.addEventListener('dblclick', (e) => {
+    e.stopPropagation();
+    zoom = 1; img.style.transform = 'scale(1)';
+  });
+
+  const prev = overlay.querySelector('#visorPrev');
+  const next = overlay.querySelector('#visorNext');
+  if (prev) prev.addEventListener('click', e => { e.stopPropagation(); idx = (idx - 1 + imagenes.length) % imagenes.length; mostrar(); });
+  if (next) next.addEventListener('click', e => { e.stopPropagation(); idx = (idx + 1) % imagenes.length; mostrar(); });
+
+  function cerrar() {
+    overlay.classList.remove('active');
+    setTimeout(() => overlay.remove(), 260);
+  }
+  overlay.querySelector('#visorCerrar').addEventListener('click', cerrar);
+  stage.addEventListener('click', e => { if (e.target === stage) cerrar(); });
 }
 
 function confirmarEliminar(m) {
@@ -370,6 +474,19 @@ function openForm(editId = null) {
         <button type="button" class="cat-select-btn" id="catSelectBtn"></button>
       </div>
 
+      <div class="form-group">
+        <label class="form-label">Comprobantes <span class="form-label-opt">(opcional)</span></label>
+        <button class="foto-ia-btn" id="btnFoto" type="button">
+          <span class="foto-ia-icon"><i class="fa-solid fa-camera"></i></span>
+          <span class="foto-ia-text">
+            <span class="foto-ia-title">Agregar comprobante</span>
+            <span class="foto-ia-desc">Toma o sube una foto como evidencia</span>
+          </span>
+          <i class="fa-solid fa-wand-magic-sparkles foto-ia-magic"></i>
+        </button>
+        <div class="foto-gallery" id="fotoGallery" hidden></div>
+      </div>
+
     </div>
     <div class="modal-actions">
       <button class="modal-cancel" id="btnCancelar">Cancelar</button>
@@ -381,6 +498,78 @@ function openForm(editId = null) {
 
   const inputMonto = overlay.querySelector('#inputMonto');
   const catSelectBtn = overlay.querySelector('#catSelectBtn');
+  const conceptoInput = overlay.querySelector('#inputConcepto');
+
+  // ── Comprobantes ───────────────────────────────────────────
+  // Al editar arrancamos con los que ya tenía; se pueden agregar más.
+  const previos = Array.isArray(editing?.comprobantes) && editing.comprobantes.length
+    ? editing.comprobantes.slice()
+    : (editing?.comprobante ? [editing.comprobante] : []);
+  // fotos: { dataUrl?, url? }  (url = ya subido; dataUrl = nuevo por subir)
+  let fotos = previos.map(url => ({ url }));
+  const fotoGallery = overlay.querySelector('#fotoGallery');
+
+  function renderGallery() {
+    if (!fotos.length) { fotoGallery.hidden = true; fotoGallery.innerHTML = ''; return; }
+    fotoGallery.hidden = false;
+    fotoGallery.innerHTML = fotos.map((f, i) => `
+      <div class="foto-thumb">
+        <img src="${f.url || f.dataUrl}" alt="comprobante ${i + 1}" />
+        <button class="foto-thumb-x" type="button" data-i="${i}" aria-label="Quitar"><i class="fa-solid fa-xmark"></i></button>
+      </div>`).join('') +
+      `<button class="foto-thumb-add" type="button" id="fotoAddMore" aria-label="Agregar otra"><i class="fa-solid fa-plus"></i></button>`;
+    fotoGallery.querySelectorAll('.foto-thumb-x').forEach(b => {
+      b.addEventListener('click', () => {
+        confirmarQuitarFoto(() => { fotos.splice(parseInt(b.dataset.i), 1); renderGallery(); });
+      });
+    });
+    const addBtn = fotoGallery.querySelector('#fotoAddMore');
+    if (addBtn) addBtn.addEventListener('click', abrirCaptura);
+  }
+
+  function abrirCaptura() {
+    openCapturaModal(ACCENT, (dataUrl, usarIA) => {
+      fotos.push({ dataUrl });
+      renderGallery();
+      if (usarIA) analizarConIA(dataUrl);
+    }, { permitirIA: true, iaPorDefecto: false });
+  }
+  overlay.querySelector('#btnFoto').addEventListener('click', abrirCaptura);
+  renderGallery();
+
+  async function analizarConIA(dataUrl) {
+    mostrarIaOverlay(true);
+    try {
+      const r = await analizarComprobante(dataUrl, TIPO, CATS);
+      if (r.monto && !parseMonto(inputMonto.value)) { inputMonto.value = new Intl.NumberFormat('es-CO').format(r.monto); }
+      if (r.concepto && !conceptoInput.value) conceptoInput.value = r.concepto;
+      if (r.categoria) { selCat = r.categoria; catPicker.setSelected(r.categoria); }
+      showToast('Datos cargados por IA');
+    } catch { showToast('No se pudo leer con IA'); }
+    finally { mostrarIaOverlay(false); }
+  }
+
+  function mostrarIaOverlay(activo) {
+    let ov = overlay.querySelector('#iaProcOverlay');
+    if (activo) {
+      if (!ov) {
+        ov = document.createElement('div');
+        ov.id = 'iaProcOverlay';
+        ov.className = 'ia-proc-overlay';
+        ov.innerHTML = `
+          <div class="ia-proc-box">
+            <span class="ia-proc-spinner"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+            <span class="ia-proc-title">Analizando con IA…</span>
+            <span class="ia-proc-desc">Leyendo el comprobante, un momento.</span>
+          </div>`;
+        overlay.querySelector('.mov-form-sheet').appendChild(ov);
+      }
+      requestAnimationFrame(() => ov.classList.add('visible'));
+    } else if (ov) {
+      ov.classList.remove('visible');
+      setTimeout(() => ov.remove(), 300);
+    }
+  }
 
   // ¿el monto actual lo puso una categoría automáticamente?
   let montoAuto = false;
@@ -412,7 +601,7 @@ function openForm(editId = null) {
     }
   }
 
-  initCatPicker({
+  const catPicker = initCatPicker({
     btn: catSelectBtn,
     cats: CATS,
     selectedId: selCat,
@@ -454,9 +643,34 @@ function openForm(editId = null) {
     }
 
     const btn = overlay.querySelector('#btnGuardar');
-    btn.disabled = true; btn.textContent = 'Guardando…';
+    btn.disabled = true;
 
-    const data = { monto, concepto, cuentaId, categoria: selCat };
+    // Subir comprobantes nuevos (los que tienen dataUrl); conservar los ya subidos.
+    let comprobantes = [];
+    const nuevos = fotos.filter(f => f.dataUrl);
+    if (nuevos.length && IMGBB_KEY) {
+      btn.textContent = 'Subiendo fotos…';
+      try {
+        const subidas = await Promise.all(nuevos.map(f => subirImgBB(f.dataUrl)));
+        let k = 0;
+        comprobantes = fotos.map(f => f.url || subidas[k++]);
+      } catch {
+        showToast('No se pudieron subir las fotos');
+        btn.disabled = false; btn.textContent = editing ? 'Guardar' : 'Registrar';
+        return;
+      }
+    } else {
+      // Sin clave de ImgBB: guardamos dataURL como respaldo
+      comprobantes = fotos.map(f => f.url || f.dataUrl);
+    }
+
+    btn.textContent = 'Guardando…';
+
+    const data = {
+      monto, concepto, cuentaId, categoria: selCat,
+      comprobantes,
+      comprobante: comprobantes[0] || null,
+    };
 
     if (editing) await editarMovimiento(editId, editing, data);
     else await crearMovimiento(data);

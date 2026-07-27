@@ -736,7 +736,8 @@
   -webkit-tap-highlight-color: transparent;
   transition: background .15s;
 }
-.foto-thumb-x:hover { background: rgba(248,113,113,.85); }
+.foto-thumb-x:hover { background: #ef4444; color: #fff; }
+.foto-thumb-x:active { transform: scale(.9); }
 
 .foto-thumb-add {
   width: 80px; height: 80px;
@@ -984,3 +985,292 @@
 
 .ia-proc-title { font-weight: 700; font-size: 1rem; color: #fff; }
 .ia-proc-desc { font-size: .82rem; color: rgba(255,255,255,.6); }
+
+/* ── DETALLE DEL MOVIMIENTO ─────────────────────────────────── */
+.mov-detail-head {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 8px;
+  padding: .5rem 0 1.25rem;
+}
+
+.mov-detail-icon {
+  width: 60px;
+  height: 60px;
+  border-radius: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.5rem;
+  background: color-mix(in srgb, var(--cat-color, #fff) 18%, transparent);
+  color: var(--cat-color, #fff);
+  border: 1px solid color-mix(in srgb, var(--cat-color, #fff) 32%, transparent);
+  box-shadow: 0 0 26px color-mix(in srgb, var(--cat-color, #fff) 28%, transparent);
+}
+
+.mov-detail-amount {
+  font-size: 2rem;
+  font-weight: 800;
+  letter-spacing: -.03em;
+  line-height: 1.1;
+}
+.mov-detail-amount.ingreso { color: #34d399; }
+.mov-detail-amount.gasto { color: #f87171; }
+
+.mov-detail-concepto {
+  font-size: .95rem;
+  color: rgba(255,255,255,.7);
+}
+
+.mov-detail-rows {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  border-radius: 16px;
+  background: rgba(255,255,255,.04);
+  border: 1px solid rgba(255,255,255,.07);
+  overflow: hidden;
+  margin-bottom: 1rem;
+}
+
+.mov-detail-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 13px 15px;
+}
+.mov-detail-row + .mov-detail-row { border-top: 1px solid rgba(255,255,255,.05); }
+
+.mov-detail-k {
+  font-size: .82rem;
+  color: rgba(255,255,255,.5);
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.mov-detail-k i { width: 16px; text-align: center; color: rgba(255,255,255,.4); }
+
+.mov-detail-v {
+  font-size: .9rem;
+  font-weight: 600;
+  color: #fff;
+  text-align: right;
+}
+
+/* ── Comprobantes en el detalle ─────────────────────────────── */
+.mov-detail-comprobantes { margin-bottom: 1.15rem; }
+
+/* Botones editar/eliminar a ancho completo dentro del detalle */
+.mov-detail-sheet .options-btns {
+  padding: 4px 0 0;
+}
+
+.mov-detail-label {
+  display: block;
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.45);
+  margin-bottom: 10px;
+}
+
+.mov-detail-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.mov-detail-thumb {
+  position: relative;
+  width: 78px;
+  height: 78px;
+  border-radius: 14px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.04);
+  cursor: pointer;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .15s ease, border-color .2s ease;
+}
+.mov-detail-thumb:hover { transform: translateY(-2px); border-color: rgba(255,255,255,.3); }
+.mov-detail-thumb:active { transform: scale(.95); }
+.mov-detail-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+.mov-detail-thumb-zoom {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  font-size: 1rem;
+  background: rgba(0,0,0,.35);
+  opacity: 0;
+  transition: opacity .2s ease;
+}
+.mov-detail-thumb:hover .mov-detail-thumb-zoom { opacity: 1; }
+
+/* ── VISOR DE COMPROBANTE ───────────────────────────────────── */
+.visor-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 400;
+  display: flex;
+  flex-direction: column;
+  background: rgba(0,0,0,.92);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  opacity: 0;
+  transition: opacity .26s ease;
+}
+.visor-overlay.active { opacity: 1; }
+
+.visor-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: calc(env(safe-area-inset-top) + 14px) 18px 14px;
+  flex-shrink: 0;
+}
+.visor-count { font-size: .9rem; font-weight: 600; color: rgba(255,255,255,.7); }
+.visor-actions { display: flex; gap: 10px; margin-left: auto; }
+
+.visor-btn {
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(255,255,255,.08);
+  color: #fff;
+  font-size: 1.05rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+  transition: background .2s ease;
+}
+.visor-btn:hover { background: rgba(255,255,255,.16); }
+.visor-btn:active { transform: scale(.92); }
+
+.visor-stage {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: auto;
+  padding: 12px;
+}
+
+.visor-img {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 10px;
+  cursor: zoom-in;
+  transition: transform .28s cubic-bezier(.32,1,.6,1);
+  transform-origin: center center;
+  user-select: none;
+}
+
+.visor-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.16);
+  background: rgba(0,0,0,.5);
+  color: #fff;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.visor-prev { left: 14px; }
+.visor-next { right: 14px; }
+.visor-nav:active { transform: translateY(-50%) scale(.9); }
+
+.visor-hint {
+  text-align: center;
+  font-size: .74rem;
+  color: rgba(255,255,255,.4);
+  padding: 10px 16px calc(env(safe-area-inset-bottom) + 16px);
+  flex-shrink: 0;
+}
+
+/* ── Interruptor "Rellenar con IA" en el modal de captura ───── */
+.captura-ia-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin: 4px 0 2px;
+  padding: 13px 15px;
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--accent) 10%, rgba(255,255,255,.03));
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, rgba(255,255,255,.08));
+}
+.captura-ia-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.captura-ia-name {
+  font-size: .9rem;
+  font-weight: 700;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.captura-ia-name i { color: var(--accent); }
+.captura-ia-sub { font-size: .74rem; color: rgba(255,255,255,.5); }
+
+/* En estado inicial (elegir cámara/galería) el toggle no aplica aún */
+.captura-sheet[data-state="empty"] .captura-ia-row,
+.captura-sheet[data-state="camera"] .captura-ia-row,
+.captura-sheet[data-state="loading"] .captura-ia-row { display: none; }
+
+/* ── Interruptor (switch) para el modal de captura ──────────── */
+/* Se redefine aquí porque el modal aparece en páginas que no
+   cargan categorias.css. */
+.captura-ia-row .switch {
+  position: relative;
+  width: 48px;
+  height: 28px;
+  flex-shrink: 0;
+}
+.captura-ia-row .switch input { opacity: 0; width: 0; height: 0; position: absolute; }
+.captura-ia-row .switch-slider {
+  position: absolute;
+  inset: 0;
+  border-radius: 99px;
+  background: rgba(255,255,255,.14);
+  border: 1px solid rgba(255,255,255,.2);
+  cursor: pointer;
+  transition: background .2s ease, border-color .2s ease;
+}
+.captura-ia-row .switch-slider::before {
+  content: '';
+  position: absolute;
+  width: 22px;
+  height: 22px;
+  left: 2px;
+  top: 2px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 6px rgba(0,0,0,.4);
+  transition: transform .2s cubic-bezier(.32,1.4,.6,1);
+}
+.captura-ia-row .switch input:checked + .switch-slider {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.captura-ia-row .switch input:checked + .switch-slider::before {
+  transform: translateX(20px);
+}

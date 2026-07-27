@@ -185,14 +185,15 @@ export function openQuickMov(tipo) {
       `<button class="foto-thumb-add" type="button" id="fotoAddMore" aria-label="Agregar otra"><i class="fa-solid fa-plus"></i></button>`;
 
     fotoGallery.querySelectorAll('.foto-thumb-x').forEach(b => {
-      b.addEventListener('click', () => { fotos.splice(parseInt(b.dataset.i), 1); renderGallery(); });
+      b.addEventListener('click', () => {
+        confirmarQuitarFoto(() => { fotos.splice(parseInt(b.dataset.i), 1); renderGallery(); });
+      });
     });
     const addBtn = fotoGallery.querySelector('#fotoAddMore');
     if (addBtn) addBtn.addEventListener('click', abrirCaptura);
   }
 
-  async function analizarPrimera(dataUrl) {
-    if (iaHecha) return;
+  async function analizarConIA(dataUrl) {
     iaHecha = true;
     mostrarIaOverlay(true);
     try {
@@ -229,14 +230,16 @@ export function openQuickMov(tipo) {
   }
 
   // Al aprobar una foto en el modal de captura
-  function onFotoAprobada(dataUrl) {
-    const primera = fotos.length === 0;
+  function onFotoAprobada(dataUrl, usarIA) {
     fotos.push({ dataUrl });
     renderGallery();
-    if (primera) analizarPrimera(dataUrl);
+    if (usarIA) analizarConIA(dataUrl);
   }
 
-  function abrirCaptura() { openCapturaModal(accent, onFotoAprobada); }
+  function abrirCaptura() {
+    // Permitimos elegir IA (para rellenar datos) o solo evidencia.
+    openCapturaModal(accent, onFotoAprobada, { permitirIA: true, iaPorDefecto: !iaHecha });
+  }
   overlay.querySelector('#btnFoto').addEventListener('click', abrirCaptura);
   renderGallery();
 
@@ -295,8 +298,12 @@ export function openQuickMov(tipo) {
 
 // ── MODAL DE CAPTURA ────────────────────────────────────────
 // Deja tomar/subir una foto, previsualizarla y aprobarla o repetirla.
-function openCapturaModal(accent, onAprobar) {
+// opts.permitirIA -> muestra un interruptor "Rellenar con IA".
+// El callback recibe (dataUrl, usarIA).
+export function openCapturaModal(accent, onAprobar, opts = {}) {
   if (document.getElementById('modalCaptura')) return;
+  const permitirIA = !!opts.permitirIA;
+  const iaPorDefecto = opts.iaPorDefecto !== false;
 
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
@@ -344,6 +351,18 @@ function openCapturaModal(accent, onAprobar) {
     </div>
 
     <input type="file" id="capGaleria" accept="image/*" hidden />
+
+    ${permitirIA ? `
+    <div class="captura-ia-row" id="capturaIaRow">
+      <div class="captura-ia-text">
+        <span class="captura-ia-name"><i class="fa-solid fa-wand-magic-sparkles"></i> Rellenar con IA</span>
+        <span class="captura-ia-sub">Lee el recibo y completa monto y concepto</span>
+      </div>
+      <label class="switch">
+        <input type="checkbox" id="capIaToggle" ${iaPorDefecto ? 'checked' : ''} />
+        <span class="switch-slider"></span>
+      </label>
+    </div>` : ''}
 
     <div class="modal-actions">
       <button class="modal-cancel" id="capCancel">Cancelar</button>
@@ -430,9 +449,36 @@ function openCapturaModal(accent, onAprobar) {
   overlay.querySelector('#capCancel').addEventListener('click', close);
   overlay.querySelector('#capUsar').addEventListener('click', () => {
     if (!dataUrl) return;
-    onAprobar(dataUrl);
+    const iaToggle = overlay.querySelector('#capIaToggle');
+    const usarIA = permitirIA && iaToggle ? iaToggle.checked : false;
+    onAprobar(dataUrl, usarIA);
     close();
   });
+}
+
+// ── Confirmación para quitar un comprobante ─────────────────
+export function confirmarQuitarFoto(onConfirm) {
+  if (document.getElementById('modalConfirmFoto')) return;
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'modalConfirmFoto';
+  overlay.innerHTML = `
+  <div class="modal-sheet glass confirm-sheet" role="alertdialog" aria-modal="true">
+    <div class="modal-handle"></div>
+    <div class="confirm-icon"><i class="fa-solid fa-image"></i></div>
+    <h2 class="confirm-title">Quitar comprobante</h2>
+    <p class="confirm-desc">¿Seguro que quieres quitar esta imagen?</p>
+    <div class="confirm-btns">
+      <button class="options-btn" id="cfNo">Cancelar</button>
+      <button class="options-btn danger" id="cfSi"><i class="fa-solid fa-trash-can"></i><span>Quitar</span></button>
+    </div>
+  </div>`;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => { overlay.setAttribute('aria-hidden', 'false'); overlay.classList.add('active'); });
+  function close() { overlay.classList.add('closing'); overlay.classList.remove('active'); setTimeout(() => overlay.remove(), 320); }
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+  overlay.querySelector('#cfNo').addEventListener('click', close);
+  overlay.querySelector('#cfSi').addEventListener('click', () => { close(); onConfirm(); });
 }
 
 function toast(msg) {

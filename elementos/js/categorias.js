@@ -182,11 +182,12 @@ function openForm(editId = null) {
     onSelect: (c) => { selCuenta = c ? c.id : null; },
   });
 
-  // Selector de icono (botón + hoja con buscador y grupos)
+  // Selector de icono (botón + hoja con buscador y grupos).
+  // El color de la categoría es blanco por defecto.
   const iconPicker = initIconPicker({
     btn: overlay.querySelector('#catIconBtn'),
     selected: selIcon,
-    accent,
+    accent: '#ffffff',
     onSelect: (c) => { selIcon = c; },
   });
 
@@ -237,7 +238,7 @@ function openForm(editId = null) {
       tipo: tipoActivo,
       nombre,
       icon: selIcon,
-      color: accent,               // color automático según el tipo
+      color: '#ffffff',            // color por defecto: blanco
       valor: valor || null,        // opcional
       cuentaId,                    // cuenta asignada (opcional)
       fija: esFija,
