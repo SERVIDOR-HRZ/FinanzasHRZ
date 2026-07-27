@@ -85,6 +85,7 @@ if (fab && modalOverlay) {
   const modalCancel = document.getElementById('modalCancel');
   const optIngreso  = document.getElementById('optIngreso');
   const optGasto    = document.getElementById('optGasto');
+  const optCategoria = document.getElementById('optCategoria');
 
   fab.addEventListener('click', () => {
     fab.classList.add('open');
@@ -112,4 +113,19 @@ if (fab && modalOverlay) {
     optIngreso.addEventListener('click', () => { closeModal(); setTimeout(() => openQuickMov('ingreso'), 260); });
     optGasto.addEventListener('click',   () => { closeModal(); setTimeout(() => openQuickMov('gasto'), 260); });
   });
+
+  // Nueva categoría: si ya estamos en la pantalla de categorías, abrimos
+  // el formulario directo; si no, navegamos a ella y lo abrimos al cargar.
+  if (optCategoria) {
+    optCategoria.addEventListener('click', () => {
+      closeModal();
+      const enCategorias = location.pathname.endsWith('categorias.html');
+      if (enCategorias && window.abrirNuevaCategoria) {
+        setTimeout(() => window.abrirNuevaCategoria(), 260);
+      } else {
+        const base = location.pathname.includes('/secciones/') ? '' : 'secciones/';
+        location.href = `${base}categorias.html?nueva=1`;
+      }
+    });
+  }
 }

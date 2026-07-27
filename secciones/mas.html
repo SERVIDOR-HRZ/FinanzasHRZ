@@ -31,12 +31,12 @@
       <a href="divisas.html" class="hub-card" style="--hub-color:#fbbf24">
         <div class="hub-icon"><i class="fa-solid fa-coins"></i></div>
         <div class="hub-title">Divisas</div>
-        <div class="hub-desc">Convierte entre monedas del mundo en tiempo real.</div>
+        <div class="hub-desc">Conversion al instante.</div>
       </a>
       <a href="categorias.html" class="hub-card" style="--hub-color:#34d399">
         <div class="hub-icon"><i class="fa-solid fa-tags"></i></div>
         <div class="hub-title">Categorías</div>
-        <div class="hub-desc">Crea y gestiona categorías de ingresos y gastos.</div>
+        <div class="hub-desc">Gestiona tus categorías.</div>
       </a>
     </div>
 
@@ -75,8 +75,16 @@
       <div class="modal-handle"></div>
       <p class="modal-eyebrow">Nueva transacción</p>
       <h2 class="modal-title" id="modalTitle">¿Qué deseas registrar?</h2>
-      <p class="modal-subtitle">Selecciona el tipo de movimiento</p>
+      <p class="modal-subtitle">Selecciona qué deseas crear</p>
       <div class="modal-options">
+        <button class="modal-option option-categoria" id="optCategoria">
+          <span class="option-icon-wrap"><i class="fa-solid fa-tags"></i></span>
+          <span class="option-text">
+            <span class="option-label">Nueva categoría</span>
+            <span class="option-desc">Organiza tus movimientos</span>
+          </span>
+          <i class="fa-solid fa-chevron-right option-arrow"></i>
+        </button>
         <button class="modal-option option-ingreso" id="optIngreso">
           <span class="option-icon-wrap"><i class="fa-solid fa-arrow-trend-up"></i></span>
           <span class="option-text">
