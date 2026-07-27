@@ -102,7 +102,13 @@ El monto debe ser el TOTAL pagado, solo el número (sin símbolos ni puntos de m
       const data = await res.json();
       const txt = data?.choices?.[0]?.message?.content;
       if (!txt) { lastErr = new Error("Respuesta vacía"); continue; }
-      return parseRespuesta(txt, categorias);
+      try {
+        return parseRespuesta(txt, categorias);
+      } catch (parseErr) {
+        // JSON inválido en este modelo: probamos el siguiente
+        lastErr = parseErr;
+        continue;
+      }
     } catch (e) {
       lastErr = e;
     }
@@ -120,11 +126,17 @@ function parseRespuesta(txt, categorias) {
   const obj = JSON.parse(limpio);
   const monto = parseFloat(String(obj.monto).replace(/[^0-9.]/g, '')) || 0;
 
-  // mapear nombre de categoría -> id
+  // mapear nombre de categoría -> id (coincidencia flexible)
   let categoriaId = null;
   if (obj.categoria) {
-    const found = categorias.find(c =>
-      (c.nombre || c.label || '').toLowerCase() === String(obj.categoria).toLowerCase());
+    const objetivo = String(obj.categoria).trim().toLowerCase();
+    const nombreDe = c => (c.nombre || c.label || '').trim().toLowerCase();
+    // 1) coincidencia exacta  2) uno contiene al otro
+    let found = categorias.find(c => nombreDe(c) === objetivo);
+    if (!found) found = categorias.find(c => {
+      const n = nombreDe(c);
+      return n && (n.includes(objetivo) || objetivo.includes(n));
+    });
     if (found) categoriaId = found.id;
   }
 

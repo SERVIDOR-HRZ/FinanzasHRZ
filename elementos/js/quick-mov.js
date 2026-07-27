@@ -61,16 +61,6 @@ export function openQuickMov(tipo) {
     <h2 class="modal-title">Registrar ${tipo}</h2>
     <div class="form-scroll">
 
-      <button class="foto-ia-btn" id="btnFoto" type="button">
-        <span class="foto-ia-icon"><i class="fa-solid fa-camera"></i></span>
-        <span class="foto-ia-text">
-          <span class="foto-ia-title">Comprobantes</span>
-          <span class="foto-ia-desc">Toma o sube fotos y la IA rellena los datos</span>
-        </span>
-        <i class="fa-solid fa-wand-magic-sparkles foto-ia-magic"></i>
-      </button>
-      <div class="foto-gallery" id="fotoGallery" hidden></div>
-
       <div class="form-group">
         <label class="form-label">Monto</label>
         <div class="input-prefix-wrap">
@@ -94,6 +84,19 @@ export function openQuickMov(tipo) {
       <div class="form-group">
         <label class="form-label">Categoría</label>
         <button type="button" class="cat-select-btn" id="qCatBtn"></button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Comprobantes <span class="form-label-opt">(opcional)</span></label>
+        <button class="foto-ia-btn" id="btnFoto" type="button">
+          <span class="foto-ia-icon"><i class="fa-solid fa-camera"></i></span>
+          <span class="foto-ia-text">
+            <span class="foto-ia-title">Agregar comprobante</span>
+            <span class="foto-ia-desc">Toma o sube fotos y la IA rellena los datos</span>
+          </span>
+          <i class="fa-solid fa-wand-magic-sparkles foto-ia-magic"></i>
+        </button>
+        <div class="foto-gallery" id="fotoGallery" hidden></div>
       </div>
 
     </div>

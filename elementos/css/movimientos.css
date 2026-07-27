@@ -767,10 +767,13 @@
 .captura-sheet[data-state="empty"] .captura-stage { display: none; }
 .captura-sheet[data-state="empty"] #capUsar { display: none; }
 
-/* Cámara en vivo: sin fuentes ni "Usar foto" */
+/* Cámara en vivo: sin fuentes ni "Usar foto", vista más grande */
 .captura-sheet[data-state="camera"] .captura-cam { display: block; }
 .captura-sheet[data-state="camera"] .captura-source { display: none; }
 .captura-sheet[data-state="camera"] #capUsar { display: none; }
+.captura-sheet[data-state="camera"] .captura-stage { margin-bottom: 10px; }
+.captura-sheet[data-state="camera"] .modal-subtitle { display: none; }
+.captura-sheet[data-state="camera"] { padding-bottom: 18px; }
 
 /* Cargando */
 .captura-sheet[data-state="loading"] .captura-loading { display: flex; }
@@ -829,8 +832,9 @@
 .captura-cam { position: relative; width: 100%; }
 .captura-cam video {
   width: 100%;
-  max-height: 340px;
-  min-height: 240px;
+  height: 58vh;
+  max-height: 560px;
+  min-height: 320px;
   object-fit: cover;
   display: block;
   background: #000;
@@ -913,7 +917,7 @@
 
 /* Alinear los botones de acción con las tarjetas de arriba (sin padding extra) */
 .captura-sheet .modal-actions {
-  padding: 14px 0 20px;
+  padding: 14px 0 0;
   border-top: none;
   margin-top: 4px;
 }
