@@ -16,24 +16,24 @@
 
   <div class="cuentas-page">
 
-    <!-- Header -->
-    <div class="cuentas-header glass">
-      <div class="cuentas-header-icon">
-        <i class="fa-solid fa-wallet"></i>
-      </div>
-      <div class="cuentas-header-text">
-        <h1>Cuentas</h1>
-        <p>Administra tu dinero</p>
-      </div>
-    </div>
-
-    <!-- Balance total -->
+    <!-- Cuentas + Balance (tarjeta única) -->
     <div class="balance-card glass">
+      <div class="balance-head">
+        <div class="cuentas-header-icon">
+          <i class="fa-solid fa-wallet"></i>
+        </div>
+        <div class="cuentas-header-text">
+          <h1>Cuentas</h1>
+          <p>Administra tu dinero</p>
+        </div>
+        <span class="balance-mes-label" id="periodoLabel">Este mes</span>
+      </div>
+
+      <div class="balance-divider"></div>
+
       <span class="balance-label">Balance total</span>
       <span class="balance-amount" id="balanceTotal">$0.00</span>
       <span class="balance-sub" id="balanceSub">0 cuentas</span>
-
-      <span class="balance-mes-label" id="periodoLabel">Este mes</span>
 
       <div class="balance-stats">
         <div class="balance-stat stat-ingreso">

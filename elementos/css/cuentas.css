@@ -77,11 +77,23 @@
   margin-top: 2px;
 }
 
-/* ── ETIQUETA MES (pantalla principal, esquina superior der) ── */
+/* ── CABECERA dentro de la tarjeta de balance ───────────────── */
+.balance-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.balance-head .cuentas-header-text { flex: 1; min-width: 0; }
+
+.balance-divider {
+  height: 1px;
+  background: rgba(255,255,255,.08);
+  margin: 1.15rem 0 1.25rem;
+}
+
+/* ── ETIQUETA MES (dentro de la cabecera de la tarjeta) ──────── */
 .balance-mes-label {
-  position: absolute;
-  top: 1.75rem;
-  right: 1.5rem;
+  flex-shrink: 0;
   padding: 6px 13px;
   border-radius: 99px;
   border: 1px solid rgba(255,255,255,.1);

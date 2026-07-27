@@ -16,25 +16,26 @@
 
   <div class="mov-page" style="--accent:#f87171">
 
-    <!-- Header -->
-    <div class="mov-header glass">
-      <div class="mov-header-icon"><i class="fa-solid fa-arrow-trend-down"></i></div>
-      <div class="mov-header-text">
-        <h1>Gastos</h1>
-        <p>Dinero que sale de tus cuentas</p>
-      </div>
-    </div>
-
-    <!-- Resumen -->
+    <!-- Gastos + Total (tarjeta única) -->
     <div class="mov-summary glass">
+      <div class="mov-summary-head">
+        <div class="mov-header-icon"><i class="fa-solid fa-arrow-trend-down"></i></div>
+        <div class="mov-header-text">
+          <h1>Gastos</h1>
+          <p>Dinero que sale de tus cuentas</p>
+        </div>
+        <button class="periodo-selector mov-periodo" id="periodoSelector" type="button">
+          <i class="fa-solid fa-calendar-days"></i>
+          <span id="periodoLabel">Este mes</span>
+          <i class="fa-solid fa-chevron-down periodo-chev"></i>
+        </button>
+      </div>
+
+      <div class="mov-summary-divider"></div>
+
       <span class="mov-summary-label"><i class="fa-solid fa-arrow-trend-down"></i> Total gastos</span>
       <span class="mov-summary-amount" id="movTotal">$0</span>
       <span class="mov-summary-sub" id="movSub">0 movimientos</span>
-      <button class="periodo-selector mov-periodo" id="periodoSelector" type="button">
-        <i class="fa-solid fa-calendar-days"></i>
-        <span id="periodoLabel">Este mes</span>
-        <i class="fa-solid fa-chevron-down periodo-chev"></i>
-      </button>
     </div>
 
     <!-- Nuevo -->

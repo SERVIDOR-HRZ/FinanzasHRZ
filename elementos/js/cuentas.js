@@ -378,6 +378,7 @@ function openFormCuenta(editId = null) {
       coloresGrid.querySelectorAll('.color-btn').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
       coloresGrid.classList.remove('grid-error');
+      iconPicker.setAccent(col);   // el preview del icono adopta el color elegido
     });
     coloresGrid.appendChild(btn);
   });

@@ -468,28 +468,45 @@ body {
 /* ── BOTÓN SUBIR AL INICIO ───────────────────────────────────── */
 .scroll-top-btn {
   position: fixed;
-  right: 18px;
-  bottom: calc(var(--nav-h) + 78px);
-  width: 44px;
-  height: 44px;
+  right: 26px;
+  bottom: calc(var(--nav-h) + 48px);
+  width: 54px;
+  height: 54px;
   border-radius: 50%;
-  border: 1px solid rgba(255,255,255,.14);
-  background: linear-gradient(180deg, rgba(30,30,32,.95), rgba(12,12,13,.98));
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
+  border: 1.5px solid rgba(255,255,255,.28);
+  background: linear-gradient(160deg, rgba(52,52,56,.98), rgba(20,20,22,1));
   color: #fff;
-  font-size: 1rem;
+  font-size: 1.3rem;
+  line-height: 1;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  z-index: 150;
-  box-shadow: 0 6px 20px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.12);
+  z-index: 200;
+  box-shadow:
+    0 10px 30px rgba(0,0,0,.65),
+    0 0 0 6px rgba(255,255,255,.08),
+    inset 0 1px 0 rgba(255,255,255,.6);
   opacity: 0;
   transform: translateY(16px) scale(.85);
   pointer-events: none;
   transition: opacity .25s ease, transform .25s cubic-bezier(.32,1,.6,1);
   -webkit-tap-highlight-color: transparent;
+}
+
+.scroll-top-btn.visible {
+  animation: scrollTopBounce 2.4s ease-in-out infinite;
+}
+
+.scroll-top-btn i {
+  display: block;
+  transform: translateY(-1px);
+  font-weight: 900;
+}
+
+@keyframes scrollTopBounce {
+  0%, 100% { box-shadow: 0 10px 30px rgba(0,0,0,.65), 0 0 0 6px rgba(255,255,255,.08), inset 0 1px 0 rgba(255,255,255,.6); }
+  50% { box-shadow: 0 12px 34px rgba(0,0,0,.7), 0 0 0 12px rgba(255,255,255,.02), inset 0 1px 0 rgba(255,255,255,.6); }
 }
 
 .scroll-top-btn.visible {

@@ -298,11 +298,23 @@
   .mov-page { max-width: 660px; margin: 0 auto; }
 }
 
-/* ── Selector de periodo en la esquina superior derecha ──────── */
+/* ── Cabecera dentro de la tarjeta de resumen ───────────────── */
+.mov-summary-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.mov-summary-head .mov-header-text { flex: 1; min-width: 0; }
+
+.mov-summary-divider {
+  height: 1px;
+  background: color-mix(in srgb, var(--accent) 14%, rgba(255,255,255,.08));
+  margin: 1.15rem 0 1.25rem;
+}
+
+/* ── Selector de periodo (dentro de la cabecera de la tarjeta) ─ */
 .mov-periodo {
-  position: absolute;
-  top: 1.25rem;
-  right: 1.25rem;
+  flex-shrink: 0;
   z-index: 2;
   margin: 0;
   padding: 7px 12px;

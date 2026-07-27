@@ -11,10 +11,11 @@ import { ICON_GROUPS, ALL_ICONS } from "./icon-library.js";
 
 export function initIconPicker({ btn, selected = null, accent = '#34d399', onSelect }) {
   let sel = selected || (ALL_ICONS[0] && ALL_ICONS[0].c);
+  let acc = accent;
 
   function renderBtn() {
     btn.innerHTML = `
-      <span class="icon-select-preview" style="background:${accent}20;color:${accent};border-color:${accent}40">
+      <span class="icon-select-preview" style="background:${acc}20;color:${acc};border-color:${acc}40">
         <i class="${sel}"></i>
       </span>
       <span class="icon-select-text">Cambiar icono</span>
@@ -24,11 +25,14 @@ export function initIconPicker({ btn, selected = null, accent = '#34d399', onSel
   function openPicker() {
     if (document.getElementById('modalIconPicker')) return;
 
+    // Selección temporal: solo se aplica al confirmar con "Usar icono".
+    let tempSel = sel;
+
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay';
     overlay.id = 'modalIconPicker';
     overlay.innerHTML = `
-    <div class="modal-sheet glass icon-picker-sheet" role="dialog" aria-modal="true" style="--accent:${accent}">
+    <div class="modal-sheet glass icon-picker-sheet" role="dialog" aria-modal="true" style="--accent:${acc}">
       <div class="modal-handle"></div>
       <p class="modal-eyebrow">Icono</p>
       <h2 class="modal-title">Elige un icono</h2>
@@ -37,7 +41,10 @@ export function initIconPicker({ btn, selected = null, accent = '#34d399', onSel
         <input type="text" class="cat-search-input" id="iconSearch" placeholder="Buscar icono…" autocomplete="off" />
       </div>
       <div class="icon-picker-scroll" id="iconScroll"></div>
-      <button class="modal-cancel" id="iconPickerCancel">Cerrar</button>
+      <div class="modal-actions">
+        <button class="modal-cancel" id="iconPickerCancel">Cancelar</button>
+        <button class="btn-primary" id="iconPickerUsar"><i class="fa-solid fa-check"></i> Usar icono</button>
+      </div>
     </div>`;
 
     document.body.appendChild(overlay);
@@ -47,17 +54,17 @@ export function initIconPicker({ btn, selected = null, accent = '#34d399', onSel
     const searchEl = overlay.querySelector('#iconSearch');
 
     const iconoHTML = ic =>
-      `<button class="icon-pick-btn${ic.c === sel ? ' selected' : ''}" type="button" data-c="${ic.c}">
+      `<button class="icon-pick-btn${ic.c === tempSel ? ' selected' : ''}" type="button" data-c="${ic.c}">
         <i class="${ic.c}"></i>
       </button>`;
 
     function bindBtns() {
       scrollEl.querySelectorAll('.icon-pick-btn').forEach(el => {
         el.addEventListener('click', () => {
-          sel = el.dataset.c;
-          renderBtn();
-          if (onSelect) onSelect(sel);
-          close();
+          // Solo marca el icono como seleccionado, sin cerrar la hoja.
+          tempSel = el.dataset.c;
+          scrollEl.querySelectorAll('.icon-pick-btn.selected').forEach(b => b.classList.remove('selected'));
+          el.classList.add('selected');
         });
       });
     }
@@ -103,8 +110,15 @@ export function initIconPicker({ btn, selected = null, accent = '#34d399', onSel
       overlay.classList.add('closing'); overlay.classList.remove('active');
       setTimeout(() => overlay.remove(), 320);
     }
+    function confirmar() {
+      sel = tempSel;
+      renderBtn();
+      if (onSelect) onSelect(sel);
+      close();
+    }
     overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
     overlay.querySelector('#iconPickerCancel').addEventListener('click', close);
+    overlay.querySelector('#iconPickerUsar').addEventListener('click', confirmar);
   }
 
   btn.addEventListener('click', openPicker);
@@ -113,5 +127,6 @@ export function initIconPicker({ btn, selected = null, accent = '#34d399', onSel
   return {
     getSelected: () => sel,
     setSelected(c) { sel = c; renderBtn(); },
+    setAccent(color) { acc = color; renderBtn(); },
   };
 }

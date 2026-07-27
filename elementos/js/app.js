@@ -40,12 +40,34 @@ scrollTopBtn.setAttribute('aria-label', 'Subir al inicio');
 scrollTopBtn.innerHTML = '<i class="fa-solid fa-chevron-up"></i>';
 document.body.appendChild(scrollTopBtn);
 
-window.addEventListener('scroll', () => {
-  scrollTopBtn.classList.toggle('visible', window.scrollY > 320);
-}, { passive: true });
+function scrollActual() {
+  return window.scrollY
+      || window.pageYOffset
+      || document.documentElement.scrollTop
+      || document.body.scrollTop
+      || 0;
+}
+
+function actualizarScrollTop() {
+  scrollTopBtn.classList.toggle('visible', scrollActual() > 140);
+}
+
+// Escuchamos en captura para detectar el scroll venga de donde venga
+// (ventana o cualquier contenedor con scroll interno).
+document.addEventListener('scroll', actualizarScrollTop, { passive: true, capture: true });
+window.addEventListener('scroll', actualizarScrollTop, { passive: true });
+window.addEventListener('resize', actualizarScrollTop, { passive: true });
+window.addEventListener('load', actualizarScrollTop);
+actualizarScrollTop();
 
 scrollTopBtn.addEventListener('click', () => {
+  // Sube tanto la ventana como cualquier contenedor scrolleable de la página
   window.scrollTo({ top: 0, behavior: 'smooth' });
+  document.documentElement.scrollTo?.({ top: 0, behavior: 'smooth' });
+  document.body.scrollTo?.({ top: 0, behavior: 'smooth' });
+  document.querySelectorAll('.cuentas-page, .mov-page').forEach(el => {
+    el.scrollTo?.({ top: 0, behavior: 'smooth' });
+  });
 });
 
 // ── Nav activo ───────────────────────────────────────────────
