@@ -3,6 +3,7 @@ import {
   collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { initIconPicker } from "./icon-picker.js";
+import { notify } from "./toast.js";
 
 // ── CATEGORÍAS ──────────────────────────────────────────────
 const CATEGORIAS = [
@@ -483,20 +484,7 @@ function fallbackCopy(text, cb) {
   document.body.removeChild(ta);
 }
 
-function showToast(msg) {
-  const existing = document.getElementById('cuentaToast');
-  if (existing) existing.remove();
-  const toast = document.createElement('div');
-  toast.id = 'cuentaToast';
-  toast.className = 'cuenta-toast';
-  toast.innerHTML = `<i class="fa-solid fa-check"></i> ${msg}`;
-  document.body.appendChild(toast);
-  requestAnimationFrame(() => toast.classList.add('visible'));
-  setTimeout(() => {
-    toast.classList.remove('visible');
-    setTimeout(() => toast.remove(), 400);
-  }, 2000);
-}
+function showToast(msg, tipo) { notify(msg, tipo); }
 
 // ── BOTÓN NUEVA CUENTA ───────────────────────────────────────
 document.getElementById('btnNuevaCuenta').addEventListener('click', () => openFormCuenta());

@@ -5,6 +5,7 @@ import { ALL_ICONS } from "./icon-library.js";
 import { pickDayOfMonth } from "./calendar.js";
 import { initCuentaPicker } from "./cuenta-picker.js";
 import { initIconPicker } from "./icon-picker.js";
+import { notify } from "./toast.js";
 import { db } from "./firebase.js";
 import {
   collection, onSnapshot, query, orderBy
@@ -316,17 +317,7 @@ function closeConfirm() {
 }
 
 // ── Toast ────────────────────────────────────────────────────
-function showToast(msg) {
-  const existing = document.getElementById('cuentaToast');
-  if (existing) existing.remove();
-  const toast = document.createElement('div');
-  toast.id = 'cuentaToast';
-  toast.className = 'cuenta-toast';
-  toast.innerHTML = `<i class="fa-solid fa-check"></i> ${msg}`;
-  document.body.appendChild(toast);
-  requestAnimationFrame(() => toast.classList.add('visible'));
-  setTimeout(() => { toast.classList.remove('visible'); setTimeout(() => toast.remove(), 400); }, 2000);
-}
+function showToast(msg, tipo) { notify(msg, tipo); }
 
 // ── Init ─────────────────────────────────────────────────────
 document.getElementById('btnNuevaCat').addEventListener('click', () => openForm());

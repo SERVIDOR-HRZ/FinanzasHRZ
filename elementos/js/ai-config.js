@@ -36,11 +36,15 @@ export async function subirImgBB(dataUrl) {
   return data.data.url;
 }
 
-// Modelos con visión (se intentan en orden hasta que uno responda)
+// Modelos con visión (se intentan en orden hasta que uno responda).
+// IDs verificados vigentes en OpenRouter. Mezcla de modelos económicos con
+// buena lectura de recibos (OCR) + respaldo gratuito al final.
 export const AI_MODELS = [
-  "google/gemini-2.0-flash-exp:free",
-  "meta-llama/llama-3.2-11b-vision-instruct:free",
-  "qwen/qwen2.5-vl-72b-instruct:free",
+  "qwen/qwen3-vl-30b-a3b-instruct",       // barato, muy buen OCR de recibos
+  "google/gemini-2.5-flash-lite",         // muy barato, rápido, buena visión
+  "qwen/qwen3-vl-8b-instruct",            // barato, respaldo con visión
+  "mistralai/mistral-small-3.2-24b-instruct", // respaldo con visión
+  "google/gemma-4-31b-it:free",           // respaldo gratuito con visión
 ];
 
 // Reduce la imagen para enviarla ligera a la IA / guardarla como comprobante
@@ -70,11 +74,23 @@ export function comprimirImagen(file, maxLado = 900, calidad = 0.6) {
 export async function analizarComprobante(dataUrl, tipo, categorias) {
   const nombresCats = categorias.map(c => c.nombre || c.label).filter(Boolean);
   const prompt =
-`Analiza esta imagen de un comprobante/factura/recibo de un ${tipo === 'ingreso' ? 'ingreso' : 'gasto'}.
-Devuelve ÚNICAMENTE un JSON válido, sin texto extra, con esta forma:
-{"concepto": "descripción corta (máx 40 caracteres)", "monto": number_sin_separadores, "categoria": "una de la lista o null"}
-Categorías disponibles: ${nombresCats.length ? nombresCats.join(', ') : 'ninguna'}.
-El monto debe ser el TOTAL pagado, solo el número (sin símbolos ni puntos de miles).`;
+`Eres un asistente que extrae datos de una imagen para registrar un ${tipo === 'ingreso' ? 'ingreso' : 'gasto'}.
+La imagen puede ser una factura, recibo, ticket, pantallazo o incluso una nota escrita a mano (por ejemplo "caja 5000" significa concepto "caja" y monto 5000).
+Extrae SIEMPRE lo que puedas, aunque la imagen sea simple o de baja calidad.
+
+Devuelve ÚNICAMENTE un JSON válido, sin texto extra ni explicaciones, con esta forma exacta:
+{"concepto": "descripción corta (máx 40 caracteres)", "monto": number, "categoria": "una de la lista o null"}
+
+Reglas del MONTO (¡muy importante, formato de Colombia!):
+- En Colombia el PUNTO (.) separa los miles y la COMA (,) separa los decimales.
+  Ejemplos: "$790.000,00" = 790000  |  "$1.250.500,00" = 1250500  |  "$5.000" = 5000.
+- Devuelve el monto como número ENTERO en pesos, IGNORANDO los centavos/decimales (lo que va después de la coma).
+- NO conviertas los puntos de miles en dígitos extra: "$790.000,00" son 790 mil, es decir 790000, NUNCA 79000000.
+- Si hay varios valores (ej. total, costo, IVA), toma el valor PRINCIPAL o "Valor"/"Total" de la transacción.
+- Si ves un número junto a un texto simple (nota a mano), ese número es el monto tal cual.
+- "concepto": el producto, servicio o motivo (ejemplo: "transferencia", "almuerzo", "arriendo").
+- "categoria": elige la que mejor encaje de esta lista o null si ninguna aplica.
+Categorías disponibles: ${nombresCats.length ? nombresCats.join(', ') : 'ninguna'}.`;
 
   const body = {
     messages: [{
@@ -116,6 +132,38 @@ El monto debe ser el TOTAL pagado, solo el número (sin símbolos ni puntos de m
   throw lastErr || new Error("No se pudo analizar la imagen");
 }
 
+// Normaliza el monto devuelto por la IA a un entero de pesos.
+// Interpreta correctamente el formato colombiano ("790.000,00" = 790000) y
+// evita que los centavos ".00" o los puntos de miles inflen la cifra.
+function normalizarMonto(valor) {
+  if (typeof valor === 'number') return Math.round(valor);
+  let s = String(valor || '').trim().replace(/[^0-9.,]/g, '');
+  if (!s) return 0;
+
+  const tienePunto = s.includes('.');
+  const tieneComa = s.includes(',');
+
+  if (tienePunto && tieneComa) {
+    // El último separador que aparece es el decimal.
+    if (s.lastIndexOf(',') > s.lastIndexOf('.')) {
+      // formato CO: puntos = miles, coma = decimal → quitar puntos, coma a punto
+      s = s.replace(/\./g, '').replace(',', '.');
+    } else {
+      // formato US: comas = miles, punto = decimal → quitar comas
+      s = s.replace(/,/g, '');
+    }
+  } else if (tieneComa) {
+    // Solo coma: si separa 3 dígitos al final es miles, si no es decimal
+    s = /,\d{3}$/.test(s) ? s.replace(/,/g, '') : s.replace(',', '.');
+  } else if (tienePunto) {
+    // Solo punto: si separa exactamente 3 dígitos al final es miles (CO)
+    if (/\.\d{3}$/.test(s)) s = s.replace(/\./g, '');
+    // si son 2 decimales (".00") o 1, se deja como decimal
+  }
+
+  return Math.round(parseFloat(s) || 0);
+}
+
 function parseRespuesta(txt, categorias) {
   // quitar posibles ```json ... ```
   let limpio = txt.trim().replace(/^```(?:json)?/i, '').replace(/```$/,'').trim();
@@ -124,7 +172,7 @@ function parseRespuesta(txt, categorias) {
   if (ini !== -1 && fin !== -1) limpio = limpio.slice(ini, fin + 1);
 
   const obj = JSON.parse(limpio);
-  const monto = parseFloat(String(obj.monto).replace(/[^0-9.]/g, '')) || 0;
+  const monto = normalizarMonto(obj.monto);
 
   // mapear nombre de categoría -> id (coincidencia flexible)
   let categoriaId = null;

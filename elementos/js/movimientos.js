@@ -6,6 +6,7 @@ import {
 import { subscribeCategorias } from "./cats-store.js";
 import { initCatPicker } from "./cat-picker.js";
 import { initCuentaPicker } from "./cuenta-picker.js";
+import { notify } from "./toast.js";
 
 // ── TIPO (ingreso | gasto) ───────────────────────────────────
 const TIPO = document.body.dataset.tipo;               // 'ingreso' | 'gasto'
@@ -22,7 +23,6 @@ function catLabel(c) { return c ? (c.nombre || c.label) : 'Otro'; }
 
 subscribeCategorias(TIPO, cats => {
   CATS = cats;
-  if (!selCat && CATS.length) selCat = CATS[0].id;
   render();
 });
 
@@ -331,7 +331,7 @@ function openForm(editId = null) {
   }
 
   const editing = editId ? movimientos.find(m => m.id === editId) : null;
-  selCat    = editing ? editing.categoria : (CATS[0] ? CATS[0].id : null);
+  selCat    = editing ? editing.categoria : null;   // al crear: sin categoría por defecto
   selCuenta = editing ? editing.cuentaId  : cuentas[0].id;
 
   const overlay = document.createElement('div');
@@ -485,17 +485,7 @@ function parseMonto(str) {
   return parseFloat(String(str).replace(/\./g, '').replace(',', '.')) || 0;
 }
 
-function showToast(msg) {
-  const existing = document.getElementById('cuentaToast');
-  if (existing) existing.remove();
-  const toast = document.createElement('div');
-  toast.id = 'cuentaToast';
-  toast.className = 'cuenta-toast';
-  toast.innerHTML = `<i class="fa-solid fa-check"></i> ${msg}`;
-  document.body.appendChild(toast);
-  requestAnimationFrame(() => toast.classList.add('visible'));
-  setTimeout(() => { toast.classList.remove('visible'); setTimeout(() => toast.remove(), 400); }, 2000);
-}
+function showToast(msg, tipo) { notify(msg, tipo); }
 
 // ── BOTÓN NUEVO (usa el form compartido con foto + IA) ───────
 import('./quick-mov.js').then(({ openQuickMov }) => {

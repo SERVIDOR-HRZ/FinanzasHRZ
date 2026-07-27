@@ -10,6 +10,7 @@ import { subscribeCategorias } from "./cats-store.js";
 import { comprimirImagen, analizarComprobante, subirImgBB, IMGBB_KEY } from "./ai-config.js";
 import { initCatPicker } from "./cat-picker.js";
 import { initCuentaPicker } from "./cuenta-picker.js";
+import { notify } from "./toast.js";
 
 const MOV_COL = collection(db, 'movimientos');
 const CUE_COL = collection(db, 'cuentas');
@@ -47,7 +48,7 @@ export function openQuickMov(tipo) {
 
   if (!cuentas.length) { toast('Primero crea una cuenta'); return; }
 
-  let selCat = cats[0] ? cats[0].id : null;
+  let selCat = null;   // por defecto: ninguna categoría seleccionada
   let selCuenta = cuentas[0].id;
   let fotos = [];   // [{ dataUrl }]  comprobantes aprobados
 
@@ -194,13 +195,38 @@ export function openQuickMov(tipo) {
   async function analizarPrimera(dataUrl) {
     if (iaHecha) return;
     iaHecha = true;
+    mostrarIaOverlay(true);
     try {
       const r = await analizarComprobante(dataUrl, tipo, cats);
       if (r.monto && !parseMonto(montoInput.value)) { montoInput.value = fmtMiles(r.monto); montoAuto = false; }
       if (r.concepto && !conceptoInput.value) conceptoInput.value = r.concepto;
       if (r.categoria) { selCat = r.categoria; catPicker.setSelected(r.categoria); }
-      toast('Datos cargados por IA');
-    } catch { toast('No se pudo leer con IA, complétalo a mano'); }
+      toast('Datos cargados por IA', 'success');
+    } catch { toast('No se pudo leer con IA, complétalo a mano', 'error'); }
+    finally { mostrarIaOverlay(false); }
+  }
+
+  // Overlay de bloqueo mientras la IA analiza la imagen
+  function mostrarIaOverlay(activo) {
+    let ov = overlay.querySelector('#iaProcOverlay');
+    if (activo) {
+      if (!ov) {
+        ov = document.createElement('div');
+        ov.id = 'iaProcOverlay';
+        ov.className = 'ia-proc-overlay';
+        ov.innerHTML = `
+          <div class="ia-proc-box">
+            <span class="ia-proc-spinner"><i class="fa-solid fa-wand-magic-sparkles"></i></span>
+            <span class="ia-proc-title">Analizando con IA…</span>
+            <span class="ia-proc-desc">Leyendo el comprobante, un momento.</span>
+          </div>`;
+        overlay.querySelector('.mov-form-sheet').appendChild(ov);
+      }
+      requestAnimationFrame(() => ov.classList.add('visible'));
+    } else if (ov) {
+      ov.classList.remove('visible');
+      setTimeout(() => ov.remove(), 300);
+    }
   }
 
   // Al aprobar una foto en el modal de captura
@@ -238,7 +264,7 @@ export function openQuickMov(tipo) {
       try {
         comprobantes = await Promise.all(fotos.map(f => subirImgBB(f.dataUrl)));
       } catch (e) {
-        toast('No se pudieron subir las fotos');
+        toast('No se pudieron subir las fotos', 'error');
         btn.disabled = false; btn.textContent = 'Registrar';
         return;
       }
@@ -410,13 +436,4 @@ function openCapturaModal(accent, onAprobar) {
   });
 }
 
-function toast(msg) {
-  const ex = document.getElementById('cuentaToast');
-  if (ex) ex.remove();
-  const t = document.createElement('div');
-  t.id = 'cuentaToast'; t.className = 'cuenta-toast';
-  t.innerHTML = `<i class="fa-solid fa-check"></i> ${msg}`;
-  document.body.appendChild(t);
-  requestAnimationFrame(() => t.classList.add('visible'));
-  setTimeout(() => { t.classList.remove('visible'); setTimeout(() => t.remove(), 400); }, 2000);
-}
+function toast(msg, tipo) { notify(msg, tipo); }
