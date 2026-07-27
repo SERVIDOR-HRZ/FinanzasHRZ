@@ -4,6 +4,8 @@ import {
   query, orderBy, getDoc, where
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { subscribeCategorias } from "./cats-store.js";
+import { initCatPicker } from "./cat-picker.js";
+import { initCuentaPicker } from "./cuenta-picker.js";
 
 // ── TIPO (ingreso | gasto) ───────────────────────────────────
 const TIPO = document.body.dataset.tipo;               // 'ingreso' | 'gasto'
@@ -361,17 +363,12 @@ function openForm(editId = null) {
 
       <div class="form-group">
         <label class="form-label">Cuenta</label>
-        <div class="form-select-wrap">
-          <select class="form-select" id="inputCuenta">
-            ${cuentas.map(c => `<option value="${c.id}" ${c.id === selCuenta ? 'selected' : ''}>${c.nombre} — ${fmt(c.monto)}</option>`).join('')}
-          </select>
-          <i class="fa-solid fa-chevron-down form-select-arrow"></i>
-        </div>
+        <button type="button" class="cat-select-btn" id="cuentaSelectBtn"></button>
       </div>
 
       <div class="form-group">
         <label class="form-label">Categoría</label>
-        <div class="cats-grid" id="catsGrid"></div>
+        <button type="button" class="cat-select-btn" id="catSelectBtn"></button>
       </div>
 
     </div>
@@ -384,29 +381,63 @@ function openForm(editId = null) {
   document.body.appendChild(overlay);
 
   const inputMonto = overlay.querySelector('#inputMonto');
-  const catsGrid = overlay.querySelector('#catsGrid');
-  CATS.forEach(cat => {
-    const btn = document.createElement('button');
-    btn.className = 'cat-btn' + (cat.id === selCat ? ' selected' : '');
-    btn.dataset.id = cat.id;
-    btn.innerHTML = `<i class="${cat.icon}" style="color:${cat.color}"></i><span class="cat-btn-label">${catLabel(cat)}</span>`;
-    btn.addEventListener('click', () => {
-      selCat = cat.id;
-      catsGrid.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      // Si la categoría tiene un valor por defecto y el monto está vacío, lo prellenamos
-      if (cat.valor && !parseMonto(inputMonto.value)) {
-        inputMonto.value = new Intl.NumberFormat('es-CO').format(cat.valor);
-        inputMonto.classList.remove('input-error');
-      }
-    });
-    catsGrid.appendChild(btn);
+  const catSelectBtn = overlay.querySelector('#catSelectBtn');
+
+  // ¿el monto actual lo puso una categoría automáticamente?
+  let montoAuto = false;
+
+  function aplicarValorCategoria(cat) {
+    if (!cat || !cat.valor) return;
+    // No pisamos un monto escrito a mano por el usuario.
+    if (!inputMonto.value || montoAuto) {
+      inputMonto.value = new Intl.NumberFormat('es-CO').format(cat.valor);
+      inputMonto.classList.remove('input-error');
+      montoAuto = true;
+    }
+  }
+
+  const cuentaSelectBtn = overlay.querySelector('#cuentaSelectBtn');
+  const cuentaPicker = initCuentaPicker({
+    btn: cuentaSelectBtn,
+    cuentas,
+    selectedId: selCuenta,
+    accent: ACCENT,
+    onSelect: (c) => { selCuenta = c ? c.id : null; },
   });
 
-  const inputCuenta = overlay.querySelector('#inputCuenta');
-  inputCuenta.addEventListener('change', () => { selCuenta = inputCuenta.value; });
+  function aplicarCuentaCategoria(cat) {
+    if (!cat || !cat.cuentaId) return;
+    if (cuentas.some(c => c.id === cat.cuentaId)) {
+      selCuenta = cat.cuentaId;
+      cuentaPicker.setSelected(cat.cuentaId);
+    }
+  }
 
-  attachMontoFmt(overlay.querySelector('#inputMonto'));
+  initCatPicker({
+    btn: catSelectBtn,
+    cats: CATS,
+    selectedId: selCat,
+    accent: ACCENT,
+    tipo: TIPO,
+    onSelect: (cat) => {
+      selCat = cat ? cat.id : null;
+      aplicarValorCategoria(cat);
+      aplicarCuentaCategoria(cat);
+    },
+  });
+  // Al editar no autocompletamos (ya hay datos); al crear sí si aplica.
+  if (!editing) {
+    const catInicial = CATS.find(c => c.id === selCat);
+    aplicarValorCategoria(catInicial);
+    aplicarCuentaCategoria(catInicial);
+  }
+
+  inputMonto.addEventListener('input', () => {
+    inputMonto.classList.remove('input-error');
+    montoAuto = false;   // el usuario tomó control del monto
+    const raw = inputMonto.value.replace(/[^0-9]/g, '');
+    inputMonto.value = raw ? new Intl.NumberFormat('es-CO').format(parseInt(raw)) : '';
+  });
 
   requestAnimationFrame(() => { overlay.setAttribute('aria-hidden','false'); overlay.classList.add('active'); });
 
@@ -416,7 +447,7 @@ function openForm(editId = null) {
   overlay.querySelector('#btnGuardar').addEventListener('click', async () => {
     const monto     = parseMonto(overlay.querySelector('#inputMonto').value);
     const concepto  = overlay.querySelector('#inputConcepto').value.trim();
-    const cuentaId  = inputCuenta.value;
+    const cuentaId  = selCuenta;
 
     if (!monto || monto <= 0) {
       const inp = overlay.querySelector('#inputMonto');
@@ -452,14 +483,6 @@ function fmtInput(val) {
 
 function parseMonto(str) {
   return parseFloat(String(str).replace(/\./g, '').replace(',', '.')) || 0;
-}
-
-function attachMontoFmt(input) {
-  input.addEventListener('input', () => {
-    input.classList.remove('input-error');
-    const raw = input.value.replace(/[^0-9]/g, '');
-    input.value = raw ? new Intl.NumberFormat('es-CO').format(parseInt(raw)) : '';
-  });
 }
 
 function showToast(msg) {

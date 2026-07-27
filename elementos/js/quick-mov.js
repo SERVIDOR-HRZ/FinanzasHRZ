@@ -8,11 +8,11 @@ import {
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { subscribeCategorias } from "./cats-store.js";
 import { comprimirImagen, analizarComprobante } from "./ai-config.js";
+import { initCatPicker } from "./cat-picker.js";
+import { initCuentaPicker } from "./cuenta-picker.js";
 
 const MOV_COL = collection(db, 'movimientos');
 const CUE_COL = collection(db, 'cuentas');
-
-const fmt = n => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
 
 // ── Datos en vivo ────────────────────────────────────────────
 let cuentas = [];
@@ -89,17 +89,14 @@ export function openQuickMov(tipo) {
 
       <div class="form-group">
         <label class="form-label">Cuenta</label>
-        <div class="form-select-wrap">
-          <select class="form-select" id="qCuenta">
-            ${cuentas.map(c => `<option value="${c.id}">${c.nombre} — ${fmt(c.monto)}</option>`).join('')}
-          </select>
-          <i class="fa-solid fa-chevron-down form-select-arrow"></i>
-        </div>
+        <button type="button" class="cat-select-btn" id="qCuentaBtn"></button>
       </div>
 
       <div class="form-group">
         <label class="form-label">Categoría</label>
-        <div class="cats-grid" id="qCats"></div>
+        <button type="button" class="cat-select-btn" id="qCatBtn"></button>
+        <a href="${enSecciones() ? '' : 'secciones/'}categorias.html" class="cats-empty-link" id="qCatsEmpty" ${cats.length ? 'hidden' : ''}>
+          <i class="fa-solid fa-plus"></i> Crea una categoría de ${tipo}</a>
       </div>
 
     </div>
@@ -113,43 +110,66 @@ export function openQuickMov(tipo) {
 
   const montoInput = overlay.querySelector('#qMonto');
   const conceptoInput = overlay.querySelector('#qConcepto');
-  const cuentaSel = overlay.querySelector('#qCuenta');
-  const catsGrid = overlay.querySelector('#qCats');
+  const cuentaBtn = overlay.querySelector('#qCuentaBtn');
+  const catBtn = overlay.querySelector('#qCatBtn');
   const fotoPreview = overlay.querySelector('#fotoPreview');
 
-  // Categorías
-  function pintarCats() {
-    if (!cats.length) {
-      catsGrid.innerHTML = `<a href="${enSecciones() ? '' : 'secciones/'}categorias.html" class="cats-empty-link">
-        <i class="fa-solid fa-plus"></i> Crea una categoría de ${tipo}</a>`;
-      return;
+  // Selector de cuenta (botón + buscador)
+  const cuentaPicker = initCuentaPicker({
+    btn: cuentaBtn,
+    cuentas,
+    selectedId: selCuenta,
+    accent,
+    onSelect: (c) => { selCuenta = c ? c.id : null; },
+  });
+
+  // ¿el monto actual fue puesto automáticamente por una categoría?
+  let montoAuto = false;
+
+  function aplicarValorCategoria(cat) {
+    if (!cat || !cat.valor) return;
+    // Solo autocompletamos si el campo está vacío o lo llenó otra categoría,
+    // así no pisamos un monto que el usuario escribió a mano.
+    if (!montoInput.value || montoAuto) {
+      montoInput.value = fmtMiles(cat.valor);
+      montoInput.classList.remove('input-error');
+      montoAuto = true;
     }
-    catsGrid.innerHTML = '';
-    cats.forEach(cat => {
-      const btn = document.createElement('button');
-      btn.className = 'cat-btn' + (cat.id === selCat ? ' selected' : '');
-      btn.type = 'button';
-      btn.innerHTML = `<i class="${cat.icon}" style="color:${cat.color}"></i><span class="cat-btn-label">${cat.nombre || cat.label}</span>`;
-      btn.addEventListener('click', () => {
-        selCat = cat.id;
-        catsGrid.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
-        btn.classList.add('selected');
-        if (cat.valor && !parseMonto(montoInput.value)) {
-          montoInput.value = fmtMiles(cat.valor);
-          montoInput.classList.remove('input-error');
-        }
-      });
-      catsGrid.appendChild(btn);
-    });
   }
-  pintarCats();
+
+  // Selector de categoría (botón + buscador)
+  const catPicker = initCatPicker({
+    btn: catBtn,
+    cats,
+    selectedId: selCat,
+    accent,
+    tipo,
+    onSelect: (cat) => {
+      selCat = cat ? cat.id : null;
+      aplicarValorCategoria(cat);
+      aplicarCuentaCategoria(cat);
+    },
+  });
+
+  function aplicarCuentaCategoria(cat) {
+    if (!cat || !cat.cuentaId) return;
+    if (cuentas.some(c => c.id === cat.cuentaId)) {
+      selCuenta = cat.cuentaId;
+      cuentaPicker.setSelected(cat.cuentaId);
+    }
+  }
+
+  // valores iniciales de la categoría preseleccionada
+  const catInicial = cats.find(c => c.id === selCat);
+  aplicarValorCategoria(catInicial);
+  aplicarCuentaCategoria(catInicial);
 
   montoInput.addEventListener('input', () => {
     montoInput.classList.remove('input-error');
+    montoAuto = false;   // el usuario tomó control del monto
     const raw = montoInput.value.replace(/[^0-9]/g, '');
     montoInput.value = raw ? new Intl.NumberFormat('es-CO').format(parseInt(raw)) : '';
   });
-  cuentaSel.addEventListener('change', () => { selCuenta = cuentaSel.value; });
 
   // ── Foto + IA ──────────────────────────────────────────────
   const inputFoto = overlay.querySelector('#inputFoto');
@@ -179,9 +199,7 @@ export function openQuickMov(tipo) {
       if (r.concepto) conceptoInput.value = r.concepto;
       if (r.categoria) {
         selCat = r.categoria;
-        catsGrid.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
-        const idx = cats.findIndex(c => c.id === r.categoria);
-        if (idx >= 0 && catsGrid.children[idx]) catsGrid.children[idx].classList.add('selected');
+        catPicker.setSelected(r.categoria);
       }
       const est = fotoPreview.querySelector('.foto-analizando');
       if (est) est.innerHTML = '<i class="fa-solid fa-circle-check"></i> Datos cargados';
@@ -211,7 +229,7 @@ export function openQuickMov(tipo) {
       tipo,
       monto,
       concepto: conceptoInput.value.trim(),
-      cuentaId: cuentaSel.value,
+      cuentaId: selCuenta,
       categoria: selCat,
       comprobante: comprobante || null,
       fecha: Date.now(),

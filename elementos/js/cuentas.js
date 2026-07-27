@@ -2,6 +2,7 @@ import { db } from "./firebase.js";
 import {
   collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { initIconPicker } from "./icon-picker.js";
 
 // ── CATEGORÍAS ──────────────────────────────────────────────
 const CATEGORIAS = [
@@ -48,7 +49,12 @@ const COL = collection(db, 'cuentas');
 const fmt = n => new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(n);
 
 function catInfo(id) { return CATEGORIAS.find(c => c.id === id) || CATEGORIAS.at(-1); }
-function iconoInfo(id) { return ICONOS.find(i => i.id === id) || ICONOS[0]; }
+// Retrocompatible: acepta clase FA directa ('fa-solid fa-...') o id antiguo ('efectivo').
+function iconoInfo(val) {
+  if (val && String(val).includes('fa-')) return { id: val, clase: val };
+  return ICONOS.find(i => i.id === val) || ICONOS[0];
+}
+function iconoClase(val) { return iconoInfo(val).clase; }
 
 // ── FIRESTORE CRUD ───────────────────────────────────────────
 async function crearCuenta(data) {
@@ -325,7 +331,7 @@ function openFormCuenta(editId = null) {
 
       <div class="form-group">
         <label class="form-label">Icono</label>
-        <div class="iconos-grid" id="iconosGrid"></div>
+        <button type="button" class="icon-select-btn" id="iconSelectBtn"></button>
       </div>
 
       <div class="form-group">
@@ -352,19 +358,12 @@ function openFormCuenta(editId = null) {
 
   document.body.appendChild(overlay);
 
-  // Iconos
-  const iconosGrid = overlay.querySelector('#iconosGrid');
-  ICONOS.forEach(ico => {
-    const btn = document.createElement('button');
-    btn.className = 'ico-btn' + (ico.id === selIcono ? ' selected' : '');
-    btn.dataset.id = ico.id;
-    btn.innerHTML = `<i class="${ico.clase}"></i>`;
-    btn.addEventListener('click', () => {
-      selIcono = ico.id;
-      iconosGrid.querySelectorAll('.ico-btn').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-    });
-    iconosGrid.appendChild(btn);
+  // Selector de icono (botón + hoja con buscador y grupos)
+  const iconPicker = initIconPicker({
+    btn: overlay.querySelector('#iconSelectBtn'),
+    selected: iconoClase(selIcono),
+    accent: selColor || '#007AFF',
+    onSelect: (c) => { selIcono = c; },
   });
 
   // Colores

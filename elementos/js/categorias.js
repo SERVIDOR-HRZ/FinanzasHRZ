@@ -1,12 +1,24 @@
 import {
-  CAT_ICONS,
   subscribeCategorias, crearCategoria, actualizarCategoria, eliminarCategoria
 } from "./cats-store.js";
+import { ALL_ICONS } from "./icon-library.js";
 import { pickDayOfMonth } from "./calendar.js";
+import { initCuentaPicker } from "./cuenta-picker.js";
+import { initIconPicker } from "./icon-picker.js";
+import { db } from "./firebase.js";
+import {
+  collection, onSnapshot, query, orderBy
+} from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 
 let tipoActivo = 'ingreso';
 let categorias = [];         // combinadas (default + custom) del tipo activo
+let cuentas = [];            // cuentas disponibles para asignar
 let unsub = null;
+
+// ── Cuentas en tiempo real ───────────────────────────────────
+onSnapshot(query(collection(db, 'cuentas'), orderBy('creadoEn', 'asc')), snap => {
+  cuentas = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+});
 
 const listaEl = document.getElementById('catList');
 
@@ -74,7 +86,8 @@ document.querySelectorAll('.cat-tab').forEach(tab => {
 });
 
 // ── Form crear / editar ──────────────────────────────────────
-let selIcon = CAT_ICONS[0];
+const ICON_DEFAULT = ALL_ICONS[0].c;
+let selIcon = ICON_DEFAULT;
 let esFija = false;
 let diaCobro = null;
 
@@ -82,7 +95,7 @@ function openForm(editId = null) {
   if (document.getElementById('modalCat')) return;
   const editing = editId ? categorias.find(c => c.id === editId) : null;
 
-  selIcon  = editing ? editing.icon  : CAT_ICONS[0];
+  selIcon  = editing ? editing.icon  : ICON_DEFAULT;
   esFija   = editing ? !!editing.fija : false;
   diaCobro = editing ? (editing.diaCobro || null) : null;
 
@@ -117,8 +130,14 @@ function openForm(editId = null) {
       </div>
 
       <div class="form-group">
+        <label class="form-label">Cuenta asignada <span class="form-label-opt">(opcional)</span></label>
+        <button type="button" class="cat-select-btn" id="catCuentaBtn"></button>
+        <span class="form-hint">Si eliges una cuenta, se cobrará/abonará ahí automáticamente.</span>
+      </div>
+
+      <div class="form-group">
         <label class="form-label">Icono</label>
-        <div class="iconos-grid" id="catIconos"></div>
+        <button type="button" class="icon-select-btn" id="catIconBtn"></button>
       </div>
 
       <div class="form-group">
@@ -152,19 +171,23 @@ function openForm(editId = null) {
 
   document.body.appendChild(overlay);
 
-  // Iconos (con color de acento según tipo)
-  const iconosGrid = overlay.querySelector('#catIconos');
-  iconosGrid.style.setProperty('--accent', accent);
-  CAT_ICONS.forEach(ic => {
-    const btn = document.createElement('button');
-    btn.className = 'ico-btn ico-btn-accent' + (ic === selIcon ? ' selected' : '');
-    btn.innerHTML = `<i class="${ic}"></i>`;
-    btn.addEventListener('click', () => {
-      selIcon = ic;
-      iconosGrid.querySelectorAll('.ico-btn').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-    });
-    iconosGrid.appendChild(btn);
+  // Selector de cuenta asignada (opcional)
+  let selCuenta = editing ? (editing.cuentaId || null) : null;
+  const cuentaPicker = initCuentaPicker({
+    btn: overlay.querySelector('#catCuentaBtn'),
+    cuentas,
+    selectedId: selCuenta,
+    accent,
+    noneLabel: 'Preguntar en cada movimiento',
+    onSelect: (c) => { selCuenta = c ? c.id : null; },
+  });
+
+  // Selector de icono (botón + hoja con buscador y grupos)
+  const iconPicker = initIconPicker({
+    btn: overlay.querySelector('#catIconBtn'),
+    selected: selIcon,
+    accent,
+    onSelect: (c) => { selIcon = c; },
   });
 
   // Formato de miles en el valor
@@ -208,12 +231,15 @@ function openForm(editId = null) {
     const btn = overlay.querySelector('#catGuardar');
     btn.disabled = true; btn.textContent = 'Guardando…';
 
+    const cuentaId = selCuenta || null;
+
     const data = {
       tipo: tipoActivo,
       nombre,
       icon: selIcon,
       color: accent,               // color automático según el tipo
       valor: valor || null,        // opcional
+      cuentaId,                    // cuenta asignada (opcional)
       fija: esFija,
       diaCobro: esFija ? diaCobro : null,
     };

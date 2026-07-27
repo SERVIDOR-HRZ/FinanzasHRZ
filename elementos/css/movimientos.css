@@ -475,3 +475,216 @@
   font-size: .85rem;
   font-weight: 600;
 }
+
+/* ── BOTÓN SELECTOR DE CATEGORÍA ─────────────────────────────── */
+.cat-select-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.06);
+  color: #fff;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color .2s, background .2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.cat-select-btn:hover { background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.28); }
+.cat-select-btn:active { transform: scale(.99); }
+.cat-select-btn.empty { border-style: dashed; }
+
+.cat-select-icon {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.05rem;
+  flex-shrink: 0;
+  background: rgba(255,255,255,.08);
+  color: rgba(255,255,255,.6);
+  border: 1px solid rgba(255,255,255,.1);
+}
+.cat-select-name { flex: 1; font-size: .95rem; font-weight: 700; }
+.cat-select-name.muted { color: rgba(255,255,255,.45); font-weight: 600; }
+.cat-select-chev { color: rgba(255,255,255,.35); font-size: .8rem; flex-shrink: 0; }
+.cuenta-select-saldo { font-size: .82rem; font-weight: 700; color: rgba(255,255,255,.45); flex-shrink: 0; }
+
+/* ── HOJA DEL SELECTOR ───────────────────────────────────────── */
+.cat-search-wrap {
+  position: relative;
+  margin-bottom: 12px;
+}
+.cat-search-wrap i {
+  position: absolute;
+  left: 15px; top: 50%;
+  transform: translateY(-50%);
+  color: rgba(255,255,255,.35);
+  font-size: .85rem;
+  pointer-events: none;
+}
+.cat-search-input {
+  width: 100%;
+  padding: 13px 16px 13px 40px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.06);
+  color: #fff;
+  font-size: .95rem;
+  outline: none;
+  transition: border-color .2s, background .2s;
+}
+.cat-search-input:focus { border-color: color-mix(in srgb, var(--accent) 50%, transparent); background: rgba(255,255,255,.09); }
+.cat-search-input::placeholder { color: rgba(255,255,255,.35); }
+
+.cat-picker-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 44vh;
+  overflow-y: auto;
+  margin-bottom: 14px;
+  padding-right: 2px;
+}
+
+.cat-picker-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 11px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.04);
+  color: #fff;
+  cursor: pointer;
+  text-align: left;
+  transition: background .15s, border-color .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.cat-picker-item:hover { background: rgba(255,255,255,.08); }
+.cat-picker-item:active { transform: scale(.99); }
+.cat-picker-item.selected {
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+}
+
+.cat-picker-item-icon {
+  width: 38px; height: 38px;
+  border-radius: 11px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  flex-shrink: 0;
+  border: 1px solid transparent;
+}
+.cat-picker-item-name { flex: 1; font-size: .92rem; font-weight: 600; }
+.cat-picker-item-val { font-size: .78rem; font-weight: 700; color: rgba(255,255,255,.4); }
+.cat-picker-item-check { color: var(--accent); font-size: .9rem; margin-left: 4px; }
+
+.cat-picker-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  padding: 2.5rem 1rem;
+  color: rgba(255,255,255,.3);
+  text-align: center;
+}
+.cat-picker-empty i { font-size: 1.8rem; }
+.cat-picker-empty span { font-size: .85rem; }
+
+/* ── BOTÓN SELECTOR DE ICONO ─────────────────────────────────── */
+.icon-select-btn {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.06);
+  color: #fff;
+  cursor: pointer;
+  text-align: left;
+  transition: border-color .2s, background .2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.icon-select-btn:hover { background: rgba(255,255,255,.09); border-color: rgba(255,255,255,.28); }
+.icon-select-btn:active { transform: scale(.99); }
+
+.icon-select-preview {
+  width: 40px; height: 40px;
+  border-radius: 12px;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+  border: 1px solid transparent;
+}
+.icon-select-text { flex: 1; font-size: .95rem; font-weight: 700; }
+
+/* ── HOJA SELECTOR DE ICONO ──────────────────────────────────── */
+.icon-tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  scrollbar-width: none;
+}
+.icon-tabs::-webkit-scrollbar { display: none; }
+
+.icon-tab {
+  flex-shrink: 0;
+  width: 42px; height: 42px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.05);
+  color: rgba(255,255,255,.55);
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s, color .15s, border-color .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.icon-tab:hover { background: rgba(255,255,255,.1); color: #fff; }
+.icon-tab.active {
+  background: color-mix(in srgb, var(--accent) 18%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+  color: #fff;
+}
+
+.icon-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  max-height: 42vh;
+  overflow-y: auto;
+  margin-bottom: 14px;
+  padding-right: 2px;
+}
+
+.icon-pick-btn {
+  aspect-ratio: 1;
+  border-radius: 13px;
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.04);
+  color: rgba(255,255,255,.7);
+  font-size: 1.15rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .15s, color .15s, border-color .15s, transform .1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.icon-pick-btn:hover { background: rgba(255,255,255,.1); color: #fff; }
+.icon-pick-btn:active { transform: scale(.9); }
+.icon-pick-btn.selected {
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  border-color: var(--accent);
+  color: #fff;
+  box-shadow: 0 0 14px color-mix(in srgb, var(--accent) 35%, transparent);
+}
+
+@media (min-width: 480px) {
+  .icon-picker-grid { grid-template-columns: repeat(8, 1fr); }
+}
