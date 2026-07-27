@@ -7,7 +7,7 @@ import {
   collection, addDoc, updateDoc, doc, getDoc, onSnapshot, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { subscribeCategorias } from "./cats-store.js";
-import { comprimirImagen, analizarComprobante } from "./ai-config.js";
+import { comprimirImagen, analizarComprobante, subirImgBB, IMGBB_KEY } from "./ai-config.js";
 import { initCatPicker } from "./cat-picker.js";
 import { initCuentaPicker } from "./cuenta-picker.js";
 
@@ -49,7 +49,7 @@ export function openQuickMov(tipo) {
 
   let selCat = cats[0] ? cats[0].id : null;
   let selCuenta = cuentas[0].id;
-  let comprobante = null;   // dataURL
+  let fotos = [];   // [{ dataUrl }]  comprobantes aprobados
 
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
@@ -64,13 +64,12 @@ export function openQuickMov(tipo) {
       <button class="foto-ia-btn" id="btnFoto" type="button">
         <span class="foto-ia-icon"><i class="fa-solid fa-camera"></i></span>
         <span class="foto-ia-text">
-          <span class="foto-ia-title">Escanear comprobante</span>
-          <span class="foto-ia-desc">Toma o sube una foto y la IA rellena los datos</span>
+          <span class="foto-ia-title">Comprobantes</span>
+          <span class="foto-ia-desc">Toma o sube fotos y la IA rellena los datos</span>
         </span>
         <i class="fa-solid fa-wand-magic-sparkles foto-ia-magic"></i>
       </button>
-      <input type="file" id="inputFoto" accept="image/*" capture="environment" hidden />
-      <div class="foto-preview" id="fotoPreview" hidden></div>
+      <div class="foto-gallery" id="fotoGallery" hidden></div>
 
       <div class="form-group">
         <label class="form-label">Monto</label>
@@ -95,8 +94,6 @@ export function openQuickMov(tipo) {
       <div class="form-group">
         <label class="form-label">Categoría</label>
         <button type="button" class="cat-select-btn" id="qCatBtn"></button>
-        <a href="${enSecciones() ? '' : 'secciones/'}categorias.html" class="cats-empty-link" id="qCatsEmpty" ${cats.length ? 'hidden' : ''}>
-          <i class="fa-solid fa-plus"></i> Crea una categoría de ${tipo}</a>
       </div>
 
     </div>
@@ -112,7 +109,7 @@ export function openQuickMov(tipo) {
   const conceptoInput = overlay.querySelector('#qConcepto');
   const cuentaBtn = overlay.querySelector('#qCuentaBtn');
   const catBtn = overlay.querySelector('#qCatBtn');
-  const fotoPreview = overlay.querySelector('#fotoPreview');
+  const fotoGallery = overlay.querySelector('#fotoGallery');
 
   // Selector de cuenta (botón + buscador)
   const cuentaPicker = initCuentaPicker({
@@ -171,43 +168,49 @@ export function openQuickMov(tipo) {
     montoInput.value = raw ? new Intl.NumberFormat('es-CO').format(parseInt(raw)) : '';
   });
 
-  // ── Foto + IA ──────────────────────────────────────────────
-  const inputFoto = overlay.querySelector('#inputFoto');
-  overlay.querySelector('#btnFoto').addEventListener('click', () => inputFoto.click());
+  // ── Comprobantes (galería + captura) ───────────────────────
+  let iaHecha = false;   // solo autocompletamos con la primera foto
 
-  inputFoto.addEventListener('change', async () => {
-    const file = inputFoto.files && inputFoto.files[0];
-    if (!file) return;
+  function renderGallery() {
+    if (!fotos.length) { fotoGallery.hidden = true; fotoGallery.innerHTML = ''; return; }
+    fotoGallery.hidden = false;
+    fotoGallery.innerHTML = fotos.map((f, i) => `
+      <div class="foto-thumb">
+        <img src="${f.dataUrl}" alt="comprobante ${i + 1}" />
+        <button class="foto-thumb-x" type="button" data-i="${i}" aria-label="Quitar"><i class="fa-solid fa-xmark"></i></button>
+      </div>`).join('') +
+      `<button class="foto-thumb-add" type="button" id="fotoAddMore" aria-label="Agregar otra"><i class="fa-solid fa-plus"></i></button>`;
 
-    let dataUrl;
-    try { dataUrl = await comprimirImagen(file); }
-    catch { toast('No se pudo leer la imagen'); return; }
-    comprobante = dataUrl;
-
-    fotoPreview.hidden = false;
-    fotoPreview.innerHTML = `
-      <img src="${dataUrl}" alt="comprobante" />
-      <div class="foto-analizando"><span class="spinner"></span> Analizando con IA…</div>
-      <button class="foto-quitar" type="button" id="qQuitarFoto" aria-label="Quitar"><i class="fa-solid fa-xmark"></i></button>`;
-    fotoPreview.querySelector('#qQuitarFoto').addEventListener('click', () => {
-      comprobante = null; fotoPreview.hidden = true; fotoPreview.innerHTML = '';
+    fotoGallery.querySelectorAll('.foto-thumb-x').forEach(b => {
+      b.addEventListener('click', () => { fotos.splice(parseInt(b.dataset.i), 1); renderGallery(); });
     });
+    const addBtn = fotoGallery.querySelector('#fotoAddMore');
+    if (addBtn) addBtn.addEventListener('click', abrirCaptura);
+  }
 
+  async function analizarPrimera(dataUrl) {
+    if (iaHecha) return;
+    iaHecha = true;
     try {
       const r = await analizarComprobante(dataUrl, tipo, cats);
-      if (r.monto) montoInput.value = fmtMiles(r.monto);
-      if (r.concepto) conceptoInput.value = r.concepto;
-      if (r.categoria) {
-        selCat = r.categoria;
-        catPicker.setSelected(r.categoria);
-      }
-      const est = fotoPreview.querySelector('.foto-analizando');
-      if (est) est.innerHTML = '<i class="fa-solid fa-circle-check"></i> Datos cargados';
-    } catch (e) {
-      const est = fotoPreview.querySelector('.foto-analizando');
-      if (est) est.innerHTML = '<i class="fa-solid fa-triangle-exclamation"></i> No se pudo leer, complétalo a mano';
-    }
-  });
+      if (r.monto && !parseMonto(montoInput.value)) { montoInput.value = fmtMiles(r.monto); montoAuto = false; }
+      if (r.concepto && !conceptoInput.value) conceptoInput.value = r.concepto;
+      if (r.categoria) { selCat = r.categoria; catPicker.setSelected(r.categoria); }
+      toast('Datos cargados por IA');
+    } catch { toast('No se pudo leer con IA, complétalo a mano'); }
+  }
+
+  // Al aprobar una foto en el modal de captura
+  function onFotoAprobada(dataUrl) {
+    const primera = fotos.length === 0;
+    fotos.push({ dataUrl });
+    renderGallery();
+    if (primera) analizarPrimera(dataUrl);
+  }
+
+  function abrirCaptura() { openCapturaModal(accent, onFotoAprobada); }
+  overlay.querySelector('#btnFoto').addEventListener('click', abrirCaptura);
+  renderGallery();
 
   requestAnimationFrame(() => { overlay.setAttribute('aria-hidden','false'); overlay.classList.add('active'); });
 
@@ -223,7 +226,25 @@ export function openQuickMov(tipo) {
     if (!monto || monto <= 0) { montoInput.focus(); montoInput.classList.add('input-error'); return; }
 
     const btn = overlay.querySelector('#qGuardar');
-    btn.disabled = true; btn.textContent = 'Guardando…';
+    btn.disabled = true;
+
+    // Subir comprobantes a ImgBB (si hay clave y fotos)
+    let comprobantes = [];
+    if (fotos.length && IMGBB_KEY) {
+      btn.textContent = 'Subiendo fotos…';
+      try {
+        comprobantes = await Promise.all(fotos.map(f => subirImgBB(f.dataUrl)));
+      } catch (e) {
+        toast('No se pudieron subir las fotos');
+        btn.disabled = false; btn.textContent = 'Registrar';
+        return;
+      }
+    } else if (fotos.length && !IMGBB_KEY) {
+      // Sin clave de ImgBB: guardamos las imágenes comprimidas como respaldo
+      comprobantes = fotos.map(f => f.dataUrl);
+    }
+
+    btn.textContent = 'Guardando…';
 
     const data = {
       tipo,
@@ -231,7 +252,8 @@ export function openQuickMov(tipo) {
       concepto: conceptoInput.value.trim(),
       cuentaId: selCuenta,
       categoria: selCat,
-      comprobante: comprobante || null,
+      comprobantes,                         // array de URLs (o dataURLs de respaldo)
+      comprobante: comprobantes[0] || null, // compatibilidad
       fecha: Date.now(),
       creadoEn: Date.now(),
     };
@@ -243,7 +265,100 @@ export function openQuickMov(tipo) {
   });
 }
 
-function enSecciones() { return location.pathname.includes('/secciones/'); }
+// ── MODAL DE CAPTURA ────────────────────────────────────────
+// Deja tomar/subir una foto, previsualizarla y aprobarla o repetirla.
+function openCapturaModal(accent, onAprobar) {
+  if (document.getElementById('modalCaptura')) return;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'modalCaptura';
+  overlay.innerHTML = `
+  <div class="modal-sheet glass captura-sheet" role="dialog" aria-modal="true" style="--accent:${accent}">
+    <div class="modal-handle"></div>
+    <p class="modal-eyebrow"><i class="fa-solid fa-receipt"></i> Comprobante</p>
+    <h2 class="modal-title">Agregar foto</h2>
+    <p class="modal-subtitle">Captura o sube el recibo, luego revísalo antes de usarlo.</p>
+
+    <div class="captura-stage" id="capturaStage">
+      <div class="captura-shot" id="capturaShot">
+        <img id="capturaImg" src="" alt="previsualización" />
+        <button class="captura-retake" id="capRetake" type="button"><i class="fa-solid fa-rotate-left"></i> Repetir</button>
+        <span class="captura-badge"><i class="fa-solid fa-circle-check"></i> Lista</span>
+      </div>
+
+      <div class="captura-loading" id="capturaLoading">
+        <span class="spinner"></span>
+        <span>Procesando imagen…</span>
+      </div>
+    </div>
+
+    <div class="captura-source">
+      <button class="captura-src-btn" id="btnCamara" type="button">
+        <span class="captura-src-ico"><i class="fa-solid fa-camera"></i></span>
+        <span class="captura-src-txt">
+          <span class="captura-src-title">Cámara</span>
+          <span class="captura-src-desc">Toma la foto ahora</span>
+        </span>
+      </button>
+      <button class="captura-src-btn" id="btnGaleria" type="button">
+        <span class="captura-src-ico"><i class="fa-solid fa-images"></i></span>
+        <span class="captura-src-txt">
+          <span class="captura-src-title">Galería</span>
+          <span class="captura-src-desc">Elige una imagen</span>
+        </span>
+      </button>
+    </div>
+
+    <input type="file" id="capCamara" accept="image/*" capture="environment" hidden />
+    <input type="file" id="capGaleria" accept="image/*" hidden />
+
+    <div class="modal-actions">
+      <button class="modal-cancel" id="capCancel">Cancelar</button>
+      <button class="btn-primary" id="capUsar"><i class="fa-solid fa-check"></i> Usar foto</button>
+    </div>
+  </div>`;
+
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => { overlay.setAttribute('aria-hidden','false'); overlay.classList.add('active'); });
+
+  const sheet = overlay.querySelector('.captura-sheet');
+  const capImg = overlay.querySelector('#capturaImg');
+  const capCamara = overlay.querySelector('#capCamara');
+  const capGaleria = overlay.querySelector('#capGaleria');
+  let dataUrl = null;
+
+  // Estados: 'empty' (solo cámara/galería), 'loading', 'shot' (con foto)
+  function setState(s) { sheet.dataset.state = s; }
+  setState('empty');
+
+  async function cargar(file) {
+    if (!file) return;
+    setState('loading');
+    try { dataUrl = await comprimirImagen(file); }
+    catch { toast('No se pudo leer la imagen'); setState(dataUrl ? 'shot' : 'empty'); return; }
+    capImg.src = dataUrl;
+    setState('shot');
+  }
+
+  overlay.querySelector('#btnCamara').addEventListener('click', () => capCamara.click());
+  overlay.querySelector('#btnGaleria').addEventListener('click', () => capGaleria.click());
+  overlay.querySelector('#capRetake').addEventListener('click', () => { dataUrl = null; setState('empty'); });
+  capCamara.addEventListener('change', () => cargar(capCamara.files[0]));
+  capGaleria.addEventListener('change', () => cargar(capGaleria.files[0]));
+
+  function close() {
+    overlay.classList.add('closing'); overlay.classList.remove('active');
+    setTimeout(() => overlay.remove(), 320);
+  }
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+  overlay.querySelector('#capCancel').addEventListener('click', close);
+  overlay.querySelector('#capUsar').addEventListener('click', () => {
+    if (!dataUrl) return;
+    onAprobar(dataUrl);
+    close();
+  });
+}
 
 function toast(msg) {
   const ex = document.getElementById('cuentaToast');

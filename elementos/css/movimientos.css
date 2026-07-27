@@ -624,44 +624,39 @@
 .icon-select-text { flex: 1; font-size: .95rem; font-weight: 700; }
 
 /* ── HOJA SELECTOR DE ICONO ──────────────────────────────────── */
-.icon-tabs {
-  display: flex;
-  gap: 6px;
-  overflow-x: auto;
-  padding-bottom: 8px;
-  margin-bottom: 12px;
-  scrollbar-width: none;
+.icon-picker-scroll {
+  max-height: 50vh;
+  overflow-y: auto;
+  margin-bottom: 14px;
+  padding-right: 2px;
 }
-.icon-tabs::-webkit-scrollbar { display: none; }
 
-.icon-tab {
-  flex-shrink: 0;
-  width: 42px; height: 42px;
-  border-radius: 12px;
-  border: 1px solid rgba(255,255,255,.1);
-  background: rgba(255,255,255,.05);
-  color: rgba(255,255,255,.55);
-  font-size: 1rem;
-  cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  transition: background .15s, color .15s, border-color .15s;
-  -webkit-tap-highlight-color: transparent;
+.icon-section-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: .74rem;
+  font-weight: 700;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.5);
+  margin: 14px 2px 8px;
+  position: sticky;
+  top: 0;
+  background: rgba(20,20,20,.75);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+  padding: 4px 0;
+  z-index: 1;
 }
-.icon-tab:hover { background: rgba(255,255,255,.1); color: #fff; }
-.icon-tab.active {
-  background: color-mix(in srgb, var(--accent) 18%, transparent);
-  border-color: color-mix(in srgb, var(--accent) 55%, transparent);
-  color: #fff;
-}
+.icon-section-title:first-child { margin-top: 0; }
+.icon-section-title i { color: color-mix(in srgb, var(--accent) 80%, #ffffff); font-size: .85rem; }
 
 .icon-picker-grid {
   display: grid;
   grid-template-columns: repeat(6, 1fr);
   gap: 8px;
-  max-height: 42vh;
-  overflow-y: auto;
-  margin-bottom: 14px;
-  padding-right: 2px;
+  margin-bottom: 4px;
 }
 
 .icon-pick-btn {
@@ -687,4 +682,195 @@
 
 @media (min-width: 480px) {
   .icon-picker-grid { grid-template-columns: repeat(8, 1fr); }
+}
+
+/* ── GALERÍA DE COMPROBANTES ─────────────────────────────────── */
+.foto-gallery {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 2px;
+}
+
+.foto-thumb {
+  position: relative;
+  width: 80px; height: 80px;
+  border-radius: 15px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.12);
+  box-shadow: 0 4px 14px rgba(0,0,0,.3);
+}
+.foto-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.foto-thumb::after {
+  content: '';
+  position: absolute; inset: 0;
+  background: linear-gradient(to top, rgba(0,0,0,.35), transparent 45%);
+  pointer-events: none;
+}
+.foto-thumb-x {
+  position: absolute;
+  top: 4px; right: 4px;
+  z-index: 1;
+  width: 23px; height: 23px;
+  border-radius: 50%;
+  border: none;
+  background: rgba(0,0,0,.6);
+  color: #fff;
+  font-size: .7rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  -webkit-tap-highlight-color: transparent;
+  transition: background .15s;
+}
+.foto-thumb-x:hover { background: rgba(248,113,113,.85); }
+
+.foto-thumb-add {
+  width: 80px; height: 80px;
+  border-radius: 15px;
+  border: 1px dashed color-mix(in srgb, var(--accent) 40%, transparent);
+  background: color-mix(in srgb, var(--accent) 7%, transparent);
+  color: color-mix(in srgb, var(--accent) 85%, #ffffff);
+  font-size: 1.3rem;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background .2s, border-color .2s, transform .1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.foto-thumb-add:hover { background: color-mix(in srgb, var(--accent) 14%, transparent); border-color: color-mix(in srgb, var(--accent) 60%, transparent); }
+.foto-thumb-add:active { transform: scale(.94); }
+
+/* ── MODAL DE CAPTURA ────────────────────────────────────────── */
+.captura-sheet .modal-subtitle { margin-bottom: 16px; }
+.captura-sheet .modal-eyebrow i { margin-right: 5px; }
+
+.captura-stage {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  margin-bottom: 16px;
+  min-height: 210px;
+  background:
+    radial-gradient(120% 120% at 50% 0%, color-mix(in srgb, var(--accent) 12%, transparent), transparent 60%),
+    rgba(255,255,255,.03);
+  border: 1px solid rgba(255,255,255,.09);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Visibilidad según estado (controlado en .captura-sheet) */
+.captura-shot, .captura-loading { display: none; }
+
+/* Vacío: sin previsualización ni botón "Usar foto", solo cámara/galería */
+.captura-sheet[data-state="empty"] .captura-stage { display: none; }
+.captura-sheet[data-state="empty"] #capUsar { display: none; }
+/* Cuando "Usar foto" está oculto, Cancelar ocupa todo el ancho */
+.captura-sheet[data-state="empty"] .modal-cancel,
+.captura-sheet[data-state="loading"] .modal-cancel { flex: 1; width: 100%; }
+
+.captura-sheet[data-state="loading"] .captura-shot { display: none; }
+.captura-sheet[data-state="loading"] .captura-loading { display: flex; }
+.captura-sheet[data-state="loading"] #capUsar { display: none; }
+
+.captura-sheet[data-state="shot"] .captura-shot { display: block; }
+.captura-sheet[data-state="shot"] .captura-loading { display: none; }
+
+/* Foto tomada */
+.captura-shot { position: relative; width: 100%; }
+.captura-shot img {
+  width: 100%;
+  max-height: 340px;
+  object-fit: contain;
+  display: block;
+  background: #0c0c0c;
+}
+.captura-retake {
+  position: absolute;
+  left: 10px; bottom: 10px;
+  display: inline-flex; align-items: center; gap: 7px;
+  padding: 9px 14px;
+  border-radius: 12px;
+  border: 1px solid rgba(255,255,255,.18);
+  background: rgba(0,0,0,.55);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  color: #fff;
+  font-size: .8rem;
+  font-weight: 600;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.captura-retake:active { transform: scale(.96); }
+.captura-badge {
+  position: absolute;
+  top: 10px; right: 10px;
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 6px 11px;
+  border-radius: 999px;
+  font-size: .74rem;
+  font-weight: 700;
+  color: #06130d;
+  background: var(--accent);
+  box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+/* Cargando */
+.captura-loading {
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  color: rgba(255,255,255,.6);
+  font-size: .85rem;
+  font-weight: 600;
+}
+.captura-loading .spinner { width: 26px; height: 26px; border-width: 3px; }
+
+/* Fuentes (cámara / galería) */
+.captura-source {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 4px;
+}
+.captura-src-btn {
+  flex: 1;
+  display: flex; align-items: center;
+  gap: 11px;
+  padding: 13px 14px;
+  border-radius: 15px;
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.05);
+  color: #fff;
+  cursor: pointer;
+  text-align: left;
+  transition: background .2s, border-color .2s, transform .1s;
+  -webkit-tap-highlight-color: transparent;
+}
+.captura-src-ico {
+  width: 38px; height: 38px;
+  border-radius: 11px;
+  flex-shrink: 0;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 1rem;
+  background: color-mix(in srgb, var(--accent) 16%, transparent);
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
+}
+.captura-src-txt { display: flex; flex-direction: column; gap: 1px; min-width: 0; }
+.captura-src-title { font-size: .9rem; font-weight: 700; }
+.captura-src-desc { font-size: .72rem; color: rgba(255,255,255,.42); }
+.captura-src-btn:hover {
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+.captura-src-btn:active { transform: scale(.98); }
+
+.captura-sheet .btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; }
+
+/* Alinear los botones de acción con las tarjetas de arriba (sin padding extra) */
+.captura-sheet .modal-actions {
+  padding: 14px 0 20px;
+  border-top: none;
+  margin-top: 4px;
 }
