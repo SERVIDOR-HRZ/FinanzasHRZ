@@ -10,7 +10,6 @@ import { subscribeCategorias } from "./cats-store.js";
 import { comprimirImagen, analizarComprobante, subirImgBB, IMGBB_KEY } from "./ai-config.js";
 import { initCatPicker } from "./cat-picker.js";
 import { initCuentaPicker } from "./cuenta-picker.js";
-import { notify } from "./toast.js";
 
 const MOV_COL = collection(db, 'movimientos');
 const CUE_COL = collection(db, 'cuentas');
@@ -201,8 +200,8 @@ export function openQuickMov(tipo) {
       if (r.monto && !parseMonto(montoInput.value)) { montoInput.value = fmtMiles(r.monto); montoAuto = false; }
       if (r.concepto && !conceptoInput.value) conceptoInput.value = r.concepto;
       if (r.categoria) { selCat = r.categoria; catPicker.setSelected(r.categoria); }
-      toast('Datos cargados por IA', 'success');
-    } catch { toast('No se pudo leer con IA, complétalo a mano', 'error'); }
+      toast('Datos cargados por IA');
+    } catch { toast('No se pudo leer con IA, complétalo a mano'); }
     finally { mostrarIaOverlay(false); }
   }
 
@@ -264,7 +263,7 @@ export function openQuickMov(tipo) {
       try {
         comprobantes = await Promise.all(fotos.map(f => subirImgBB(f.dataUrl)));
       } catch (e) {
-        toast('No se pudieron subir las fotos', 'error');
+        toast('No se pudieron subir las fotos');
         btn.disabled = false; btn.textContent = 'Registrar';
         return;
       }
@@ -436,4 +435,13 @@ function openCapturaModal(accent, onAprobar) {
   });
 }
 
-function toast(msg, tipo) { notify(msg, tipo); }
+function toast(msg) {
+  const ex = document.getElementById('cuentaToast');
+  if (ex) ex.remove();
+  const t = document.createElement('div');
+  t.id = 'cuentaToast'; t.className = 'cuenta-toast';
+  t.innerHTML = `<i class="fa-solid fa-check"></i> ${msg}`;
+  document.body.appendChild(t);
+  requestAnimationFrame(() => t.classList.add('visible'));
+  setTimeout(() => { t.classList.remove('visible'); setTimeout(() => t.remove(), 400); }, 2000);
+}

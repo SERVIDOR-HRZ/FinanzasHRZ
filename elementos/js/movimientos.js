@@ -6,7 +6,6 @@ import {
 import { subscribeCategorias } from "./cats-store.js";
 import { initCatPicker } from "./cat-picker.js";
 import { initCuentaPicker } from "./cuenta-picker.js";
-import { notify } from "./toast.js";
 
 // ── TIPO (ingreso | gasto) ───────────────────────────────────
 const TIPO = document.body.dataset.tipo;               // 'ingreso' | 'gasto'
@@ -485,7 +484,17 @@ function parseMonto(str) {
   return parseFloat(String(str).replace(/\./g, '').replace(',', '.')) || 0;
 }
 
-function showToast(msg, tipo) { notify(msg, tipo); }
+function showToast(msg) {
+  const existing = document.getElementById('cuentaToast');
+  if (existing) existing.remove();
+  const toast = document.createElement('div');
+  toast.id = 'cuentaToast';
+  toast.className = 'cuenta-toast';
+  toast.innerHTML = `<i class="fa-solid fa-check"></i> ${msg}`;
+  document.body.appendChild(toast);
+  requestAnimationFrame(() => toast.classList.add('visible'));
+  setTimeout(() => { toast.classList.remove('visible'); setTimeout(() => toast.remove(), 400); }, 2000);
+}
 
 // ── BOTÓN NUEVO (usa el form compartido con foto + IA) ───────
 import('./quick-mov.js').then(({ openQuickMov }) => {
