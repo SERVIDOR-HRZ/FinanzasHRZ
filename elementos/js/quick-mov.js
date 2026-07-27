@@ -287,9 +287,14 @@ function openCapturaModal(accent, onAprobar) {
         <span class="captura-badge"><i class="fa-solid fa-circle-check"></i> Lista</span>
       </div>
 
+      <div class="captura-cam" id="capturaCam">
+        <video id="capturaVideo" playsinline autoplay muted></video>
+        <button class="captura-shutter" id="capShutter" type="button" aria-label="Tomar foto"><span></span></button>
+      </div>
+
       <div class="captura-loading" id="capturaLoading">
         <span class="spinner"></span>
-        <span>Procesando imagen…</span>
+        <span id="capturaLoadingTxt">Procesando imagen…</span>
       </div>
     </div>
 
@@ -310,7 +315,6 @@ function openCapturaModal(accent, onAprobar) {
       </button>
     </div>
 
-    <input type="file" id="capCamara" accept="image/*" capture="environment" hidden />
     <input type="file" id="capGaleria" accept="image/*" hidden />
 
     <div class="modal-actions">
@@ -324,30 +328,73 @@ function openCapturaModal(accent, onAprobar) {
 
   const sheet = overlay.querySelector('.captura-sheet');
   const capImg = overlay.querySelector('#capturaImg');
-  const capCamara = overlay.querySelector('#capCamara');
   const capGaleria = overlay.querySelector('#capGaleria');
+  const video = overlay.querySelector('#capturaVideo');
   let dataUrl = null;
+  let stream = null;
 
-  // Estados: 'empty' (solo cámara/galería), 'loading', 'shot' (con foto)
+  // Estados: 'empty' | 'camera' | 'loading' | 'shot'
   function setState(s) { sheet.dataset.state = s; }
   setState('empty');
 
-  async function cargar(file) {
+  function detenerCamara() {
+    if (stream) { stream.getTracks().forEach(t => t.stop()); stream = null; }
+    video.srcObject = null;
+  }
+
+  async function abrirCamara() {
+    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+      toast('Tu navegador no permite la cámara, usa Galería');
+      capGaleria.click();
+      return;
+    }
+    setState('loading');
+    overlay.querySelector('#capturaLoadingTxt').textContent = 'Abriendo cámara…';
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: { ideal: 'environment' } }, audio: false,
+      });
+      video.srcObject = stream;
+      await video.play().catch(() => {});
+      setState('camera');
+    } catch (e) {
+      detenerCamara();
+      toast('No se pudo acceder a la cámara');
+      setState('empty');
+    }
+  }
+
+  function tomarFoto() {
+    if (!stream) return;
+    const w = video.videoWidth, h = video.videoHeight;
+    if (!w || !h) return;
+    const canvas = document.createElement('canvas');
+    canvas.width = w; canvas.height = h;
+    canvas.getContext('2d').drawImage(video, 0, 0, w, h);
+    dataUrl = canvas.toDataURL('image/jpeg', 0.7);
+    detenerCamara();
+    capImg.src = dataUrl;
+    setState('shot');
+  }
+
+  async function cargarArchivo(file) {
     if (!file) return;
     setState('loading');
+    overlay.querySelector('#capturaLoadingTxt').textContent = 'Procesando imagen…';
     try { dataUrl = await comprimirImagen(file); }
     catch { toast('No se pudo leer la imagen'); setState(dataUrl ? 'shot' : 'empty'); return; }
     capImg.src = dataUrl;
     setState('shot');
   }
 
-  overlay.querySelector('#btnCamara').addEventListener('click', () => capCamara.click());
+  overlay.querySelector('#btnCamara').addEventListener('click', abrirCamara);
   overlay.querySelector('#btnGaleria').addEventListener('click', () => capGaleria.click());
+  overlay.querySelector('#capShutter').addEventListener('click', tomarFoto);
   overlay.querySelector('#capRetake').addEventListener('click', () => { dataUrl = null; setState('empty'); });
-  capCamara.addEventListener('change', () => cargar(capCamara.files[0]));
-  capGaleria.addEventListener('change', () => cargar(capGaleria.files[0]));
+  capGaleria.addEventListener('change', () => cargarArchivo(capGaleria.files[0]));
 
   function close() {
+    detenerCamara();
     overlay.classList.add('closing'); overlay.classList.remove('active');
     setTimeout(() => overlay.remove(), 320);
   }

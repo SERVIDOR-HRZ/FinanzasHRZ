@@ -761,21 +761,30 @@
 }
 
 /* Visibilidad según estado (controlado en .captura-sheet) */
-.captura-shot, .captura-loading { display: none; }
+.captura-shot, .captura-loading, .captura-cam { display: none; }
 
-/* Vacío: sin previsualización ni botón "Usar foto", solo cámara/galería */
+/* Vacío: sin stage ni botón "Usar foto", solo cámara/galería */
 .captura-sheet[data-state="empty"] .captura-stage { display: none; }
 .captura-sheet[data-state="empty"] #capUsar { display: none; }
-/* Cuando "Usar foto" está oculto, Cancelar ocupa todo el ancho */
-.captura-sheet[data-state="empty"] .modal-cancel,
-.captura-sheet[data-state="loading"] .modal-cancel { flex: 1; width: 100%; }
 
-.captura-sheet[data-state="loading"] .captura-shot { display: none; }
+/* Cámara en vivo: sin fuentes ni "Usar foto" */
+.captura-sheet[data-state="camera"] .captura-cam { display: block; }
+.captura-sheet[data-state="camera"] .captura-source { display: none; }
+.captura-sheet[data-state="camera"] #capUsar { display: none; }
+
+/* Cargando */
 .captura-sheet[data-state="loading"] .captura-loading { display: flex; }
+.captura-sheet[data-state="loading"] .captura-source { display: none; }
 .captura-sheet[data-state="loading"] #capUsar { display: none; }
 
+/* Foto lista */
 .captura-sheet[data-state="shot"] .captura-shot { display: block; }
-.captura-sheet[data-state="shot"] .captura-loading { display: none; }
+.captura-sheet[data-state="shot"] .captura-source { display: none; }
+
+/* Cuando "Usar foto" está oculto, Cancelar ocupa todo el ancho */
+.captura-sheet[data-state="empty"] .modal-cancel,
+.captura-sheet[data-state="camera"] .modal-cancel,
+.captura-sheet[data-state="loading"] .modal-cancel { flex: 1; width: 100%; }
 
 /* Foto tomada */
 .captura-shot { position: relative; width: 100%; }
@@ -815,6 +824,40 @@
   background: var(--accent);
   box-shadow: 0 4px 14px color-mix(in srgb, var(--accent) 45%, transparent);
 }
+
+/* Cámara en vivo */
+.captura-cam { position: relative; width: 100%; }
+.captura-cam video {
+  width: 100%;
+  max-height: 340px;
+  min-height: 240px;
+  object-fit: cover;
+  display: block;
+  background: #000;
+}
+.captura-shutter {
+  position: absolute;
+  left: 50%; bottom: 14px;
+  transform: translateX(-50%);
+  width: 62px; height: 62px;
+  border-radius: 50%;
+  border: 3px solid rgba(255,255,255,.85);
+  background: transparent;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform .1s;
+}
+.captura-shutter span {
+  width: 46px; height: 46px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0,0,0,.4);
+  transition: background .15s;
+}
+.captura-shutter:hover span { background: var(--accent); }
+.captura-shutter:active { transform: translateX(-50%) scale(.92); }
 
 /* Cargando */
 .captura-loading {
