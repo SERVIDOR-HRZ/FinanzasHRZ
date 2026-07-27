@@ -39,7 +39,21 @@ const lista     = document.getElementById('movList');
 const totalEl   = document.getElementById('movTotal');
 const subEl     = document.getElementById('movSub');
 
-// ── FECHAS ───────────────────────────────────────────────────
+// ── FECHAS / PERIODO ─────────────────────────────────────────
+const MESES_NOM = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+const _ahora = new Date();
+const PERIODO_ACTUAL = `${_ahora.getFullYear()}-${String(_ahora.getMonth()).padStart(2,'0')}`;
+let periodoSel = PERIODO_ACTUAL;
+
+function periodoDe(ts) {
+  const d = new Date(ts);
+  return `${d.getFullYear()}-${String(d.getMonth()).padStart(2,'0')}`;
+}
+function periodoLabel(key) {
+  const [y, m] = key.split('-');
+  return `${MESES_NOM[parseInt(m,10)]} ${y}`;
+}
+
 function fechaCorta(ts) {
   const d = new Date(ts);
   return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short' });
@@ -52,21 +66,31 @@ function fechaLarga(ts) {
 
 // ── RENDER ───────────────────────────────────────────────────
 function render() {
-  const total = movimientos.reduce((s, m) => s + (parseFloat(m.monto) || 0), 0);
+  // Filtrar por periodo seleccionado
+  const filtrados = movimientos.filter(m => periodoDe(m.fecha || m.creadoEn || 0) === periodoSel);
+
+  const total = filtrados.reduce((s, m) => s + (parseFloat(m.monto) || 0), 0);
   totalEl.textContent = fmt(total);
-  const n = movimientos.length;
+  const n = filtrados.length;
   subEl.textContent = n === 1 ? '1 movimiento' : `${n} movimientos`;
 
+  // Etiqueta del periodo (siempre muestra el mes y año)
+  const lbl = document.getElementById('periodoLabel');
+  if (lbl) lbl.textContent = periodoLabel(periodoSel);
+
   if (!n) {
+    const mismoMes = periodoSel === PERIODO_ACTUAL;
     lista.innerHTML = `
       <div class="mov-empty glass">
         <i class="fa-solid ${ES_INGRESO ? 'fa-arrow-trend-up' : 'fa-arrow-trend-down'}"></i>
-        <p>Sin ${ES_INGRESO ? 'ingresos' : 'gastos'} aún.<br>Toca <strong>Registrar ${TIPO}</strong> para empezar.</p>
+        <p>${mismoMes
+          ? `Sin ${ES_INGRESO ? 'ingresos' : 'gastos'} este mes.<br>Toca <strong>Registrar ${TIPO}</strong> para empezar.`
+          : `Sin ${ES_INGRESO ? 'ingresos' : 'gastos'} en ${periodoLabel(periodoSel)}.`}</p>
       </div>`;
     return;
   }
 
-  lista.innerHTML = movimientos.map(m => {
+  lista.innerHTML = filtrados.map(m => {
     const cat = catInfo(m.categoria);
     const cue = cuentaInfo(m.cuentaId);
     const signo = ES_INGRESO ? '+' : '−';
@@ -100,6 +124,99 @@ onSnapshot(query(MOV_COL, where('tipo', '==', TIPO)), snap => {
   movimientos.sort((a, b) => (b.fecha || 0) - (a.fecha || 0));
   render();
 });
+
+// ── SELECTOR DE PERIODO ──────────────────────────────────────
+function periodosDisponibles() {
+  const set = new Set(movimientos.map(m => periodoDe(m.fecha || m.creadoEn || 0)));
+  set.add(PERIODO_ACTUAL);
+  return [...set].sort((a, b) => b.localeCompare(a));
+}
+
+const MESES_CORTO = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+
+const periodoBtn = document.getElementById('periodoSelector');
+if (periodoBtn) {
+  periodoBtn.addEventListener('click', abrirSelectorPeriodo);
+}
+
+function abrirSelectorPeriodo() {
+  const periodos = periodosDisponibles();               // ['YYYY-MM', ...]
+  const conRegistro = new Set(periodos);
+  const anios = [...new Set(periodos.map(p => parseInt(p.split('-')[0], 10)))].sort((a, b) => b - a);
+
+  // año que se muestra al abrir = el del periodo seleccionado
+  let anioVista = parseInt(periodoSel.split('-')[0], 10);
+
+  const overlay = document.createElement('div');
+  overlay.className = 'modal-overlay';
+  overlay.id = 'modalPeriodo';
+  overlay.innerHTML = `
+  <div class="modal-sheet glass" role="dialog" aria-modal="true" style="--accent:${ACCENT}">
+    <div class="modal-handle"></div>
+    <p class="modal-eyebrow">Filtrar</p>
+    <h2 class="modal-title">Selecciona un periodo</h2>
+    <p class="modal-subtitle">${ES_INGRESO ? 'Ingresos' : 'Gastos'} del mes elegido</p>
+
+    <div class="anio-nav">
+      <button class="cal-nav-btn" id="anioPrev" aria-label="Año anterior"><i class="fa-solid fa-chevron-left"></i></button>
+      <span class="anio-actual" id="anioActual"></span>
+      <button class="cal-nav-btn" id="anioNext" aria-label="Año siguiente"><i class="fa-solid fa-chevron-right"></i></button>
+    </div>
+
+    <div class="meses-grid" id="mesesGrid"></div>
+
+    <button class="modal-cancel" id="periodoCancel">Cerrar</button>
+  </div>`;
+  document.body.appendChild(overlay);
+  requestAnimationFrame(() => { overlay.setAttribute('aria-hidden','false'); overlay.classList.add('active'); });
+
+  const anioEl  = overlay.querySelector('#anioActual');
+  const gridEl  = overlay.querySelector('#mesesGrid');
+  const prevBtn = overlay.querySelector('#anioPrev');
+  const nextBtn = overlay.querySelector('#anioNext');
+
+  function renderMeses() {
+    anioEl.textContent = anioVista;
+
+    // limitar navegación a años con registros (o al año actual)
+    const minAnio = Math.min(...anios, _ahora.getFullYear());
+    const maxAnio = Math.max(...anios, _ahora.getFullYear());
+    prevBtn.disabled = anioVista <= minAnio;
+    nextBtn.disabled = anioVista >= maxAnio;
+
+    let html = '';
+    for (let m = 0; m < 12; m++) {
+      const key = `${anioVista}-${String(m).padStart(2,'0')}`;
+      const hay = conRegistro.has(key);
+      const sel = key === periodoSel;
+      const esActual = key === PERIODO_ACTUAL;
+      html += `<button class="mes-btn${sel ? ' selected' : ''}${hay ? '' : ' vacio'}${esActual ? ' actual' : ''}" data-p="${key}"${hay ? '' : ' disabled'}>
+        ${MESES_CORTO[m]}
+      </button>`;
+    }
+    gridEl.innerHTML = html;
+
+    gridEl.querySelectorAll('.mes-btn:not(.vacio)').forEach(btn => {
+      btn.addEventListener('click', () => {
+        periodoSel = btn.dataset.p;
+        render();
+        close();
+      });
+    });
+  }
+
+  prevBtn.addEventListener('click', () => { anioVista--; renderMeses(); });
+  nextBtn.addEventListener('click', () => { anioVista++; renderMeses(); });
+
+  function close() {
+    overlay.classList.add('closing'); overlay.classList.remove('active');
+    setTimeout(() => overlay.remove(), 320);
+  }
+  overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
+  overlay.querySelector('#periodoCancel').addEventListener('click', close);
+
+  renderMeses();
+}
 
 // ── FIRESTORE: crear / editar / eliminar con ajuste de saldo ──
 async function ajustarSaldo(cuentaId, delta) {
@@ -266,6 +383,7 @@ function openForm(editId = null) {
 
   document.body.appendChild(overlay);
 
+  const inputMonto = overlay.querySelector('#inputMonto');
   const catsGrid = overlay.querySelector('#catsGrid');
   CATS.forEach(cat => {
     const btn = document.createElement('button');
@@ -276,6 +394,11 @@ function openForm(editId = null) {
       selCat = cat.id;
       catsGrid.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
       btn.classList.add('selected');
+      // Si la categoría tiene un valor por defecto y el monto está vacío, lo prellenamos
+      if (cat.valor && !parseMonto(inputMonto.value)) {
+        inputMonto.value = new Intl.NumberFormat('es-CO').format(cat.valor);
+        inputMonto.classList.remove('input-error');
+      }
     });
     catsGrid.appendChild(btn);
   });
@@ -351,18 +474,7 @@ function showToast(msg) {
   setTimeout(() => { toast.classList.remove('visible'); setTimeout(() => toast.remove(), 400); }, 2000);
 }
 
-// ── BOTÓN NUEVO ──────────────────────────────────────────────
-document.getElementById('btnNuevoMov').addEventListener('click', () => openForm());
-
-// ── Abrir form automáticamente si venimos del FAB (?nuevo=1) ──
-if (new URLSearchParams(location.search).get('nuevo') === '1') {
-  // esperar a que carguen las cuentas antes de abrir
-  const wait = setInterval(() => {
-    if (cuentas.length) {
-      clearInterval(wait);
-      openForm();
-      history.replaceState(null, '', location.pathname);
-    }
-  }, 120);
-  setTimeout(() => clearInterval(wait), 4000);
-}
+// ── BOTÓN NUEVO (usa el form compartido con foto + IA) ───────
+import('./quick-mov.js').then(({ openQuickMov }) => {
+  document.getElementById('btnNuevoMov').addEventListener('click', () => openQuickMov(TIPO));
+});

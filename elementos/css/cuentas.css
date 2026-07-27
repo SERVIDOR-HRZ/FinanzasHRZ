@@ -52,6 +52,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
+  position: relative;
 }
 
 .balance-label {
@@ -75,6 +76,144 @@
   color: rgba(255,255,255,.3);
   margin-top: 2px;
 }
+
+/* ── ETIQUETA MES (pantalla principal, esquina superior der) ── */
+.balance-mes-label {
+  position: absolute;
+  top: 1.75rem;
+  right: 1.5rem;
+  padding: 6px 13px;
+  border-radius: 99px;
+  border: 1px solid rgba(255,255,255,.1);
+  background: rgba(255,255,255,.04);
+  font-size: .72rem;
+  font-weight: 600;
+  letter-spacing: .04em;
+  color: rgba(255,255,255,.55);
+}
+
+/* ── SELECTOR DE PERIODO (secciones) ────────────────────────── */
+.periodo-selector {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 14px;
+  border-radius: 99px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: rgba(255,255,255,.05);
+  color: rgba(255,255,255,.75);
+  font-size: .82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .2s, border-color .2s;
+  -webkit-tap-highlight-color: transparent;
+}
+.periodo-selector:hover { background: rgba(255,255,255,.1); border-color: rgba(255,255,255,.22); color: #fff; }
+.periodo-selector > i:first-child { font-size: .8rem; color: rgba(255,255,255,.55); }
+.periodo-chev { font-size: .65rem; color: rgba(255,255,255,.4); }
+
+/* Lista de periodos en el sheet */
+.periodo-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  max-height: 46dvh;
+  overflow-y: auto;
+}
+.periodo-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 15px 16px;
+  border-radius: 14px;
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.04);
+  color: rgba(255,255,255,.8);
+  font-size: .92rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background .15s, border-color .15s;
+  -webkit-tap-highlight-color: transparent;
+}
+.periodo-item span { display: flex; align-items: center; gap: 10px; }
+.periodo-item span i { color: rgba(255,255,255,.4); font-size: .85rem; }
+.periodo-item:hover { background: rgba(255,255,255,.08); }
+.periodo-item.selected {
+  border-color: rgba(255,255,255,.35);
+  background: rgba(255,255,255,.1);
+  color: #fff;
+}
+.periodo-item.selected > i { color: #34d399; }
+.periodo-item.selected span i { color: #fff; }
+
+/* ── STATS ingresos / gastos dentro del balance ─────────────── */
+.balance-stats {
+  display: flex;
+  gap: 10px;
+  margin-top: 1rem;
+}
+
+.balance-stat {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255,255,255,.08);
+  background: rgba(255,255,255,.03);
+}
+
+.stat-ico {
+  width: 34px;
+  height: 34px;
+  border-radius: 11px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: .9rem;
+  flex-shrink: 0;
+}
+
+.stat-ingreso .stat-ico {
+  background: rgba(52,211,153,.14);
+  color: #34d399;
+  border: 1px solid rgba(52,211,153,.3);
+}
+
+.stat-gasto .stat-ico {
+  background: rgba(248,113,113,.14);
+  color: #f87171;
+  border: 1px solid rgba(248,113,113,.3);
+}
+
+.stat-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.stat-label {
+  font-size: .64rem;
+  font-weight: 600;
+  letter-spacing: .08em;
+  text-transform: uppercase;
+  color: rgba(255,255,255,.4);
+}
+
+.stat-val {
+  font-size: .95rem;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.stat-ingreso .stat-val { color: #34d399; }
+.stat-gasto   .stat-val { color: #f87171; }
 
 /* ── SECCIÓN TÍTULO ─────────────────────────────────────────── */
 .section-label {
@@ -666,3 +805,25 @@
   opacity: 1;
   transform: translateX(-50%) translateY(0);
 }
+
+/* ── BOTONES DE OPCIONES CON ACENTO DE CUENTA ───────────────── */
+.options-btn-accent {
+  border: 1px solid color-mix(in srgb, var(--c, #fff) 30%, transparent);
+  background: color-mix(in srgb, var(--c, #fff) 10%, rgba(255,255,255,.03));
+  color: #fff;
+}
+
+.options-btn-accent i {
+  color: var(--c, #fff);
+}
+
+.options-btn-accent:hover {
+  background: color-mix(in srgb, var(--c, #fff) 20%, transparent);
+  border-color: color-mix(in srgb, var(--c, #fff) 50%, transparent);
+  box-shadow: 0 0 22px color-mix(in srgb, var(--c, #fff) 22%, transparent);
+  color: #fff;
+}
+
+/* Realce del header dentro del sheet de opciones */
+.options-cuenta-nombre { letter-spacing: -.01em; }
+.options-cuenta-saldo { color: rgba(255,255,255,.55); }

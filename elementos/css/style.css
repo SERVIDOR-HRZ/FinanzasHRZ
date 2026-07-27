@@ -464,3 +464,42 @@ body {
     height: calc(var(--nav-h) + env(safe-area-inset-bottom));
   }
 }
+
+/* ── BOTÓN SUBIR AL INICIO ───────────────────────────────────── */
+.scroll-top-btn {
+  position: fixed;
+  right: 18px;
+  bottom: calc(var(--nav-h) + 78px);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.14);
+  background: linear-gradient(180deg, rgba(30,30,32,.95), rgba(12,12,13,.98));
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  color: #fff;
+  font-size: 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 150;
+  box-shadow: 0 6px 20px rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.12);
+  opacity: 0;
+  transform: translateY(16px) scale(.85);
+  pointer-events: none;
+  transition: opacity .25s ease, transform .25s cubic-bezier(.32,1,.6,1);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.scroll-top-btn.visible {
+  opacity: 1;
+  transform: translateY(0) scale(1);
+  pointer-events: auto;
+}
+
+.scroll-top-btn:hover { border-color: rgba(255,255,255,.28); }
+.scroll-top-btn:active { transform: scale(.9); }
+
+/* Se oculta si el teclado está abierto */
+.nav-wrapper.keyboard-open ~ .scroll-top-btn { opacity: 0; pointer-events: none; }

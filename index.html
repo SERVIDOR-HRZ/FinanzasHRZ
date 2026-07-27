@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="elementos/css/style.css" />
   <link rel="stylesheet" href="elementos/css/cuentas.css" />
+  <link rel="stylesheet" href="elementos/css/movimientos.css" />
 </head>
 <body>
 
@@ -31,6 +32,25 @@
       <span class="balance-label">Balance total</span>
       <span class="balance-amount" id="balanceTotal">$0.00</span>
       <span class="balance-sub" id="balanceSub">0 cuentas</span>
+
+      <span class="balance-mes-label" id="periodoLabel">Este mes</span>
+
+      <div class="balance-stats">
+        <div class="balance-stat stat-ingreso">
+          <span class="stat-ico"><i class="fa-solid fa-arrow-trend-up"></i></span>
+          <div class="stat-info">
+            <span class="stat-label">Ingresos</span>
+            <span class="stat-val" id="statIngresos">$0</span>
+          </div>
+        </div>
+        <div class="balance-stat stat-gasto">
+          <span class="stat-ico"><i class="fa-solid fa-arrow-trend-down"></i></span>
+          <div class="stat-info">
+            <span class="stat-label">Gastos</span>
+            <span class="stat-val" id="statGastos">$0</span>
+          </div>
+        </div>
+      </div>
     </div> 
 
     <!-- Lista -->

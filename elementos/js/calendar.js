@@ -9,7 +9,7 @@ function ordinal(d) {
   return d + (d === 1 ? 'er' : '') + ' día';
 }
 
-export function pickDayOfMonth(actual, onPick) {
+export function pickDayOfMonth(actual, onPick, accent = '#34d399') {
   const hoy = new Date();
   let mesVista = hoy.getMonth();
   let anioVista = hoy.getFullYear();
@@ -19,7 +19,7 @@ export function pickDayOfMonth(actual, onPick) {
   overlay.className = 'modal-overlay cal-overlay';
   overlay.id = 'modalCalendar';
   overlay.innerHTML = `
-  <div class="modal-sheet glass cal-sheet" role="dialog" aria-modal="true">
+  <div class="modal-sheet glass cal-sheet" role="dialog" aria-modal="true" style="--accent:${accent}">
     <div class="modal-handle"></div>
     <div class="cal-head">
       <div>

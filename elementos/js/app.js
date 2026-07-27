@@ -33,6 +33,21 @@ document.addEventListener('focusout', () => {
   setTimeout(() => { if (!inputEnfocado()) navWrapper.classList.remove('keyboard-open'); }, 100);
 });
 
+// ── Botón subir al inicio ────────────────────────────────────
+const scrollTopBtn = document.createElement('button');
+scrollTopBtn.className = 'scroll-top-btn';
+scrollTopBtn.setAttribute('aria-label', 'Subir al inicio');
+scrollTopBtn.innerHTML = '<i class="fa-solid fa-chevron-up"></i>';
+document.body.appendChild(scrollTopBtn);
+
+window.addEventListener('scroll', () => {
+  scrollTopBtn.classList.toggle('visible', window.scrollY > 320);
+}, { passive: true });
+
+scrollTopBtn.addEventListener('click', () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
 // ── Nav activo ───────────────────────────────────────────────
 navItems.forEach(item => {
   item.addEventListener('click', e => {
@@ -70,14 +85,9 @@ if (fab && modalOverlay) {
   modalCancel.addEventListener('click', closeModal);
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-  // Ruta base según ubicación (raíz vs /secciones/)
-  const enSecciones = location.pathname.includes('/secciones/');
-  const base = enSecciones ? '' : 'secciones/';
-
-  optIngreso.addEventListener('click', () => {
-    location.href = base + 'ingresos.html?nuevo=1';
-  });
-  optGasto.addEventListener('click', () => {
-    location.href = base + 'gastos.html?nuevo=1';
+  // Abrir el formulario directo desde cualquier pantalla
+  import('./quick-mov.js').then(({ openQuickMov }) => {
+    optIngreso.addEventListener('click', () => { closeModal(); setTimeout(() => openQuickMov('ingreso'), 260); });
+    optGasto.addEventListener('click',   () => { closeModal(); setTimeout(() => openQuickMov('gasto'), 260); });
   });
 }

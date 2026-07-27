@@ -67,6 +67,42 @@ async function eliminarCuenta(id) {
 const lista     = document.getElementById('cuentasList');
 const balanceEl = document.getElementById('balanceTotal');
 const subEl     = document.getElementById('balanceSub');
+const statIngEl = document.getElementById('statIngresos');
+const statGasEl = document.getElementById('statGastos');
+
+// ── Totales de movimientos (ingresos / gastos) por mes ──────
+const MOV_COL = collection(db, 'movimientos');
+const MESES_NOM = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+
+let movs = [];
+const ahora = new Date();
+const periodoActual = `${ahora.getFullYear()}-${String(ahora.getMonth()).padStart(2,'0')}`;
+
+function periodoDeFecha(ts) {
+  const d = new Date(ts);
+  return `${d.getFullYear()}-${String(d.getMonth()).padStart(2,'0')}`;
+}
+
+// La pantalla principal siempre muestra el mes actual
+function renderStats() {
+  let ing = 0, gas = 0;
+  movs.forEach(m => {
+    if (periodoDeFecha(m.fecha || m.creadoEn || 0) !== periodoActual) return;
+    const monto = parseFloat(m.monto) || 0;
+    if (m.tipo === 'ingreso') ing += monto;
+    else if (m.tipo === 'gasto') gas += monto;
+  });
+  if (statIngEl) statIngEl.textContent = fmt(ing);
+  if (statGasEl) statGasEl.textContent = fmt(gas);
+
+  const lbl = document.getElementById('periodoLabel');
+  if (lbl) lbl.textContent = `${MESES_NOM[ahora.getMonth()]} ${ahora.getFullYear()}`;
+}
+
+onSnapshot(MOV_COL, snap => {
+  movs = snap.docs.map(d => d.data());
+  renderStats();
+});
 
 function renderCuentas() {
   const total = cuentas.reduce((s, c) => s + (parseFloat(c.monto) || 0), 0);
@@ -133,10 +169,10 @@ function openOptions(id) {
   overlay.id = 'modalOpciones';
 
   overlay.innerHTML = `
-  <div class="modal-sheet glass options-sheet" role="dialog" aria-modal="true">
+  <div class="modal-sheet glass options-sheet" role="dialog" aria-modal="true" style="--c:${color}">
     <div class="modal-handle"></div>
     <div class="options-cuenta-header">
-      <div class="options-cuenta-icon" style="background:${color}18;color:${color};border:1px solid ${color}35">
+      <div class="options-cuenta-icon" style="background:${color}22;color:${color};border:1px solid ${color}45;box-shadow:0 0 22px ${color}30">
         <i class="${ico.clase}"></i>
       </div>
       <div>

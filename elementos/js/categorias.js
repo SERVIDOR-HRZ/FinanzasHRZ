@@ -1,5 +1,5 @@
 import {
-  CAT_ICONS, CAT_COLORS,
+  CAT_ICONS,
   subscribeCategorias, crearCategoria, actualizarCategoria, eliminarCategoria
 } from "./cats-store.js";
 import { pickDayOfMonth } from "./calendar.js";
@@ -42,13 +42,17 @@ function render() {
 
 function rowHTML(c) {
   const fija = c.fija && c.diaCobro;
+  const valorTxt = c.valor
+    ? new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', maximumFractionDigits: 0 }).format(c.valor)
+    : null;
   return `
   <div class="cat-row" style="--c:${c.color}">
     <div class="cat-row-icon"><i class="${c.icon}"></i></div>
     <div class="cat-row-info">
       <div class="cat-row-nombre">${c.nombre}</div>
       <div class="cat-row-tag">
-        ${fija ? `<span class="fija-chip"><i class="fa-solid fa-calendar-day"></i> Día ${c.diaCobro}</span>` : 'Variable'}
+        ${fija ? `<span class="fija-chip"><i class="fa-solid fa-calendar-day"></i> Día ${c.diaCobro}</span>` : ''}
+        ${valorTxt ? `<span class="valor-chip">${valorTxt}</span>` : (fija ? '' : 'Variable')}
       </div>
     </div>
     <div class="cat-row-actions">
@@ -71,7 +75,6 @@ document.querySelectorAll('.cat-tab').forEach(tab => {
 
 // ── Form crear / editar ──────────────────────────────────────
 let selIcon = CAT_ICONS[0];
-let selColor = null;
 let esFija = false;
 let diaCobro = null;
 
@@ -80,10 +83,10 @@ function openForm(editId = null) {
   const editing = editId ? categorias.find(c => c.id === editId) : null;
 
   selIcon  = editing ? editing.icon  : CAT_ICONS[0];
-  selColor = editing ? editing.color : null;
   esFija   = editing ? !!editing.fija : false;
   diaCobro = editing ? (editing.diaCobro || null) : null;
 
+  // El color de la categoría lo define el tipo: verde ingreso / rojo gasto
   const accent = tipoActivo === 'ingreso' ? '#34d399' : '#f87171';
 
   const overlay = document.createElement('div');
@@ -103,13 +106,19 @@ function openForm(editId = null) {
       </div>
 
       <div class="form-group">
-        <label class="form-label">Icono</label>
-        <div class="iconos-grid" id="catIconos"></div>
+        <label class="form-label">Valor <span class="form-label-opt">(opcional)</span></label>
+        <div class="input-prefix-wrap">
+          <span class="input-prefix">$</span>
+          <input class="form-input input-with-prefix" id="catValor"
+            type="text" inputmode="numeric" placeholder="0" autocomplete="off"
+            value="${editing && editing.valor ? fmtInput(editing.valor) : ''}" />
+        </div>
+        <span class="form-hint">Si lo dejas vacío, usarás el valor que registres en cada movimiento.</span>
       </div>
 
       <div class="form-group">
-        <label class="form-label">Color</label>
-        <div class="colores-grid" id="catColores"></div>
+        <label class="form-label">Icono</label>
+        <div class="iconos-grid" id="catIconos"></div>
       </div>
 
       <div class="form-group">
@@ -143,11 +152,12 @@ function openForm(editId = null) {
 
   document.body.appendChild(overlay);
 
-  // Iconos
+  // Iconos (con color de acento según tipo)
   const iconosGrid = overlay.querySelector('#catIconos');
+  iconosGrid.style.setProperty('--accent', accent);
   CAT_ICONS.forEach(ic => {
     const btn = document.createElement('button');
-    btn.className = 'ico-btn' + (ic === selIcon ? ' selected' : '');
+    btn.className = 'ico-btn ico-btn-accent' + (ic === selIcon ? ' selected' : '');
     btn.innerHTML = `<i class="${ic}"></i>`;
     btn.addEventListener('click', () => {
       selIcon = ic;
@@ -157,20 +167,8 @@ function openForm(editId = null) {
     iconosGrid.appendChild(btn);
   });
 
-  // Colores
-  const coloresGrid = overlay.querySelector('#catColores');
-  CAT_COLORS.forEach(col => {
-    const btn = document.createElement('button');
-    btn.className = 'color-btn' + (col === selColor ? ' selected' : '');
-    btn.style.background = col;
-    btn.addEventListener('click', () => {
-      selColor = col;
-      coloresGrid.querySelectorAll('.color-btn').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      coloresGrid.classList.remove('grid-error');
-    });
-    coloresGrid.appendChild(btn);
-  });
+  // Formato de miles en el valor
+  attachMontoFmt(overlay.querySelector('#catValor'));
 
   // Switch fija
   const switchFija = overlay.querySelector('#switchFija');
@@ -181,12 +179,12 @@ function openForm(editId = null) {
     if (!esFija) { diaCobro = null; overlay.querySelector('#diaVal').textContent = 'Elegir'; }
   });
 
-  // Botón día -> calendario
+  // Botón día -> calendario (color según tipo)
   overlay.querySelector('#btnDiaCobro').addEventListener('click', () => {
     pickDayOfMonth(diaCobro, dia => {
       diaCobro = dia;
       overlay.querySelector('#diaVal').textContent = 'Día ' + dia;
-    });
+    }, accent);
   });
 
   requestAnimationFrame(() => { overlay.setAttribute('aria-hidden','false'); overlay.classList.add('active'); });
@@ -200,11 +198,12 @@ function openForm(editId = null) {
       const inp = overlay.querySelector('#catNombre');
       inp.focus(); inp.classList.add('input-error'); return;
     }
-    if (!selColor) { coloresGrid.classList.add('grid-error'); return; }
     if (esFija && !diaCobro) {
       overlay.querySelector('#btnDiaCobro').click();
       return;
     }
+
+    const valor = parseMonto(overlay.querySelector('#catValor').value);
 
     const btn = overlay.querySelector('#catGuardar');
     btn.disabled = true; btn.textContent = 'Guardando…';
@@ -213,7 +212,8 @@ function openForm(editId = null) {
       tipo: tipoActivo,
       nombre,
       icon: selIcon,
-      color: selColor,
+      color: accent,               // color automático según el tipo
+      valor: valor || null,        // opcional
       fija: esFija,
       diaCobro: esFija ? diaCobro : null,
     };
@@ -223,6 +223,25 @@ function openForm(editId = null) {
 
     closeForm();
     showToast(editing ? 'Categoría actualizada' : 'Categoría creada');
+  });
+}
+
+// ── Helpers de formato de valor ──────────────────────────────
+function fmtInput(val) {
+  const num = parseFloat(String(val).replace(/[^0-9.]/g, ''));
+  if (isNaN(num)) return '';
+  return new Intl.NumberFormat('es-CO', { maximumFractionDigits: 0 }).format(num);
+}
+
+function parseMonto(str) {
+  return parseFloat(String(str).replace(/\./g, '').replace(',', '.')) || 0;
+}
+
+function attachMontoFmt(input) {
+  if (!input) return;
+  input.addEventListener('input', () => {
+    const raw = input.value.replace(/[^0-9]/g, '');
+    input.value = raw ? new Intl.NumberFormat('es-CO').format(parseInt(raw)) : '';
   });
 }
 
