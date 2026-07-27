@@ -3,44 +3,41 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" />
-  <title>Gastos — FinanceApp</title>
+  <title>Más — FinanceApp</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="../elementos/css/style.css" />
   <link rel="stylesheet" href="../elementos/css/cuentas.css" />
-  <link rel="stylesheet" href="../elementos/css/movimientos.css" />
+  <link rel="stylesheet" href="../elementos/css/categorias.css" />
 </head>
-<body data-tipo="gasto">
+<body>
 
   <div class="bg-glow glow-1"></div>
   <div class="bg-glow glow-2"></div>
 
-  <div class="mov-page" style="--accent:#f87171">
+  <div class="mas-page">
 
     <!-- Header -->
-    <div class="mov-header glass">
-      <div class="mov-header-icon"><i class="fa-solid fa-arrow-trend-down"></i></div>
-      <div class="mov-header-text">
-        <h1>Gastos</h1>
-        <p>Dinero que sale de tus cuentas</p>
+    <div class="cuentas-header glass">
+      <div class="cuentas-header-icon"><i class="fa-solid fa-grip"></i></div>
+      <div class="cuentas-header-text">
+        <h1>Más</h1>
+        <p>Herramientas y ajustes</p>
       </div>
     </div>
 
-    <!-- Resumen -->
-    <div class="mov-summary glass">
-      <span class="mov-summary-label"><i class="fa-solid fa-arrow-trend-down"></i> Total gastos</span>
-      <span class="mov-summary-amount" id="movTotal">$0</span>
-      <span class="mov-summary-sub" id="movSub">0 movimientos</span>
+    <p class="section-label">Herramientas</p>
+    <div class="hub-grid">
+      <a href="divisas.html" class="hub-card" style="--hub-color:#fbbf24">
+        <div class="hub-icon"><i class="fa-solid fa-coins"></i></div>
+        <div class="hub-title">Divisas</div>
+        <div class="hub-desc">Convierte entre monedas del mundo en tiempo real.</div>
+      </a>
+      <a href="categorias.html" class="hub-card" style="--hub-color:#34d399">
+        <div class="hub-icon"><i class="fa-solid fa-tags"></i></div>
+        <div class="hub-title">Categorías</div>
+        <div class="hub-desc">Crea y gestiona categorías de ingresos y gastos.</div>
+      </a>
     </div>
-
-    <!-- Lista -->
-    <p class="section-label">Historial</p>
-    <div class="mov-list" id="movList"></div>
-
-    <!-- Nuevo -->
-    <button class="btn-nuevo-mov" id="btnNuevoMov">
-      <i class="fa-solid fa-plus"></i>
-      Registrar gasto
-    </button>
 
   </div>
 
@@ -56,11 +53,11 @@
         <span class="nav-label">Ingresos</span>
       </a>
       <div class="nav-spacer"></div>
-      <a href="gastos.html" class="nav-item active" data-page="gastos">
+      <a href="gastos.html" class="nav-item" data-page="gastos">
         <i class="fa-solid fa-arrow-trend-down nav-icon"></i>
         <span class="nav-label">Gastos</span>
       </a>
-      <a href="mas.html" class="nav-item" data-page="mas">
+      <a href="mas.html" class="nav-item active" data-page="mas">
         <i class="fa-solid fa-grip nav-icon"></i>
         <span class="nav-label">Más</span>
       </a>
@@ -71,7 +68,7 @@
     </button>
   </div>
 
-  <!-- Modal: Ingreso o Gasto (FAB) -->
+  <!-- Modal FAB -->
   <div class="modal-overlay" id="modalOverlay" aria-hidden="true">
     <div class="modal-sheet glass" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <div class="modal-handle"></div>
@@ -101,6 +98,5 @@
   </div>
 
   <script type="module" src="../elementos/js/app.js"></script>
-  <script type="module" src="../elementos/js/movimientos.js"></script>
 </body>
 </html>

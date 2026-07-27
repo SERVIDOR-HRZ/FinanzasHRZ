@@ -3,43 +3,44 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" />
-  <title>Gastos — FinanceApp</title>
+  <title>Categorías — FinanceApp</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="../elementos/css/style.css" />
   <link rel="stylesheet" href="../elementos/css/cuentas.css" />
   <link rel="stylesheet" href="../elementos/css/movimientos.css" />
+  <link rel="stylesheet" href="../elementos/css/categorias.css" />
 </head>
-<body data-tipo="gasto">
+<body>
 
   <div class="bg-glow glow-1"></div>
   <div class="bg-glow glow-2"></div>
 
-  <div class="mov-page" style="--accent:#f87171">
+  <div class="mas-page">
+
+    <a href="mas.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Más</a>
 
     <!-- Header -->
-    <div class="mov-header glass">
-      <div class="mov-header-icon"><i class="fa-solid fa-arrow-trend-down"></i></div>
-      <div class="mov-header-text">
-        <h1>Gastos</h1>
-        <p>Dinero que sale de tus cuentas</p>
+    <div class="cuentas-header glass">
+      <div class="cuentas-header-icon"><i class="fa-solid fa-tags"></i></div>
+      <div class="cuentas-header-text">
+        <h1>Categorías</h1>
+        <p>Organiza tus ingresos y gastos</p>
       </div>
     </div>
 
-    <!-- Resumen -->
-    <div class="mov-summary glass">
-      <span class="mov-summary-label"><i class="fa-solid fa-arrow-trend-down"></i> Total gastos</span>
-      <span class="mov-summary-amount" id="movTotal">$0</span>
-      <span class="mov-summary-sub" id="movSub">0 movimientos</span>
+    <!-- Tabs -->
+    <div class="cat-tabs">
+      <button class="cat-tab active" data-tab="ingreso"><i class="fa-solid fa-arrow-trend-up"></i> Ingresos</button>
+      <button class="cat-tab" data-tab="gasto"><i class="fa-solid fa-arrow-trend-down"></i> Gastos</button>
     </div>
 
     <!-- Lista -->
-    <p class="section-label">Historial</p>
-    <div class="mov-list" id="movList"></div>
+    <div class="cat-manage-list" id="catList"></div>
 
-    <!-- Nuevo -->
-    <button class="btn-nuevo-mov" id="btnNuevoMov">
+    <!-- Nueva -->
+    <button class="btn-nueva-cuenta" id="btnNuevaCat">
       <i class="fa-solid fa-plus"></i>
-      Registrar gasto
+      Nueva categoría
     </button>
 
   </div>
@@ -56,11 +57,11 @@
         <span class="nav-label">Ingresos</span>
       </a>
       <div class="nav-spacer"></div>
-      <a href="gastos.html" class="nav-item active" data-page="gastos">
+      <a href="gastos.html" class="nav-item" data-page="gastos">
         <i class="fa-solid fa-arrow-trend-down nav-icon"></i>
         <span class="nav-label">Gastos</span>
       </a>
-      <a href="mas.html" class="nav-item" data-page="mas">
+      <a href="mas.html" class="nav-item active" data-page="mas">
         <i class="fa-solid fa-grip nav-icon"></i>
         <span class="nav-label">Más</span>
       </a>
@@ -71,7 +72,7 @@
     </button>
   </div>
 
-  <!-- Modal: Ingreso o Gasto (FAB) -->
+  <!-- Modal FAB -->
   <div class="modal-overlay" id="modalOverlay" aria-hidden="true">
     <div class="modal-sheet glass" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <div class="modal-handle"></div>
@@ -101,6 +102,6 @@
   </div>
 
   <script type="module" src="../elementos/js/app.js"></script>
-  <script type="module" src="../elementos/js/movimientos.js"></script>
+  <script type="module" src="../elementos/js/categorias.js"></script>
 </body>
 </html>

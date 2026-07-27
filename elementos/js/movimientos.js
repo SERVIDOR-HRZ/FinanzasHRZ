@@ -3,39 +3,26 @@ import {
   collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc,
   query, orderBy, getDoc, where
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
+import { subscribeCategorias } from "./cats-store.js";
 
 // ── TIPO (ingreso | gasto) ───────────────────────────────────
 const TIPO = document.body.dataset.tipo;               // 'ingreso' | 'gasto'
 const ES_INGRESO = TIPO === 'ingreso';
 const ACCENT = ES_INGRESO ? '#34d399' : '#f87171';
 
-// ── CATEGORÍAS ───────────────────────────────────────────────
-const CATS_INGRESO = [
-  { id: 'salario',    label: 'Salario',    icon: 'fa-solid fa-briefcase',          color: '#34d399' },
-  { id: 'venta',      label: 'Venta',      icon: 'fa-solid fa-tag',                color: '#22d3ee' },
-  { id: 'negocio',    label: 'Negocio',    icon: 'fa-solid fa-store',              color: '#38bdf8' },
-  { id: 'inversion',  label: 'Inversión',  icon: 'fa-solid fa-chart-line',         color: '#a78bfa' },
-  { id: 'regalo',     label: 'Regalo',     icon: 'fa-solid fa-gift',               color: '#f472b6' },
-  { id: 'prestamo',   label: 'Préstamo',   icon: 'fa-solid fa-hand-holding-dollar',color: '#facc15' },
-  { id: 'reembolso',  label: 'Reembolso',  icon: 'fa-solid fa-rotate-left',        color: '#2dd4bf' },
-  { id: 'otro',       label: 'Otro',       icon: 'fa-solid fa-ellipsis',           color: '#94a3b8' },
-];
+// ── CATEGORÍAS (default + personalizadas, en tiempo real) ────
+let CATS = [];
+function catInfo(id) {
+  return CATS.find(c => c.id === id) || CATS.at(-1) || { nombre: 'Otro', icon: 'fa-solid fa-ellipsis', color: '#94a3b8' };
+}
+// nombre unificado: el store usa "nombre", aquí mostramos como label
+function catLabel(c) { return c ? (c.nombre || c.label) : 'Otro'; }
 
-const CATS_GASTO = [
-  { id: 'comida',     label: 'Comida',       icon: 'fa-solid fa-utensils',       color: '#f87171' },
-  { id: 'transporte', label: 'Transporte',   icon: 'fa-solid fa-car',            color: '#fb923c' },
-  { id: 'hogar',      label: 'Hogar',        icon: 'fa-solid fa-house',          color: '#f59e0b' },
-  { id: 'servicios',  label: 'Servicios',    icon: 'fa-solid fa-bolt',           color: '#facc15' },
-  { id: 'compras',    label: 'Compras',      icon: 'fa-solid fa-bag-shopping',   color: '#e879f9' },
-  { id: 'salud',      label: 'Salud',        icon: 'fa-solid fa-heart-pulse',    color: '#fb7185' },
-  { id: 'ocio',       label: 'Ocio',         icon: 'fa-solid fa-gamepad',        color: '#a78bfa' },
-  { id: 'educacion',  label: 'Educación',    icon: 'fa-solid fa-graduation-cap', color: '#60a5fa' },
-  { id: 'suscripcion',label: 'Suscripción',  icon: 'fa-solid fa-repeat',         color: '#38bdf8' },
-  { id: 'otro',       label: 'Otro',         icon: 'fa-solid fa-ellipsis',       color: '#94a3b8' },
-];
-
-const CATS = ES_INGRESO ? CATS_INGRESO : CATS_GASTO;
-function catInfo(id) { return CATS.find(c => c.id === id) || CATS.at(-1); }
+subscribeCategorias(TIPO, cats => {
+  CATS = cats;
+  if (!selCat && CATS.length) selCat = CATS[0].id;
+  render();
+});
 
 // ── ESTADO ───────────────────────────────────────────────────
 let movimientos = [];
@@ -87,8 +74,8 @@ function render() {
     <div class="mov-card" data-id="${m.id}" style="--cat-color:${cat.color}">
       <div class="mov-card-icon"><i class="${cat.icon}"></i></div>
       <div class="mov-card-info">
-        <span class="mov-card-concepto">${m.concepto || cat.label}</span>
-        <span class="mov-card-meta">${cat.label}<span class="dot">·</span>${cue ? cue.nombre : 'Cuenta eliminada'}</span>
+        <span class="mov-card-concepto">${m.concepto || catLabel(cat)}</span>
+        <span class="mov-card-meta">${catLabel(cat)}<span class="dot">·</span>${cue ? cue.nombre : 'Cuenta eliminada'}</span>
       </div>
       <div class="mov-card-right">
         <span class="mov-card-monto">${signo}${fmt(m.monto)}</span>
@@ -163,7 +150,7 @@ function openOptions(id) {
         <i class="${cat.icon}"></i>
       </div>
       <div>
-        <div class="options-cuenta-nombre">${m.concepto || cat.label}</div>
+        <div class="options-cuenta-nombre">${m.concepto || catLabel(cat)}</div>
         <div class="options-cuenta-saldo">${fmt(m.monto)} · ${cue ? cue.nombre : 'Cuenta eliminada'} · ${fechaLarga(m.fecha)}</div>
       </div>
     </div>
@@ -214,7 +201,7 @@ function confirmarEliminar(m) {
 }
 
 // ── FORM CREAR / EDITAR ──────────────────────────────────────
-let selCat = CATS[0].id;
+let selCat = null;
 let selCuenta = null;
 
 function openForm(editId = null) {
@@ -225,7 +212,7 @@ function openForm(editId = null) {
   }
 
   const editing = editId ? movimientos.find(m => m.id === editId) : null;
-  selCat    = editing ? editing.categoria : CATS[0].id;
+  selCat    = editing ? editing.categoria : (CATS[0] ? CATS[0].id : null);
   selCuenta = editing ? editing.cuentaId  : cuentas[0].id;
 
   const overlay = document.createElement('div');
@@ -284,7 +271,7 @@ function openForm(editId = null) {
     const btn = document.createElement('button');
     btn.className = 'cat-btn' + (cat.id === selCat ? ' selected' : '');
     btn.dataset.id = cat.id;
-    btn.innerHTML = `<i class="${cat.icon}" style="color:${cat.color}"></i><span class="cat-btn-label">${cat.label}</span>`;
+    btn.innerHTML = `<i class="${cat.icon}" style="color:${cat.color}"></i><span class="cat-btn-label">${catLabel(cat)}</span>`;
     btn.addEventListener('click', () => {
       selCat = cat.id;
       catsGrid.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
