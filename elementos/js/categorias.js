@@ -183,11 +183,11 @@ function openForm(editId = null) {
   });
 
   // Selector de icono (botón + hoja con buscador y grupos).
-  // El color de la categoría es blanco por defecto.
+  // El color del icono sigue el acento del tipo (verde ingreso / rojo gasto).
   const iconPicker = initIconPicker({
     btn: overlay.querySelector('#catIconBtn'),
     selected: selIcon,
-    accent: '#ffffff',
+    accent,
     onSelect: (c) => { selIcon = c; },
   });
 
@@ -238,7 +238,7 @@ function openForm(editId = null) {
       tipo: tipoActivo,
       nombre,
       icon: selIcon,
-      color: '#ffffff',            // color por defecto: blanco
+      color: accent,               // color según tipo: verde ingreso / rojo gasto
       valor: valor || null,        // opcional
       cuentaId,                    // cuenta asignada (opcional)
       fija: esFija,
