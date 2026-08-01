@@ -1,0 +1,181 @@
+/* ── PENDIENTES ──────────────────────────────────────────────── */
+
+/* Tarjeta de total pendiente */
+.pend-total {
+  border-radius: 20px;
+  padding: 1.15rem 1.35rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--accent, #34d399) 22%, rgba(255,255,255,.08));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.07);
+}
+.pend-total::after {
+  content: '';
+  position: absolute;
+  top: -60px; right: -40px;
+  width: 170px; height: 170px;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--accent, #34d399) 20%, transparent), transparent 70%);
+  pointer-events: none;
+}
+.pend-total > * { position: relative; z-index: 1; }
+.pend-total-label {
+  font-size: .78rem;
+  font-weight: 600;
+  color: rgba(255,255,255,.5);
+  letter-spacing: .02em;
+}
+.pend-total-amount {
+  font-size: 1.9rem;
+  font-weight: 800;
+  letter-spacing: -.02em;
+  color: var(--accent, #3b82f6);
+}
+.pend-total-sub {
+  font-size: .74rem;
+  color: rgba(255,255,255,.4);
+}
+
+/* Identidad azul de la sección Pendientes */
+.pend-page-blue .cat-header-glow .cuentas-header-icon {
+  background: rgba(59,130,246,.16);
+  color: #60a5fa;
+  border-color: rgba(59,130,246,.35);
+  box-shadow: 0 0 22px rgba(59,130,246,.28);
+}
+.pend-page-blue .cat-header-glow::after {
+  background: radial-gradient(circle, rgba(59,130,246,.2), transparent 70%);
+}
+/* Las pestañas conservan su color por tipo: verde ingreso / rojo gasto
+   (definido en categorias.css). No las forzamos a azul. */
+
+/* Chip del día de cobro fijo (color del tipo: verde/rojo) */
+.pend-dia-chip {
+  color: var(--accent, #34d399);
+  background: color-mix(in srgb, var(--accent, #34d399) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent, #34d399) 28%, transparent);
+  padding: 3px 10px;
+  border-radius: 99px;
+  font-size: .74rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.pend-dia-chip i { font-size: .7rem; opacity: .9; }
+
+/* Chip de comprobantes adjuntos */
+.pend-comp-chip {
+  color: rgba(255,255,255,.6);
+  background: rgba(255,255,255,.07);
+  border: 1px solid rgba(255,255,255,.14);
+  padding: 3px 9px;
+  border-radius: 99px;
+  font-size: .72rem;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.pend-comp-chip i { font-size: .68rem; }
+
+/* Badge "Fija" junto al nombre */
+.pend-fijo-badge {
+  flex-shrink: 0;
+  font-size: .58rem;
+  font-weight: 700;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+  color: var(--accent, #34d399);
+  background: color-mix(in srgb, var(--accent, #34d399) 12%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent, #34d399) 25%, transparent);
+  padding: 3px 8px;
+  border-radius: 99px;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+.pend-fijo-badge i { font-size: .6rem; }
+
+/* Fila de pendiente (reutiliza .cat-row) */
+.pend-row {
+  align-items: center;
+}
+.pend-row .cat-row-info {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* Línea superior: título + badge Fija */
+.pend-row-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+.pend-row-top .cat-row-nombre {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Monto + día en la misma línea */
+.pend-monto-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Monto destacado */
+.pend-monto {
+  color: #fff;
+  font-weight: 800;
+  font-size: 1.15rem;
+  letter-spacing: -.01em;
+  line-height: 1;
+}
+
+/* Línea de metadatos: día + cuenta */
+.pend-meta-row {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.pend-meta {
+  color: rgba(255,255,255,.42);
+  font-size: .74rem;
+}
+
+/* Botón aprobar */
+.cat-icon-btn.ok {
+  color: #34d399;
+  border-color: rgba(52,211,153,.3);
+  background: rgba(52,211,153,.1);
+}
+.cat-icon-btn.ok:hover {
+  background: rgba(52,211,153,.2);
+  color: #fff;
+}
+
+/* Icono de confirmación en verde */
+.confirm-icon.ok {
+  color: #34d399;
+  background: rgba(52,211,153,.12);
+  border-color: rgba(52,211,153,.28);
+}
+
+/* Botón de opción "aprobar" en hoja de confirmación */
+.options-btn.ok {
+  color: #34d399;
+  border-color: rgba(52,211,153,.3);
+}
+.options-btn.ok:hover {
+  background: rgba(52,211,153,.14);
+}

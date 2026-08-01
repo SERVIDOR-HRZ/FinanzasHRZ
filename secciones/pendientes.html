@@ -3,64 +3,49 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" />
-  <title>Más — FinanceApp</title>
+  <title>Pendientes — FinanceApp</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
   <link rel="stylesheet" href="../elementos/css/style.css" />
   <link rel="stylesheet" href="../elementos/css/cuentas.css" />
   <link rel="stylesheet" href="../elementos/css/movimientos.css" />
   <link rel="stylesheet" href="../elementos/css/categorias.css" />
+  <link rel="stylesheet" href="../elementos/css/pendientes.css" />
 </head>
-<body>
+<body class="pend-page-blue">
 
   <div class="bg-glow glow-1"></div>
   <div class="bg-glow glow-2"></div>
 
   <div class="mas-page">
 
+    <a href="mas.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Más</a>
+
     <!-- Header -->
-    <div class="cuentas-header glass">
-      <div class="cuentas-header-icon"><i class="fa-solid fa-grip"></i></div>
+    <div class="cuentas-header glass cat-header-glow">
+      <div class="cuentas-header-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
       <div class="cuentas-header-text">
-        <h1>Más</h1>
-        <p>Herramientas y ajustes</p>
+        <h1>Pendientes</h1>
+        <p>Apruébalos cuando se concreten</p>
       </div>
     </div>
 
-    <p class="section-label">Herramientas</p>
-    <div class="hub-grid">
-      <a href="divisas.html" class="hub-card" style="--hub-color:#fbbf24">
-        <div class="hub-icon"><i class="fa-solid fa-coins"></i></div>
-        <div class="hub-text">
-          <div class="hub-title">Divisas</div>
-          <div class="hub-desc">Convierte entre monedas del mundo en tiempo real.</div>
-        </div>
-        <i class="fa-solid fa-chevron-right hub-arrow"></i>
-      </a>
-      <a href="categorias.html" class="hub-card" style="--hub-color:#ffffff">
-        <div class="hub-icon"><i class="fa-solid fa-tags"></i></div>
-        <div class="hub-text">
-          <div class="hub-title">Categorías</div>
-          <div class="hub-desc">Crea y gestiona categorías de ingresos y gastos.</div>
-        </div>
-        <i class="fa-solid fa-chevron-right hub-arrow"></i>
-      </a>
-      <a href="pendientes.html" class="hub-card" style="--hub-color:#3b82f6">
-        <div class="hub-icon"><i class="fa-solid fa-clock-rotate-left"></i></div>
-        <div class="hub-text">
-          <div class="hub-title">Pendientes</div>
-          <div class="hub-desc">Anota cobros y pagos por confirmar y apruébalos cuando se concreten.</div>
-        </div>
-        <i class="fa-solid fa-chevron-right hub-arrow"></i>
-      </a>
-      <a href="reportes.html" class="hub-card" style="--hub-color:#e5e7eb">
-        <div class="hub-icon"><i class="fa-solid fa-file-lines"></i></div>
-        <div class="hub-text">
-          <div class="hub-title">Reportes</div>
-          <div class="hub-desc">Genera PDF de ingresos, gastos, pendientes, cuentas y más.</div>
-        </div>
-        <i class="fa-solid fa-chevron-right hub-arrow"></i>
-      </a>
+    <!-- Tabs -->
+    <div class="cat-tabs">
+      <button class="cat-tab active" data-tab="ingreso"><i class="fa-solid fa-arrow-trend-up"></i> Por cobrar</button>
+      <button class="cat-tab" data-tab="gasto"><i class="fa-solid fa-arrow-trend-down"></i> Por pagar</button>
     </div>
+
+    <!-- Total pendiente -->
+    <div class="pend-total glass" id="pendTotal"></div>
+
+    <!-- Nuevo -->
+    <button class="btn-nueva-cuenta" id="btnNuevoPend">
+      <i class="fa-solid fa-plus"></i>
+      Nuevo pendiente
+    </button>
+
+    <!-- Lista -->
+    <div class="cat-manage-list" id="pendList"></div>
 
   </div>
 
@@ -129,5 +114,6 @@
   </div>
 
   <script type="module" src="../elementos/js/app.js"></script>
+  <script type="module" src="../elementos/js/pendientes.js"></script>
 </body>
 </html>

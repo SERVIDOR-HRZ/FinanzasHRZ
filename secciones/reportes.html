@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" />
+  <title>Reportes — FinanceApp</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
+  <link rel="stylesheet" href="../elementos/css/style.css" />
+  <link rel="stylesheet" href="../elementos/css/cuentas.css" />
+  <link rel="stylesheet" href="../elementos/css/movimientos.css" />
+  <link rel="stylesheet" href="../elementos/css/categorias.css" />
+  <link rel="stylesheet" href="../elementos/css/reportes.css" />
+</head>
+<body>
+
+  <div class="bg-glow glow-1"></div>
+  <div class="bg-glow glow-2"></div>
+
+  <div class="mas-page">
+
+    <a href="mas.html" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Más</a>
+
+    <!-- Header -->
+    <div class="cuentas-header glass cat-header-glow">
+      <div class="cuentas-header-icon"><i class="fa-solid fa-file-lines"></i></div>
+      <div class="cuentas-header-text">
+        <h1>Reportes</h1>
+        <p>Genera documentos en PDF</p>
+      </div>
+    </div>
+
+    <!-- Tipo de reporte -->
+    <p class="section-label">Tipo de reporte</p>
+    <div class="rep-grid" id="repGrid">
+      <button class="rep-card selected" data-rep="resumen">
+        <span class="rep-card-ico"><i class="fa-solid fa-chart-pie"></i></span>
+        <span class="rep-card-txt">
+          <span class="rep-card-title">Resumen general</span>
+          <span class="rep-card-desc">Balance, ingresos, gastos y pendientes</span>
+        </span>
+        <i class="fa-solid fa-circle-check rep-check"></i>
+      </button>
+      <button class="rep-card" data-rep="estado">
+        <span class="rep-card-ico"><i class="fa-solid fa-building-columns"></i></span>
+        <span class="rep-card-txt">
+          <span class="rep-card-title">Estado de cuenta</span>
+          <span class="rep-card-desc">Saldo de todas tus cuentas</span>
+        </span>
+        <i class="fa-solid fa-circle-check rep-check"></i>
+      </button>
+      <button class="rep-card" data-rep="ingresos">
+        <span class="rep-card-ico ico-in"><i class="fa-solid fa-arrow-trend-up"></i></span>
+        <span class="rep-card-txt">
+          <span class="rep-card-title">Ingresos</span>
+          <span class="rep-card-desc">Detalle de dinero recibido</span>
+        </span>
+        <i class="fa-solid fa-circle-check rep-check"></i>
+      </button>
+      <button class="rep-card" data-rep="gastos">
+        <span class="rep-card-ico ico-out"><i class="fa-solid fa-arrow-trend-down"></i></span>
+        <span class="rep-card-txt">
+          <span class="rep-card-title">Gastos</span>
+          <span class="rep-card-desc">Detalle de dinero gastado</span>
+        </span>
+        <i class="fa-solid fa-circle-check rep-check"></i>
+      </button>
+      <button class="rep-card" data-rep="pendientes">
+        <span class="rep-card-ico"><i class="fa-solid fa-clock-rotate-left"></i></span>
+        <span class="rep-card-txt">
+          <span class="rep-card-title">Pendientes</span>
+          <span class="rep-card-desc">Cobros y pagos por confirmar</span>
+        </span>
+        <i class="fa-solid fa-circle-check rep-check"></i>
+      </button>
+      <button class="rep-card" data-rep="categorias">
+        <span class="rep-card-ico"><i class="fa-solid fa-tags"></i></span>
+        <span class="rep-card-txt">
+          <span class="rep-card-title">Categorías</span>
+          <span class="rep-card-desc">Ingresos y gastos por categoría</span>
+        </span>
+        <i class="fa-solid fa-circle-check rep-check"></i>
+      </button>
+    </div>
+
+    <!-- Periodo -->
+    <p class="section-label">Periodo</p>
+    <div class="rep-periodo" id="repPeriodo">
+      <button class="rep-per-btn selected" data-per="mes">Este mes</button>
+      <button class="rep-per-btn" data-per="anio">Este año</button>
+      <button class="rep-per-btn" data-per="todo">Todo</button>
+    </div>
+
+    <!-- Generar -->
+    <button class="btn-nueva-cuenta rep-generar" id="btnGenerar">
+      <i class="fa-solid fa-file-arrow-down"></i>
+      Generar PDF
+    </button>
+
+    <p class="rep-hint">
+      <i class="fa-solid fa-circle-info"></i>
+      Se abrirá la vista de impresión. Elige <strong>“Guardar como PDF”</strong> como destino.
+    </p>
+
+  </div>
+
+  <!-- Nav inferior -->
+  <div class="nav-wrapper">
+    <nav class="bottom-nav glass">
+      <a href="../index.html" class="nav-item" data-page="cuentas">
+        <i class="fa-solid fa-wallet nav-icon"></i>
+        <span class="nav-label">Cuentas</span>
+      </a>
+      <a href="ingresos.html" class="nav-item" data-page="ingresos">
+        <i class="fa-solid fa-arrow-trend-up nav-icon"></i>
+        <span class="nav-label">Ingresos</span>
+      </a>
+      <div class="nav-spacer"></div>
+      <a href="gastos.html" class="nav-item" data-page="gastos">
+        <i class="fa-solid fa-arrow-trend-down nav-icon"></i>
+        <span class="nav-label">Gastos</span>
+      </a>
+      <a href="mas.html" class="nav-item active" data-page="mas">
+        <i class="fa-solid fa-grip nav-icon"></i>
+        <span class="nav-label">Más</span>
+      </a>
+    </nav>
+
+    <button class="fab" id="fabBtn" aria-label="Nuevo">
+      <i class="fa-solid fa-plus"></i>
+    </button>
+  </div>
+
+  <!-- Modal FAB -->
+  <div class="modal-overlay" id="modalOverlay" aria-hidden="true">
+    <div class="modal-sheet glass" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <div class="modal-handle"></div>
+      <p class="modal-eyebrow">Nueva transacción</p>
+      <h2 class="modal-title" id="modalTitle">¿Qué deseas registrar?</h2>
+      <p class="modal-subtitle">Selecciona qué deseas crear</p>
+      <div class="modal-options">
+        <button class="modal-option option-categoria" id="optCategoria">
+          <span class="option-icon-wrap"><i class="fa-solid fa-tags"></i></span>
+          <span class="option-text">
+            <span class="option-label">Nueva categoría</span>
+            <span class="option-desc">Organiza tus movimientos</span>
+          </span>
+          <i class="fa-solid fa-chevron-right option-arrow"></i>
+        </button>
+        <button class="modal-option option-ingreso" id="optIngreso">
+          <span class="option-icon-wrap"><i class="fa-solid fa-arrow-trend-up"></i></span>
+          <span class="option-text">
+            <span class="option-label">Ingreso</span>
+            <span class="option-desc">Dinero que entra</span>
+          </span>
+          <i class="fa-solid fa-chevron-right option-arrow"></i>
+        </button>
+        <button class="modal-option option-gasto" id="optGasto">
+          <span class="option-icon-wrap"><i class="fa-solid fa-arrow-trend-down"></i></span>
+          <span class="option-text">
+            <span class="option-label">Gasto</span>
+            <span class="option-desc">Dinero que sale</span>
+          </span>
+          <i class="fa-solid fa-chevron-right option-arrow"></i>
+        </button>
+      </div>
+      <button class="modal-cancel" id="modalCancel">Cancelar</button>
+    </div>
+  </div>
+
+  <script type="module" src="../elementos/js/app.js"></script>
+  <script type="module" src="../elementos/js/reportes.js"></script>
+</body>
+</html>

@@ -90,6 +90,8 @@ const ICON_DEFAULT = ALL_ICONS[0].c;
 let selIcon = ICON_DEFAULT;
 let esFija = false;
 let diaCobro = null;
+let inicioMes = null;    // mes (0-11) en que empieza a cobrarse
+let inicioAnio = null;   // año en que empieza a cobrarse
 
 function openForm(editId = null) {
   if (document.getElementById('modalCat')) return;
@@ -98,6 +100,8 @@ function openForm(editId = null) {
   selIcon  = editing ? editing.icon  : ICON_DEFAULT;
   esFija   = editing ? !!editing.fija : false;
   diaCobro = editing ? (editing.diaCobro || null) : null;
+  inicioMes  = editing && Number.isInteger(editing.inicioMes)  ? editing.inicioMes  : null;
+  inicioAnio = editing && Number.isInteger(editing.inicioAnio) ? editing.inicioAnio : null;
 
   // El color de la categoría lo define el tipo: verde ingreso / rojo gasto
   const accent = tipoActivo === 'ingreso' ? '#34d399' : '#f87171';
@@ -200,13 +204,21 @@ function openForm(editId = null) {
   switchFija.addEventListener('change', () => {
     esFija = switchFija.checked;
     diaWrap.classList.toggle('open', esFija);
-    if (!esFija) { diaCobro = null; overlay.querySelector('#diaVal').textContent = 'Elegir'; }
+    if (!esFija) {
+      diaCobro = null; inicioMes = null; inicioAnio = null;
+      overlay.querySelector('#diaVal').textContent = 'Elegir';
+    }
   });
 
   // Botón día -> calendario (color según tipo)
   overlay.querySelector('#btnDiaCobro').addEventListener('click', () => {
-    pickDayOfMonth(diaCobro, dia => {
+    const actual = diaCobro
+      ? { dia: diaCobro, mes: inicioMes ?? undefined, anio: inicioAnio ?? undefined }
+      : null;
+    pickDayOfMonth(actual, (dia, info) => {
       diaCobro = dia;
+      inicioMes  = info ? info.mes  : null;
+      inicioAnio = info ? info.anio : null;
       overlay.querySelector('#diaVal').textContent = 'Día ' + dia;
     }, accent);
   });
@@ -243,6 +255,8 @@ function openForm(editId = null) {
       cuentaId,                    // cuenta asignada (opcional)
       fija: esFija,
       diaCobro: esFija ? diaCobro : null,
+      inicioMes:  esFija ? (inicioMes  ?? null) : null,   // mes (0-11) de inicio
+      inicioAnio: esFija ? (inicioAnio ?? null) : null,   // año de inicio
     };
 
     if (editing) await actualizarCategoria(editId, data);

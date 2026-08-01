@@ -11,9 +11,18 @@ function ordinal(d) {
 
 export function pickDayOfMonth(actual, onPick, accent = '#34d399') {
   const hoy = new Date();
+  // `actual` puede ser un número (día) o un objeto { dia, mes, anio }
+  // para reabrir en el mes/año que se había configurado.
   let mesVista = hoy.getMonth();
   let anioVista = hoy.getFullYear();
-  let seleccion = actual || null;
+  let seleccion = null;
+  if (actual && typeof actual === 'object') {
+    seleccion = actual.dia || null;
+    if (Number.isInteger(actual.mes))  mesVista  = actual.mes;
+    if (Number.isInteger(actual.anio)) anioVista = actual.anio;
+  } else {
+    seleccion = actual || null;
+  }
 
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay cal-overlay';
@@ -106,7 +115,9 @@ export function pickDayOfMonth(actual, onPick, accent = '#34d399') {
   overlay.querySelector('#calCancel').addEventListener('click', close);
   overlay.querySelector('#calConfirm').addEventListener('click', () => {
     if (!seleccion) { badgeEl.classList.add('cal-badge-error'); setTimeout(() => badgeEl.classList.remove('cal-badge-error'), 500); return; }
-    onPick(seleccion);
+    // Devolvemos el día (compatibilidad) + el mes/año en que se configuró,
+    // para saber a partir de cuándo empieza a repetirse el cobro.
+    onPick(seleccion, { dia: seleccion, mes: mesVista, anio: anioVista });
     close();
   });
 
