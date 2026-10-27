@@ -3,6 +3,10 @@ import {
   collection, onSnapshot, addDoc, updateDoc, deleteDoc, doc, query, orderBy
 } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js";
 import { initIconPicker } from "./icon-picker.js";
+import { initColorPicker, initOpcionPicker } from "./pickers-cuenta.js";
+
+// Color de acento del formulario de cuenta (distinto a ingresos/gastos)
+const ACCENT_CUENTA = '#38bdf8';
 
 // ── CATEGORÍAS ──────────────────────────────────────────────
 const CATEGORIAS = [
@@ -300,10 +304,10 @@ function openFormCuenta(editId = null) {
   overlay.id = 'modalCuenta';
 
   overlay.innerHTML = `
-  <div class="modal-sheet glass modal-cuenta-sheet" role="dialog" aria-modal="true">
+  <div class="modal-sheet glass modal-cuenta-sheet cuenta-sheet" role="dialog" aria-modal="true" style="--accent:${ACCENT_CUENTA}">
     <div class="modal-handle"></div>
-    <p class="modal-eyebrow">${editing ? 'Editar cuenta' : 'Nueva cuenta'}</p>
-    <h2 class="modal-title">${editing ? 'Modificar datos' : 'Agregar cuenta'}</h2>
+    <p class="modal-eyebrow">Cuentas</p>
+    <h2 class="modal-title">${editing ? 'Editar cuenta' : 'Nueva cuenta'}</h2>
     <div class="form-scroll">
 
       <div class="form-group">
@@ -336,12 +340,12 @@ function openFormCuenta(editId = null) {
 
       <div class="form-group">
         <label class="form-label">Color</label>
-        <div class="colores-grid" id="coloresGrid"></div>
+        <button type="button" class="cat-select-btn color-select-btn" id="colorSelectBtn"></button>
       </div>
 
       <div class="form-group">
         <label class="form-label">Categoría</label>
-        <div class="cats-grid" id="catsGrid"></div>
+        <button type="button" class="cat-select-btn" id="catSelectBtn"></button>
       </div>
 
       ${editing ? `
@@ -362,43 +366,32 @@ function openFormCuenta(editId = null) {
   const iconPicker = initIconPicker({
     btn: overlay.querySelector('#iconSelectBtn'),
     selected: iconoClase(selIcono),
-    accent: selColor || '#007AFF',
+    accent: selColor || ACCENT_CUENTA,
     onSelect: (c) => { selIcono = c; },
   });
 
-  // Colores
-  const coloresGrid = overlay.querySelector('#coloresGrid');
-  COLORES.forEach(col => {
-    const btn = document.createElement('button');
-    btn.className = 'color-btn' + (col === selColor ? ' selected' : '');
-    btn.dataset.color = col;
-    btn.style.background = col;
-    btn.addEventListener('click', () => {
+  // Color (botón + hoja emergente)
+  const colorPicker = initColorPicker({
+    btn: overlay.querySelector('#colorSelectBtn'),
+    colores: COLORES,
+    selected: selColor,
+    accent: ACCENT_CUENTA,
+    onSelect: (col) => {
       selColor = col;
-      coloresGrid.querySelectorAll('.color-btn').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-      coloresGrid.classList.remove('grid-error');
       iconPicker.setAccent(col);   // el preview del icono adopta el color elegido
-    });
-    coloresGrid.appendChild(btn);
+    },
   });
 
-  // Categorías
-  const catsGrid = overlay.querySelector('#catsGrid');
-  CATEGORIAS.forEach(cat => {
-    const btn = document.createElement('button');
-    btn.className = 'cat-btn' + (cat.id === selCat ? ' selected' : '');
-    btn.dataset.id = cat.id;
-    btn.innerHTML = `
-      <i class="${cat.icon}"></i>
-      <span class="cat-btn-label">${cat.label}</span>
-      ${cat.porcentaje ? `<span class="cat-btn-pct">${cat.porcentaje}%</span>` : ''}`;
-    btn.addEventListener('click', () => {
-      selCat = cat.id;
-      catsGrid.querySelectorAll('.cat-btn').forEach(b => b.classList.remove('selected'));
-      btn.classList.add('selected');
-    });
-    catsGrid.appendChild(btn);
+  // Categoría (botón + hoja emergente)
+  initOpcionPicker({
+    btn: overlay.querySelector('#catSelectBtn'),
+    opciones: CATEGORIAS.map(c => ({ id: c.id, label: c.label, icon: c.icon, sub: c.porcentaje ? `${c.porcentaje}%` : 'Sin %' })),
+    selected: selCat,
+    accent: ACCENT_CUENTA,
+    eyebrow: 'Categoría',
+    titulo: 'Categoría de la cuenta',
+    placeholder: 'Elegir categoría',
+    onSelect: (id) => { selCat = id; },
   });
 
   // Formato miles
@@ -428,7 +421,9 @@ function openFormCuenta(editId = null) {
       inp.focus(); inp.classList.add('input-error'); return;
     }
     if (!selColor) {
-      overlay.querySelector('#coloresGrid').classList.add('grid-error'); return;
+      colorPicker.marcarError();
+      overlay.querySelector('#colorSelectBtn').scrollIntoView({ block: 'center', behavior: 'smooth' });
+      return;
     }
 
     const btnGuardar = overlay.querySelector('#btnGuardar');
@@ -499,5 +494,10 @@ function showToast(msg) {
   }, 2000);
 }
 
-// ── BOTÓN NUEVA CUENTA ───────────────────────────────────────
-document.getElementById('btnNuevaCuenta').addEventListener('click', () => openFormCuenta());
+// ── NUEVA CUENTA desde el FAB (app.js) ──────────────────────
+window.abrirNuevaCuenta = () => openFormCuenta();
+
+if (new URLSearchParams(location.search).get('nueva') === '1') {
+  history.replaceState(null, '', location.pathname);
+  setTimeout(() => openFormCuenta(), 300);
+}

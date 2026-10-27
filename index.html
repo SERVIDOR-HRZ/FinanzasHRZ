@@ -3,11 +3,23 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, interactive-widget=resizes-content" />
-  <title>Cuentas — FinanceApp</title>
+  <title>Cuentas — FinanzasHRZ</title>
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css" />
-  <link rel="stylesheet" href="elementos/css/style.css" />
-  <link rel="stylesheet" href="elementos/css/cuentas.css" />
-  <link rel="stylesheet" href="elementos/css/movimientos.css" />
+  <link rel="stylesheet" href="elementos/css/style.css?v=20261027e" />
+  <link rel="stylesheet" href="elementos/css/cuentas.css?v=20261027e" />
+  <link rel="stylesheet" href="elementos/css/movimientos.css?v=20261027e" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="elementos/css/pro.css?v=20261027e" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Finanzas" />
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="apple-touch-icon" href="elementos/img/icon-192.png" />
+  <link rel="icon" type="image/png" sizes="192x192" href="elementos/img/icon-192.png" />
 </head>
 <body>
 
@@ -53,11 +65,6 @@
       </div>
     </div> 
 
-    <!-- Nueva cuenta -->
-    <button class="btn-nueva-cuenta" id="btnNuevaCuenta">
-      <i class="fa-solid fa-plus"></i>
-      Nueva cuenta
-    </button>
 
     <!-- Lista -->
     <p class="section-label">Mis cuentas</p>
@@ -96,10 +103,18 @@
   <div class="modal-overlay" id="modalOverlay" aria-hidden="true">
     <div class="modal-sheet glass" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <div class="modal-handle"></div>
-      <p class="modal-eyebrow">Nueva transacción</p>
+      <p class="modal-eyebrow">Crear nuevo</p>
       <h2 class="modal-title" id="modalTitle">¿Qué deseas registrar?</h2>
       <p class="modal-subtitle">Selecciona qué deseas crear</p>
       <div class="modal-options">
+        <button class="modal-option option-cuenta" id="optCuenta">
+          <span class="option-icon-wrap"><i class="fa-solid fa-wallet"></i></span>
+          <span class="option-text">
+            <span class="option-label">Nueva cuenta</span>
+            <span class="option-desc">Agrega una cuenta o billetera</span>
+          </span>
+          <i class="fa-solid fa-chevron-right option-arrow"></i>
+        </button>
         <button class="modal-option option-categoria" id="optCategoria">
           <span class="option-icon-wrap"><i class="fa-solid fa-tags"></i></span>
           <span class="option-text">
@@ -129,7 +144,7 @@
     </div>
   </div>
 
-  <script type="module" src="elementos/js/app.js"></script>
-  <script type="module" src="elementos/js/cuentas.js"></script>
+  <script type="module" src="elementos/js/app.js?v=20261027e"></script>
+  <script type="module" src="elementos/js/cuentas.js?v=20261027e"></script>
 </body>
 </html>

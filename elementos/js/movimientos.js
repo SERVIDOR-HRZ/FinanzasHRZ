@@ -710,7 +710,3 @@ function showToast(msg) {
   setTimeout(() => { toast.classList.remove('visible'); setTimeout(() => toast.remove(), 400); }, 2000);
 }
 
-// ── BOTÓN NUEVO (usa el form compartido con foto + IA) ───────
-import('./quick-mov.js').then(({ openQuickMov }) => {
-  document.getElementById('btnNuevoMov').addEventListener('click', () => openQuickMov(TIPO));
-});

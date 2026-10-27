@@ -80,19 +80,29 @@ navItems.forEach(item => {
   });
 });
 
-// ── FAB + Modal ingreso/gasto ────────────────────────────────
+// ── FAB contextual + Modal ───────────────────────────────────
+// · Ingresos / Gastos  → abre directo el formulario del tipo de la página
+// · Categorías         → abre directo "nueva categoría"
+// · Cuentas / resto    → abre el menú de opciones
 if (fab && modalOverlay) {
-  const modalCancel = document.getElementById('modalCancel');
-  const optIngreso  = document.getElementById('optIngreso');
-  const optGasto    = document.getElementById('optGasto');
+  const modalCancel  = document.getElementById('modalCancel');
+  const optIngreso   = document.getElementById('optIngreso');
+  const optGasto     = document.getElementById('optGasto');
   const optCategoria = document.getElementById('optCategoria');
+  const optCuenta    = document.getElementById('optCuenta');
 
-  fab.addEventListener('click', () => {
+  const tipoPagina   = document.body.dataset.tipo || null;          // 'ingreso' | 'gasto'
+  const enCategorias = location.pathname.endsWith('categorias.html');
+  const enAgenda     = location.pathname.endsWith('agenda.html');
+  const enCuentas    = !location.pathname.includes('/secciones/');
+  const base         = location.pathname.includes('/secciones/') ? '' : 'secciones/';
+
+  function openModal() {
     fab.classList.add('open');
     modalOverlay.setAttribute('aria-hidden', 'false');
     modalOverlay.classList.add('active');
     modalOverlay.classList.remove('closing');
-  });
+  }
 
   function closeModal() {
     modalOverlay.classList.add('closing');
@@ -104,28 +114,127 @@ if (fab && modalOverlay) {
     }, 300);
   }
 
+  fab.addEventListener('click', () => {
+    if (tipoPagina) {
+      import('./quick-mov.js').then(({ openQuickMov }) => openQuickMov(tipoPagina));
+      return;
+    }
+    if (enCategorias && window.abrirNuevaCategoria) {
+      window.abrirNuevaCategoria();
+      return;
+    }
+    if (enAgenda && window.abrirNuevoEvento) {
+      window.abrirNuevoEvento();
+      return;
+    }
+    openModal();
+  });
+
   modalOverlay.addEventListener('click', e => { if (e.target === modalOverlay) closeModal(); });
   modalCancel.addEventListener('click', closeModal);
   document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
 
-  // Abrir el formulario directo desde cualquier pantalla
   import('./quick-mov.js').then(({ openQuickMov }) => {
-    optIngreso.addEventListener('click', () => { closeModal(); setTimeout(() => openQuickMov('ingreso'), 260); });
-    optGasto.addEventListener('click',   () => { closeModal(); setTimeout(() => openQuickMov('gasto'), 260); });
+    optIngreso?.addEventListener('click', () => { closeModal(); setTimeout(() => openQuickMov('ingreso'), 260); });
+    optGasto?.addEventListener('click',   () => { closeModal(); setTimeout(() => openQuickMov('gasto'), 260); });
   });
 
-  // Nueva categoría: si ya estamos en la pantalla de categorías, abrimos
-  // el formulario directo; si no, navegamos a ella y lo abrimos al cargar.
-  if (optCategoria) {
-    optCategoria.addEventListener('click', () => {
-      closeModal();
-      const enCategorias = location.pathname.endsWith('categorias.html');
-      if (enCategorias && window.abrirNuevaCategoria) {
-        setTimeout(() => window.abrirNuevaCategoria(), 260);
-      } else {
-        const base = location.pathname.includes('/secciones/') ? '' : 'secciones/';
-        location.href = `${base}categorias.html?nueva=1`;
-      }
+  optCategoria?.addEventListener('click', () => {
+    closeModal();
+    if (enCategorias && window.abrirNuevaCategoria) {
+      setTimeout(() => window.abrirNuevaCategoria(), 260);
+    } else {
+      location.href = `${base}categorias.html?nueva=1`;
+    }
+  });
+
+  optCuenta?.addEventListener('click', () => {
+    closeModal();
+    if (enCuentas && window.abrirNuevaCuenta) {
+      setTimeout(() => window.abrirNuevaCuenta(), 260);
+    } else {
+      location.href = '../index.html?nueva=1';
+    }
+  });
+}
+
+// ── Marcas de esquina en tarjetas héroe (capa visual "pro") ──
+document.querySelectorAll('.balance-card, .mov-summary, .converter-card').forEach(card => {
+  if (card.querySelector('.hero-corners')) return;
+  const c = document.createElement('div');
+  c.className = 'hero-corners';
+  c.setAttribute('aria-hidden', 'true');
+  c.innerHTML = '<i></i><i></i><i></i><i></i>';
+  card.appendChild(c);
+});
+
+// ── PWA: service worker + aviso de instalación ───────────────
+(() => {
+  const base = location.pathname.includes('/secciones/') ? '../' : '';
+  const enCuentas = !location.pathname.includes('/secciones/');
+  const KEY = 'pwaInstallDone';        // 'instalada' | 'descartada'
+  const yaDecidido = () => { try { return !!localStorage.getItem(KEY); } catch { return false; } };
+  const marcar = v => { try { localStorage.setItem(KEY, v); } catch {} };
+  const esStandalone = window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true;
+  const esIOS = /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+
+  // Reinicio manual del aviso: abrir index.html?pwa=reset
+  if (new URLSearchParams(location.search).get('pwa') === 'reset') {
+    try { localStorage.removeItem(KEY); } catch {}
+    history.replaceState(null, '', location.pathname);
+  }
+
+  // Service worker (solo con http/https; en file:// no aplica)
+  if ('serviceWorker' in navigator && /^https?:/.test(location.protocol)) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register(base + 'sw.js').catch(err => console.warn('SW no registrado', err));
     });
   }
-}
+
+  if (esStandalone) { marcar('instalada'); return; }   // ya corre como app: nunca más preguntar
+  if (!enCuentas || yaDecidido()) return;              // solo en Cuentas y solo la primera vez
+
+  let promptEvt = null;
+  let banner = null;
+
+  function mostrarBanner(modoIOS) {
+    if (banner) return;
+    banner = document.createElement('div');
+    banner.className = 'pwa-banner';
+    banner.setAttribute('role', 'dialog');
+    banner.innerHTML = `
+      <div class="pwa-banner-ico"><img src="${base}elementos/img/icon-192.png" alt="" /></div>
+      <div class="pwa-banner-text">
+        <strong>Instala FinanzasHRZ</strong>
+        ${modoIOS ? '<span>Toca <i class="fa-solid fa-arrow-up-from-bracket"></i> Compartir y luego <b>Añadir a pantalla de inicio</b>.</span>' : ''}
+      </div>
+      <div class="pwa-banner-btns">
+        ${modoIOS ? '' : '<button class="pwa-btn-install" id="pwaInstalar"><i class="fa-solid fa-download"></i> Instalar</button>'}
+        <button class="pwa-btn-later" id="pwaLuego" aria-label="Cerrar">${modoIOS ? 'Entendido' : 'Ahora no'}</button>
+      </div>`;
+    document.body.appendChild(banner);
+    requestAnimationFrame(() => banner.classList.add('visible'));
+
+    const cerrar = () => { banner.classList.remove('visible'); setTimeout(() => banner.remove(), 350); banner = null; };
+
+    banner.querySelector('#pwaLuego').addEventListener('click', () => { marcar('descartada'); cerrar(); });
+    banner.querySelector('#pwaInstalar')?.addEventListener('click', async () => {
+      if (!promptEvt) return;
+      promptEvt.prompt();
+      const { outcome } = await promptEvt.userChoice;
+      promptEvt = null;
+      marcar(outcome === 'accepted' ? 'instalada' : 'descartada');
+      cerrar();
+    });
+  }
+
+  window.addEventListener('beforeinstallprompt', e => {
+    e.preventDefault();
+    promptEvt = e;
+    setTimeout(() => mostrarBanner(false), 1200);
+  });
+  window.addEventListener('appinstalled', () => { marcar('instalada'); if (banner) { banner.classList.remove('visible'); setTimeout(() => banner?.remove(), 350); } });
+
+  // iOS no dispara beforeinstallprompt: mostramos las instrucciones una vez
+  if (esIOS) setTimeout(() => mostrarBanner(true), 1500);
+})();

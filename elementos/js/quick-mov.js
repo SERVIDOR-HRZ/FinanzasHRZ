@@ -311,9 +311,9 @@ export function openCapturaModal(accent, onAprobar, opts = {}) {
   overlay.innerHTML = `
   <div class="modal-sheet glass captura-sheet" role="dialog" aria-modal="true" style="--accent:${accent}">
     <div class="modal-handle"></div>
-    <p class="modal-eyebrow"><i class="fa-solid fa-receipt"></i> Comprobante</p>
-    <h2 class="modal-title">Agregar foto</h2>
-    <p class="modal-subtitle">Captura o sube el recibo, luego revísalo antes de usarlo.</p>
+    <p class="modal-eyebrow"><i class="${opts.icono || 'fa-solid fa-receipt'}"></i> ${opts.eyebrow || 'Comprobante'}</p>
+    <h2 class="modal-title">${opts.titulo || 'Agregar foto'}</h2>
+    <p class="modal-subtitle">${opts.subtitulo || 'Captura o sube el recibo, luego revísalo antes de usarlo.'}</p>
 
     <div class="captura-stage" id="capturaStage">
       <div class="captura-shot" id="capturaShot">

@@ -344,7 +344,6 @@ function showToast(msg) {
 }
 
 // ── Init ─────────────────────────────────────────────────────
-document.getElementById('btnNuevaCat').addEventListener('click', () => openForm());
 suscribir();
 
 // Permite que el FAB (app.js) abra el formulario de nueva categoría,
