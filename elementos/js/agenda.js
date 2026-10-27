@@ -221,6 +221,8 @@ function renderDia() {
 }
 
 // ── Vista SEMANA ────────────────────────────────────────────
+// Tira con los 7 días; al tocar uno se selecciona (sin cambiar de vista)
+// y abajo se muestra la agenda de ese día.
 function renderSemana() {
   const l = lunesDe(fechaSel);
   const h = hoy();
@@ -237,23 +239,14 @@ function renderSemana() {
       </button>`;
   }).join('');
 
-  const grupos = dias.map(d => {
-    const evs = eventosDe(d);
-    return `
-      <div class="ag-group${mismoDia(d, h) ? ' today' : ''}${evs.length ? '' : ' empty'}">
-        <div class="ag-group-head">
-          <span class="ag-group-day">${DIAS_CORTO[diaSemana(d)]}</span>
-          <span class="ag-group-num">${d.getDate()}</span>
-          <span class="ag-group-line"></span>
-          <span class="ag-group-count">${evs.length ? evs.length + (evs.length === 1 ? ' evento' : ' eventos') : 'libre'}</span>
-        </div>
-        ${evs.length ? `<div class="ag-list">${evs.map(e => evHTML(e)).join('')}</div>` : ''}
-      </div>`;
-  }).join('');
+  const evs = eventosDe(fechaSel);
+  vistaEl.innerHTML = `
+    <div class="ag-strip">${strip}</div>
+    ${cabeceraDiaHTML(fechaSel)}
+    <div class="ag-list">${evs.length ? evs.map(e => evHTML(e)).join('') : vacioHTML()}</div>`;
 
-  vistaEl.innerHTML = `<div class="ag-strip">${strip}</div><div class="ag-groups">${grupos}</div>`;
   vistaEl.querySelectorAll('.ag-chip').forEach(c => c.addEventListener('click', () => {
-    fechaSel = deKey(c.dataset.key); vista = 'dia'; render();
+    fechaSel = deKey(c.dataset.key); render();
   }));
   bindEventos(vistaEl);
 }
