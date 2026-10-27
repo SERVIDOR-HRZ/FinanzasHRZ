@@ -39,13 +39,6 @@ const repetirTexto = ev => {
   return r.corto;
 };
 
-const IMPORTANCIA = [
-  { id: 'baja',    label: 'Baja',    icon: 'fa-solid fa-angle-down',  color: '#9ca3af' },
-  { id: 'normal',  label: 'Normal',  icon: 'fa-solid fa-minus',       color: '#a78bfa' },
-  { id: 'alta',    label: 'Alta',    icon: 'fa-solid fa-angle-up',    color: '#fbbf24' },
-  { id: 'urgente', label: 'Urgente', icon: 'fa-solid fa-circle-exclamation', color: '#f87171' },
-];
-const importanciaInfo = id => IMPORTANCIA.find(i => i.id === id) || IMPORTANCIA[1];
 
 const MESES      = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const MESES_CORTO= ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
@@ -214,10 +207,10 @@ function evHTML(ev, conFecha = false) {
         : ev.horaInicio ? `<span>${hora12(ev.horaInicio)}</span>${ev.horaFin ? `<span class="ag-ev-fin">${hora12(ev.horaFin)}</span>` : ''}`
         : '<span class="ag-ev-allday">—</span>'}
     </div>
-    <div class="ag-ev-card${ev.importancia === 'urgente' ? ' urgente' : ''}">
+    <div class="ag-ev-card">
       <span class="ag-ev-ico"><i class="${t.icon}"></i></span>
       <div class="ag-ev-body">
-        <div class="ag-ev-title">${esc(ev.titulo)}${ev.importancia && ev.importancia !== 'normal' ? `<span class="ag-ev-imp" style="--i:${importanciaInfo(ev.importancia).color}"><i class="${importanciaInfo(ev.importancia).icon}"></i>${importanciaInfo(ev.importancia).label}</span>` : ''}</div>
+        <div class="ag-ev-title">${esc(ev.titulo)}</div>
         <div class="ag-ev-meta">
           <span class="ag-ev-tipo">${t.label}</span>
           ${ev.repetir && ev.repetir !== 'nunca' ? `<span class="ag-ev-rep" title="${repetirInfo(ev.repetir).label}"><i class="fa-solid fa-repeat"></i>${repetirTexto(ev)}</span>` : ''}
@@ -384,7 +377,6 @@ function openDetalle(id) {
     <div class="mov-detail-head">
       <div class="mov-detail-icon"><i class="${t.icon}"></i></div>
       <span class="ag-detail-tipo">${t.label}${ev.tipo === 'tarea' ? (ev.hecho ? ' · completada' : ' · pendiente') : ''}</span>
-      ${ev.importancia && ev.importancia !== 'normal' ? `<span class="ag-detail-imp" style="--i:${importanciaInfo(ev.importancia).color}"><i class="${importanciaInfo(ev.importancia).icon}"></i> Importancia ${importanciaInfo(ev.importancia).label.toLowerCase()}</span>` : ''}
       <h2 class="ag-detail-title">${esc(ev.titulo)}</h2>
     </div>
     <div class="mov-detail-rows">
@@ -478,7 +470,6 @@ function openForm(editId = null) {
   let repetir  = editing?.repetir || 'nunca';
   let repetirHasta = editing?.repetirHasta ? deKey(editing.repetirHasta) : null;
   let repetirDias  = editing?.repetirDias ? [...editing.repetirDias] : [diaSemana(fecha)];
-  let importancia  = editing?.importancia || 'normal';
 
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
@@ -498,11 +489,6 @@ function openForm(editId = null) {
       <div class="form-group">
         <label class="form-label">Tipo</label>
         <button type="button" class="cat-select-btn" id="agTipoBtn"></button>
-      </div>
-
-      <div class="form-group">
-        <label class="form-label">Importancia</label>
-        <button type="button" class="cat-select-btn" id="agImpBtn"></button>
       </div>
 
       <div class="form-group">
@@ -577,15 +563,6 @@ function openForm(editId = null) {
     selected: tipo, accent: ACCENT,
     eyebrow: 'Tipo', titulo: 'Tipo de evento', placeholder: 'Elegir tipo',
     onSelect: id => { tipo = id; },
-  });
-
-  // Importancia
-  initOpcionPicker({
-    btn: overlay.querySelector('#agImpBtn'),
-    opciones: IMPORTANCIA.map(i => ({ id: i.id, label: i.label, icon: i.icon })),
-    selected: importancia, accent: ACCENT,
-    eyebrow: 'Importancia', titulo: 'Nivel de importancia', placeholder: 'Normal',
-    onSelect: id => { importancia = id; },
   });
 
   // Fecha
@@ -728,7 +705,6 @@ function openForm(editId = null) {
       repetir,
       repetirHasta: repetir !== 'nunca' && repetirHasta ? key(repetirHasta) : '',
       repetirDias: repetir === 'dias' ? repetirDias.slice().sort((a, b) => a - b) : [],
-      importancia,
       hecho: editing ? !!editing.hecho : false,
       creado: editing ? (editing.creado || Date.now()) : Date.now(),
     };
