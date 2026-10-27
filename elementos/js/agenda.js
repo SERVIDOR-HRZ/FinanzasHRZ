@@ -21,6 +21,15 @@ const TIPOS = [
 ];
 const tipoInfo = id => TIPOS.find(t => t.id === id) || TIPOS[0];
 
+const REPETIR = [
+  { id: 'nunca',     label: 'No se repite',  corto: '',             icon: 'fa-solid fa-ban' },
+  { id: 'diario',    label: 'Cada día',      corto: 'Cada día',     icon: 'fa-solid fa-sun' },
+  { id: 'semanal',   label: 'Cada semana',   corto: 'Cada semana',  icon: 'fa-solid fa-calendar-week' },
+  { id: 'quincenal', label: 'Cada 15 días',  corto: 'Cada 15 días', icon: 'fa-solid fa-calendar-days' },
+  { id: 'mensual',   label: 'Cada mes',      corto: 'Cada mes',     icon: 'fa-solid fa-calendar' },
+];
+const repetirInfo = id => REPETIR.find(r => r.id === id) || REPETIR[0];
+
 const MESES      = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const MESES_CORTO= ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
 const DIAS       = ['Lunes','Martes','Miércoles','Jueves','Viernes','Sábado','Domingo'];
@@ -86,7 +95,36 @@ const ordenEv = (a, b) => {
   if (!!a.todoDia !== !!b.todoDia) return a.todoDia ? -1 : 1;
   return (a.horaInicio || '99:99').localeCompare(b.horaInicio || '99:99') || (a.creado || 0) - (b.creado || 0);
 };
-const eventosDe = d => eventos.filter(e => e.fecha === key(d)).sort(ordenEv);
+const diasEntre = (a, b) => Math.round((b - a) / 86400000);
+
+// ¿El evento (con su regla de repetición) ocurre el día d?
+function ocurreEn(e, d) {
+  const k = key(d);
+  if (!e.repetir || e.repetir === 'nunca') return e.fecha === k;
+  if (k < e.fecha) return false;
+  if (e.repetirHasta && k > e.repetirHasta) return false;
+  const base = deKey(e.fecha);
+  const diff = diasEntre(base, d);
+  switch (e.repetir) {
+    case 'diario':    return true;
+    case 'semanal':   return diff % 7 === 0;
+    case 'quincenal': return diff % 14 === 0;
+    case 'mensual': {
+      const ultimo = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
+      return d.getDate() === Math.min(base.getDate(), ultimo);
+    }
+    default: return false;
+  }
+}
+
+// Eventos de un día, incluyendo repeticiones (cada ocurrencia lleva la fecha del día)
+const eventosDe = d => {
+  const k = key(d);
+  return eventos
+    .filter(e => ocurreEn(e, d))
+    .map(e => (e.fecha === k ? e : { ...e, fecha: k, esRepeticion: true }))
+    .sort(ordenEv);
+};
 // Cruce de horario: dos eventos del mismo día cuyos rangos se solapan.
 // Sin hora de fin se asume una duración de 30 minutos.
 const aMin = h => { const [H, M] = h.split(':').map(Number); return H * 60 + M; };
@@ -98,13 +136,17 @@ function rangoMin(ev) {
 function conflictoDe(data, ignorarId = null) {
   if (data.todoDia || !data.horaInicio) return null;
   const [a0, a1] = rangoMin(data);
-  return eventos.find(e => {
-    if (e.id === ignorarId || e.fecha !== data.fecha || e.todoDia || !e.horaInicio) return false;
+  return eventosDe(deKey(data.fecha)).find(e => {
+    if (e.id === ignorarId || e.todoDia || !e.horaInicio) return false;
     const [b0, b1] = rangoMin(e);
     return a0 < b1 && b0 < a1;
   }) || null;
 }
-const eventosEntre = (a, b) => { const ka = key(a), kb = key(b); return eventos.filter(e => e.fecha >= ka && e.fecha <= kb); };
+const eventosEntre = (a, b) => {
+  const out = [];
+  for (let d = new Date(a); d <= b; d = sumarDias(d, 1)) out.push(...eventosDe(d));
+  return out;
+};
 
 // ── Render general ──────────────────────────────────────────
 function render() {
@@ -136,7 +178,7 @@ function renderCabecera() {
   // Stats
   const l = lunesDe(h);
   const semana = eventosEntre(l, sumarDias(l, 6));
-  const pendientes = eventos.filter(e => e.tipo === 'tarea' && !e.hecho && e.fecha >= key(h));
+  const pendientes = eventos.filter(e => e.tipo === 'tarea' && !e.hecho && (e.fecha >= key(h) || (e.repetir && e.repetir !== 'nunca' && (!e.repetirHasta || e.repetirHasta >= key(h)))));
   $('agStatHoy').textContent = eventosDe(h).length;
   $('agStatSemana').textContent = semana.length;
   $('agStatPend').textContent = pendientes.length;
@@ -160,6 +202,7 @@ function evHTML(ev, conFecha = false) {
         <div class="ag-ev-title">${esc(ev.titulo)}</div>
         <div class="ag-ev-meta">
           <span class="ag-ev-tipo">${t.label}</span>
+          ${ev.repetir && ev.repetir !== 'nunca' ? `<span class="ag-ev-rep" title="${repetirInfo(ev.repetir).label}"><i class="fa-solid fa-repeat"></i>${repetirInfo(ev.repetir).corto}</span>` : ''}
           ${conFecha ? `<span class="ag-ev-dot">·</span><span>${fechaCorta(deKey(ev.fecha))}</span>` : ''}
         </div>
       </div>
@@ -328,6 +371,7 @@ function openDetalle(id) {
     <div class="mov-detail-rows">
       <div class="mov-detail-row"><span class="mov-detail-k"><i class="fa-regular fa-calendar"></i> Fecha</span><span class="mov-detail-v">${esc(fechaLarga(deKey(ev.fecha)))}</span></div>
       <div class="mov-detail-row"><span class="mov-detail-k"><i class="fa-regular fa-clock"></i> Hora</span><span class="mov-detail-v">${rangoHora(ev)}</span></div>
+      ${ev.repetir && ev.repetir !== 'nunca' ? `<div class="mov-detail-row"><span class="mov-detail-k"><i class="fa-solid fa-repeat"></i> Repite</span><span class="mov-detail-v">${repetirInfo(ev.repetir).label}${ev.repetirHasta ? ` · hasta ${fechaCorta(deKey(ev.repetirHasta))}` : ''}</span></div>` : ''}
     </div>
     ${imgs.length ? `
       <p class="mov-detail-label">Imágenes</p>
@@ -362,7 +406,7 @@ function confirmarEliminar(ev) {
     <div class="modal-handle"></div>
     <div class="confirm-icon"><i class="fa-solid fa-trash-can"></i></div>
     <h2 class="confirm-title">Eliminar evento</h2>
-    <p class="confirm-desc">¿Seguro que quieres eliminar <strong>${esc(ev.titulo)}</strong>? Esta acción no se puede deshacer.</p>
+    <p class="confirm-desc">¿Seguro que quieres eliminar <strong>${esc(ev.titulo)}</strong>?${ev.repetir && ev.repetir !== 'nunca' ? ' Se eliminarán todas sus repeticiones.' : ''} Esta acción no se puede deshacer.</p>
     <div class="confirm-btns">
       <button class="options-btn" id="agNo">Cancelar</button>
       <button class="options-btn danger" id="agSi"><i class="fa-solid fa-trash-can"></i><span>Eliminar</span></button>
@@ -412,6 +456,8 @@ function openForm(editId = null) {
   let tipo     = editing ? editing.tipo : 'reunion';
   let fecha    = editing ? deKey(editing.fecha) : new Date(fechaSel);
   let imagenes = editing ? [...(editing.imagenes || [])] : [];
+  let repetir  = editing?.repetir || 'nunca';
+  let repetirHasta = editing?.repetirHasta ? deKey(editing.repetirHasta) : null;
 
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
@@ -436,6 +482,15 @@ function openForm(editId = null) {
       <div class="form-group">
         <label class="form-label">Fecha</label>
         <button type="button" class="cat-select-btn" id="agFechaBtn"></button>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Repetir</label>
+        <button type="button" class="cat-select-btn" id="agRepetirBtn"></button>
+        <div class="ag-hasta" id="agHastaWrap" hidden>
+          <button type="button" class="cat-select-btn" id="agHastaBtn"></button>
+          <button type="button" class="ag-hasta-x" id="agHastaX" aria-label="Quitar fecha final" hidden><i class="fa-solid fa-xmark"></i></button>
+        </div>
       </div>
 
       <div class="form-group">
@@ -505,6 +560,32 @@ function openForm(editId = null) {
   };
   pintarFecha();
   fechaBtn.addEventListener('click', () => pickFecha(fecha, f => { fecha = f; pintarFecha(); }));
+
+  // Repetición
+  const hastaWrap = overlay.querySelector('#agHastaWrap');
+  const hastaBtn  = overlay.querySelector('#agHastaBtn');
+  const hastaX    = overlay.querySelector('#agHastaX');
+  const pintarHasta = () => {
+    hastaWrap.hidden = repetir === 'nunca';
+    hastaX.hidden = !repetirHasta;
+    hastaBtn.innerHTML = repetirHasta
+      ? `<span class="cat-select-icon" style="background:${ACCENT}22;color:${ACCENT};border-color:${ACCENT}45"><i class="fa-solid fa-flag-checkered"></i></span>
+         <span class="cat-select-name">Hasta el ${esc(fechaCorta(repetirHasta))}</span>
+         <i class="fa-solid fa-chevron-down cat-select-chev"></i>`
+      : `<span class="cat-select-icon"><i class="fa-solid fa-infinity"></i></span>
+         <span class="cat-select-name muted">Sin fecha final</span>
+         <i class="fa-solid fa-chevron-down cat-select-chev"></i>`;
+  };
+  initOpcionPicker({
+    btn: overlay.querySelector('#agRepetirBtn'),
+    opciones: REPETIR.map(r => ({ id: r.id, label: r.label, icon: r.icon })),
+    selected: repetir, accent: ACCENT,
+    eyebrow: 'Repetir', titulo: '¿Cada cuánto se repite?', placeholder: 'No se repite',
+    onSelect: id => { repetir = id; pintarHasta(); },
+  });
+  hastaBtn.addEventListener('click', () => pickFecha(repetirHasta || sumarDias(fecha, 30), f => { repetirHasta = f; pintarHasta(); }));
+  hastaX.addEventListener('click', () => { repetirHasta = null; pintarHasta(); });
+  pintarHasta();
 
   // Todo el día
   const todoDia = overlay.querySelector('#agTodoDia');
@@ -588,6 +669,8 @@ function openForm(editId = null) {
       horaInicio: todoDia.checked ? '' : horaInicio,
       horaFin:    todoDia.checked ? '' : horaFin,
       imagenes,
+      repetir,
+      repetirHasta: repetir !== 'nunca' && repetirHasta ? key(repetirHasta) : '',
       hecho: editing ? !!editing.hecho : false,
       creado: editing ? (editing.creado || Date.now()) : Date.now(),
     };
