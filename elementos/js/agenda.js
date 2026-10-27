@@ -845,7 +845,7 @@ function pickHora(inicial, { titulo = 'Hora', opcional = false, minimo = '', onP
   M = Math.round(M / 5) * 5; if (M === 60) { M = 0; H = (H + 1) % 24; }
   let pm = H >= 12;
   let h12 = H % 12 === 0 ? 12 : H % 12;
-  const HORAS = [12, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11];
+  const HORAS = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12];
   const MINS  = [0, 5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55];
 
   const overlay = document.createElement('div');
@@ -872,8 +872,9 @@ function pickHora(inicial, { titulo = 'Hora', opcional = false, minimo = '', onP
     <p class="hora-hint" id="horaHint"></p>
 
     <div class="modal-actions">
-      <button class="modal-cancel" id="horaCancel">Cancelar</button>
-      ${opcional ? `<button class="modal-cancel hora-clear" id="horaClear"><i class="fa-solid fa-xmark"></i> Sin hora de fin</button>` : ''}
+      ${opcional
+        ? `<button class="modal-cancel hora-clear" id="horaClear"><i class="fa-solid fa-xmark"></i> Sin hora de fin</button>`
+        : `<button class="modal-cancel" id="horaCancel">Cancelar</button>`}
       <button class="btn-primary" id="horaOk"><i class="fa-solid fa-check"></i> Confirmar</button>
     </div>
   </div>`;
@@ -898,7 +899,7 @@ function pickHora(inicial, { titulo = 'Hora', opcional = false, minimo = '', onP
 
   const close = () => { overlay.classList.add('closing'); overlay.classList.remove('active'); setTimeout(() => overlay.remove(), 320); };
   overlay.addEventListener('click', e => { if (e.target === overlay) close(); });
-  overlay.querySelector('#horaCancel').addEventListener('click', close);
+  overlay.querySelector('#horaCancel')?.addEventListener('click', close);
   overlay.querySelector('#horaClear')?.addEventListener('click', () => { onClear?.(); close(); });
   overlay.querySelector('#horaOk').addEventListener('click', () => {
     const v = valor();
