@@ -27,8 +27,25 @@ const REPETIR = [
   { id: 'semanal',   label: 'Cada semana',   corto: 'Cada semana',  icon: 'fa-solid fa-calendar-week' },
   { id: 'quincenal', label: 'Cada 15 días',  corto: 'Cada 15 días', icon: 'fa-solid fa-calendar-days' },
   { id: 'mensual',   label: 'Cada mes',      corto: 'Cada mes',     icon: 'fa-solid fa-calendar' },
+  { id: 'dias',      label: 'Días específicos', corto: 'Días elegidos', icon: 'fa-solid fa-list-check' },
 ];
 const repetirInfo = id => REPETIR.find(r => r.id === id) || REPETIR[0];
+const repetirTexto = ev => {
+  const r = repetirInfo(ev.repetir);
+  if (ev.repetir === 'dias') {
+    const dias = (ev.repetirDias || []).slice().sort((a, b) => a - b);
+    return dias.length ? dias.map(i => DIAS_CORTO[i]).join(' · ') : r.corto;
+  }
+  return r.corto;
+};
+
+const IMPORTANCIA = [
+  { id: 'baja',    label: 'Baja',    icon: 'fa-solid fa-angle-down',  color: '#9ca3af' },
+  { id: 'normal',  label: 'Normal',  icon: 'fa-solid fa-minus',       color: '#a78bfa' },
+  { id: 'alta',    label: 'Alta',    icon: 'fa-solid fa-angle-up',    color: '#fbbf24' },
+  { id: 'urgente', label: 'Urgente', icon: 'fa-solid fa-circle-exclamation', color: '#f87171' },
+];
+const importanciaInfo = id => IMPORTANCIA.find(i => i.id === id) || IMPORTANCIA[1];
 
 const MESES      = ['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
 const MESES_CORTO= ['ene','feb','mar','abr','may','jun','jul','ago','sep','oct','nov','dic'];
@@ -109,6 +126,7 @@ function ocurreEn(e, d) {
     case 'diario':    return true;
     case 'semanal':   return diff % 7 === 0;
     case 'quincenal': return diff % 14 === 0;
+    case 'dias':      return (e.repetirDias || []).includes(diaSemana(d));
     case 'mensual': {
       const ultimo = new Date(d.getFullYear(), d.getMonth() + 1, 0).getDate();
       return d.getDate() === Math.min(base.getDate(), ultimo);
@@ -196,13 +214,13 @@ function evHTML(ev, conFecha = false) {
         : ev.horaInicio ? `<span>${hora12(ev.horaInicio)}</span>${ev.horaFin ? `<span class="ag-ev-fin">${hora12(ev.horaFin)}</span>` : ''}`
         : '<span class="ag-ev-allday">—</span>'}
     </div>
-    <div class="ag-ev-card">
+    <div class="ag-ev-card${ev.importancia === 'urgente' ? ' urgente' : ''}">
       <span class="ag-ev-ico"><i class="${t.icon}"></i></span>
       <div class="ag-ev-body">
-        <div class="ag-ev-title">${esc(ev.titulo)}</div>
+        <div class="ag-ev-title">${esc(ev.titulo)}${ev.importancia && ev.importancia !== 'normal' ? `<span class="ag-ev-imp" style="--i:${importanciaInfo(ev.importancia).color}"><i class="${importanciaInfo(ev.importancia).icon}"></i>${importanciaInfo(ev.importancia).label}</span>` : ''}</div>
         <div class="ag-ev-meta">
           <span class="ag-ev-tipo">${t.label}</span>
-          ${ev.repetir && ev.repetir !== 'nunca' ? `<span class="ag-ev-rep" title="${repetirInfo(ev.repetir).label}"><i class="fa-solid fa-repeat"></i>${repetirInfo(ev.repetir).corto}</span>` : ''}
+          ${ev.repetir && ev.repetir !== 'nunca' ? `<span class="ag-ev-rep" title="${repetirInfo(ev.repetir).label}"><i class="fa-solid fa-repeat"></i>${repetirTexto(ev)}</span>` : ''}
           ${conFecha ? `<span class="ag-ev-dot">·</span><span>${fechaCorta(deKey(ev.fecha))}</span>` : ''}
         </div>
       </div>
@@ -366,12 +384,13 @@ function openDetalle(id) {
     <div class="mov-detail-head">
       <div class="mov-detail-icon"><i class="${t.icon}"></i></div>
       <span class="ag-detail-tipo">${t.label}${ev.tipo === 'tarea' ? (ev.hecho ? ' · completada' : ' · pendiente') : ''}</span>
+      ${ev.importancia && ev.importancia !== 'normal' ? `<span class="ag-detail-imp" style="--i:${importanciaInfo(ev.importancia).color}"><i class="${importanciaInfo(ev.importancia).icon}"></i> Importancia ${importanciaInfo(ev.importancia).label.toLowerCase()}</span>` : ''}
       <h2 class="ag-detail-title">${esc(ev.titulo)}</h2>
     </div>
     <div class="mov-detail-rows">
       <div class="mov-detail-row"><span class="mov-detail-k"><i class="fa-regular fa-calendar"></i> Fecha</span><span class="mov-detail-v">${esc(fechaLarga(deKey(ev.fecha)))}</span></div>
       <div class="mov-detail-row"><span class="mov-detail-k"><i class="fa-regular fa-clock"></i> Hora</span><span class="mov-detail-v">${rangoHora(ev)}</span></div>
-      ${ev.repetir && ev.repetir !== 'nunca' ? `<div class="mov-detail-row"><span class="mov-detail-k"><i class="fa-solid fa-repeat"></i> Repite</span><span class="mov-detail-v">${repetirInfo(ev.repetir).label}${ev.repetirHasta ? ` · hasta ${fechaCorta(deKey(ev.repetirHasta))}` : ''}</span></div>` : ''}
+      ${ev.repetir && ev.repetir !== 'nunca' ? `<div class="mov-detail-row"><span class="mov-detail-k"><i class="fa-solid fa-repeat"></i> Repite</span><span class="mov-detail-v">${ev.repetir === 'dias' ? repetirTexto(ev) : repetirInfo(ev.repetir).label}${ev.repetirHasta ? ` · hasta ${fechaCorta(deKey(ev.repetirHasta))}` : ''}</span></div>` : ''}
     </div>
     ${imgs.length ? `
       <p class="mov-detail-label">Imágenes</p>
@@ -458,6 +477,8 @@ function openForm(editId = null) {
   let imagenes = editing ? [...(editing.imagenes || [])] : [];
   let repetir  = editing?.repetir || 'nunca';
   let repetirHasta = editing?.repetirHasta ? deKey(editing.repetirHasta) : null;
+  let repetirDias  = editing?.repetirDias ? [...editing.repetirDias] : [diaSemana(fecha)];
+  let importancia  = editing?.importancia || 'normal';
 
   const overlay = document.createElement('div');
   overlay.className = 'modal-overlay';
@@ -480,6 +501,11 @@ function openForm(editId = null) {
       </div>
 
       <div class="form-group">
+        <label class="form-label">Importancia</label>
+        <button type="button" class="cat-select-btn" id="agImpBtn"></button>
+      </div>
+
+      <div class="form-group">
         <label class="form-label">Fecha</label>
         <button type="button" class="cat-select-btn" id="agFechaBtn"></button>
       </div>
@@ -487,6 +513,9 @@ function openForm(editId = null) {
       <div class="form-group">
         <label class="form-label">Repetir</label>
         <button type="button" class="cat-select-btn" id="agRepetirBtn"></button>
+        <div class="ag-dias" id="agDiasWrap" hidden>
+          ${DIAS_LETRA.map((l, i) => `<button type="button" class="ag-dia-btn" data-i="${i}" aria-label="${DIAS[i]}">${l}</button>`).join('')}
+        </div>
         <div class="ag-hasta" id="agHastaWrap" hidden>
           <button type="button" class="cat-select-btn" id="agHastaBtn"></button>
           <button type="button" class="ag-hasta-x" id="agHastaX" aria-label="Quitar fecha final" hidden><i class="fa-solid fa-xmark"></i></button>
@@ -550,6 +579,15 @@ function openForm(editId = null) {
     onSelect: id => { tipo = id; },
   });
 
+  // Importancia
+  initOpcionPicker({
+    btn: overlay.querySelector('#agImpBtn'),
+    opciones: IMPORTANCIA.map(i => ({ id: i.id, label: i.label, icon: i.icon })),
+    selected: importancia, accent: ACCENT,
+    eyebrow: 'Importancia', titulo: 'Nivel de importancia', placeholder: 'Normal',
+    onSelect: id => { importancia = id; },
+  });
+
   // Fecha
   const fechaBtn = overlay.querySelector('#agFechaBtn');
   const pintarFecha = () => {
@@ -565,7 +603,19 @@ function openForm(editId = null) {
   const hastaWrap = overlay.querySelector('#agHastaWrap');
   const hastaBtn  = overlay.querySelector('#agHastaBtn');
   const hastaX    = overlay.querySelector('#agHastaX');
+  const diasWrap = overlay.querySelector('#agDiasWrap');
+  const pintarDias = () => {
+    diasWrap.hidden = repetir !== 'dias';
+    diasWrap.querySelectorAll('.ag-dia-btn').forEach(b => b.classList.toggle('on', repetirDias.includes(parseInt(b.dataset.i))));
+  };
+  diasWrap.querySelectorAll('.ag-dia-btn').forEach(b => b.addEventListener('click', () => {
+    const i = parseInt(b.dataset.i);
+    repetirDias = repetirDias.includes(i) ? repetirDias.filter(x => x !== i) : [...repetirDias, i];
+    diasWrap.classList.remove('grid-error');
+    pintarDias();
+  }));
   const pintarHasta = () => {
+    pintarDias();
     hastaWrap.hidden = repetir === 'nunca';
     hastaX.hidden = !repetirHasta;
     hastaBtn.innerHTML = repetirHasta
@@ -654,6 +704,12 @@ function openForm(editId = null) {
     const tituloEl = overlay.querySelector('#agTitulo');
     const titulo = tituloEl.value.trim();
     if (!titulo) { tituloEl.focus(); tituloEl.classList.add('input-error'); return; }
+    if (repetir === 'dias' && !repetirDias.length) {
+      diasWrap.classList.add('grid-error');
+      diasWrap.scrollIntoView({ block: 'center', behavior: 'smooth' });
+      toast('Elige al menos un día de la semana');
+      return;
+    }
     if (!todoDia.checked && !horaInicio) {
       inicioBtn.classList.add('input-error');
       inicioBtn.scrollIntoView({ block: 'center', behavior: 'smooth' });
@@ -671,6 +727,8 @@ function openForm(editId = null) {
       imagenes,
       repetir,
       repetirHasta: repetir !== 'nunca' && repetirHasta ? key(repetirHasta) : '',
+      repetirDias: repetir === 'dias' ? repetirDias.slice().sort((a, b) => a - b) : [],
+      importancia,
       hecho: editing ? !!editing.hecho : false,
       creado: editing ? (editing.creado || Date.now()) : Date.now(),
     };
